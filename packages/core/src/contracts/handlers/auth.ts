@@ -52,6 +52,10 @@ export async function authenticateWithApple(
       message: 'That sign-in could not be verified.',
     }, {
       now,
+      // The verifier is wired and it ran — this is a bad token, not a missing
+      // deployment. Reporting `source_available` here would tell Codex the
+      // endpoint is unbuilt when it is working exactly as intended.
+      state: 'configured',
       fallbackReason: `Apple identity token rejected: ${(cause as Error).message}`,
     });
   }
@@ -62,7 +66,11 @@ export async function authenticateWithApple(
     return fail(CONTRACT, CONTRACT_VERSION, {
       code: 'unauthenticated',
       message: 'That sign-in could not be verified.',
-    }, { now, fallbackReason: 'userIdentifier did not match the token subject' });
+    }, {
+      now,
+      state: 'configured',
+      fallbackReason: 'userIdentifier did not match the token subject',
+    });
   }
 
   const store = ports.store!;

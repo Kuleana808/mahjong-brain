@@ -8,12 +8,41 @@ sides review** — neither side pushes work across the line without one.
 - Handlers: [`packages/core/src/contracts/handlers/`](../packages/core/src/contracts/handlers/)
 - Tests that keep this honest: [`contracts.test.ts`](../packages/core/src/contracts/__tests__/contracts.test.ts)
 
+- Adapters: [`apps/api/src/adapters/`](../apps/api/src/adapters/)
+- Schema: [`supabase/migrations/`](../supabase/migrations/)
+
 Run them locally:
 
 ```bash
 npm run api          # http://localhost:5185
 curl "localhost:5185/api/game/board/generate?layout=turtle&seed=42"
 ```
+
+### A fully working local backend, no Supabase needed
+
+Contracts 3, 4, 9 and 10 light up completely against an in-process store:
+
+```bash
+NIHI_DEV_STORE=memory \
+SESSION_SIGNING_KEY=$(openssl rand -hex 32) \
+APPLE_BUNDLE_ID=com.nihi.mahjong \
+npm run api
+```
+
+Add `NIHI_DEV_STORE_FILE=./.nihi-dev-store.json` to survive restarts. The boot
+banner prints exactly which ports came up:
+
+```
+nihi contracts API on http://localhost:5185
+  store       in-memory (dev)
+  session     hs256
+  apple       verifying aud=com.nihi.mahjong
+  storekit    none — set APPLE_ROOT_CA_G3_BASE64, IAP_PRODUCT_ID (blocked on D-005)
+  contracts 1, 2, 5, 6, 7 need none of the above and are always live
+```
+
+Same handlers, same envelopes, same everything — only the row storage differs.
+`NIHI_DEV_STORE=memory` is ignored whenever real Supabase credentials are set.
 
 Production target is Supabase Edge Functions wrapping the same
 `handle()` from `apps/api/src/router.ts`. The dev server is Node's built-in
@@ -80,22 +109,42 @@ The recommendation is real and verified; the phrasing is the plain one.
 
 ## Readiness right now
 
-| # | Contract | State today | Blocked on |
-|---|---|---|---|
-| 1 | `GET /api/game/board/generate` | `live_verified` | — |
-| 2 | `POST /api/game/board/validate-move` | `live_verified` | — |
-| 3 | `POST /api/auth/apple-id` | `source_available` | Bundle id (D-001), Supabase |
-| 4 | `GET`/`PATCH /api/settings` | `source_available` | Supabase |
-| 5 | `POST /api/hints/generate` | `live_verified` | — |
-| 6 | `POST /api/play-pattern/log` | `live_verified` | — |
-| 7 | `GET /api/difficulty/next-board` | `live_verified` | — |
-| 8 | `POST /api/receipts/validate` | `source_available` | StoreKit bridge (D-005) |
-| 9 | `GET /api/unlock-status` | `source_available` | Supabase |
-| 10 | `POST /api/analytics/session` | `source_available` | Supabase |
+All ten are implemented. What varies is whether the credentials exist.
 
-**1, 2, 5, 6 and 7 are done and callable today.** They need no credentials and
-never will — they are pure functions of the request. Codex can build the whole
-play loop against them right now.
+| # | Contract | Out of the box | With the dev store | In production, needs |
+|---|---|---|---|---|
+| 1 | `GET /api/game/board/generate` | `live_verified` | `live_verified` | nothing |
+| 2 | `POST /api/game/board/validate-move` | `live_verified` | `live_verified` | nothing |
+| 3 | `POST /api/auth/apple-id` | `source_available` | **`configured`** | `APPLE_BUNDLE_ID` (D-001) + Supabase |
+| 4 | `GET`/`PATCH /api/settings` | `source_available` | **`configured`** | Supabase |
+| 5 | `POST /api/hints/generate` | `live_verified` | `live_verified` | nothing |
+| 6 | `POST /api/play-pattern/log` | `live_verified` | `live_verified` | nothing |
+| 7 | `GET /api/difficulty/next-board` | `live_verified` | `live_verified` | nothing |
+| 8 | `POST /api/receipts/validate` | `source_available` | `source_available` | Apple root CA + product id (D-005) |
+| 9 | `GET /api/unlock-status` | `source_available` | **`configured`** | Supabase |
+| 10 | `POST /api/analytics/session` | `source_available` | **`configured`** | Supabase |
+
+**1, 2, 5, 6 and 7 need no credentials and never will** — they are pure functions
+of the request.
+
+**3, 4, 9 and 10 work right now** against the dev store (see above). Real Apple
+identity tokens are verified for real; only the row storage is in-process.
+
+**8 is the one that stays dark**, deliberately. It needs Apple Root CA G3 pinned,
+and it fails closed until it has it — see below.
+
+### `state` distinguishes "not deployed" from "you sent something wrong"
+
+This matters for reading the table above. A working verifier rejecting a bad
+token answers `configured` with an `unauthenticated` error. An endpoint nobody
+has deployed answers `source_available` with `not_configured`. Both are 4xx/5xx,
+and they mean completely different things:
+
+| You see | It means |
+|---|---|
+| `source_available` + `not_configured` | Nobody has set the keys. Not your bug. |
+| `configured` + `unauthenticated` | The endpoint works. Your token was refused. |
+| `configured` + `unverified_transaction` | The verifier works. That transaction failed it. |
 
 ---
 
@@ -203,11 +252,21 @@ There is no trust-the-client path — the same account carries the purchase
 unlock. Apple's `sub` is the key; the email may be a relay address and is never
 used as an identifier.
 
-**Today:** returns `source_available` with
-`fallback_reason: "Not configured in this environment. Missing: APPLE_BUNDLE_ID
-(blocked on D-001, the final app name), SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY,
-SESSION_SIGNING_KEY."` (HTTP 503). Request-shape validation still runs first, so
-a malformed token gets `invalid_request` even while unconfigured.
+**Implemented and testable now.** With `APPLE_BUNDLE_ID` set and the dev store
+running, real identity tokens are verified for real: JWKS fetched from
+`https://appleid.apple.com/auth/keys` and cached for a day, RS256 signature
+checked, `kid` re-fetched once on a miss in case Apple rotated, `iss` and `aud`
+and `exp` all enforced, `alg` pinned so `alg: none` and algorithm confusion are
+closed.
+
+Rejections answer `configured` + `unauthenticated` with the player-safe message
+*"That sign-in could not be verified."* — the actual reason goes in
+`fallback_reason`, never in `message`, because the endpoint is otherwise an
+oracle for probing tokens.
+
+Without `APPLE_BUNDLE_ID` it answers `source_available` + `not_configured` and
+names what is missing (HTTP 503). Request-shape validation runs first either
+way, so a malformed token gets `invalid_request` even while unconfigured.
 
 ---
 
@@ -394,10 +453,41 @@ Pyramid to Dragon, and a player hovering near a boundary keeps the same shape.
 > All four of those are asserted in `contracts.test.ts`, including one that
 > greps the entire unconfigured response for `"unlocked":true`.
 
-A failed signature returns `unverified_transaction` with a player-safe message
-("That purchase could not be verified. Try Restore Purchases."). The verifier's
-internals go in `fallback_reason`, never in `message` — the endpoint is an
-oracle otherwise.
+A failed signature returns `configured` + `unverified_transaction` with a
+player-safe message ("That purchase could not be verified. Try Restore
+Purchases."). The verifier's internals go in `fallback_reason`, never in
+`message` — the endpoint is an oracle otherwise.
+
+### What the verifier actually does
+
+A StoreKit 2 signed transaction is a JWS carrying its own certificate chain in
+the `x5c` header. **Verifying the signature alone proves nothing** — the
+certificate that signed it also came from the caller, so anyone can generate a
+key, self-issue a certificate, sign a transaction saying whatever they like, and
+watch it verify perfectly.
+
+So the order is: parse → walk the `x5c` chain, checking each link actually signs
+the next → confirm the chain terminates at **our pinned Apple Root CA G3** →
+verify the leaf signature → and only then read the payload. Then check the
+payload is for our `bundleId` and our `productId`, because a genuine verified
+transaction for somebody else's app is still not our unlock.
+
+There is a test for each of those as an attack: an attacker-rooted chain, a chain
+with a forged link, a tampered payload, another app's product, another app's
+bundle, and a future-dated purchase.
+
+### Configuring it
+
+| Variable | Where it comes from |
+|---|---|
+| `APPLE_ROOT_CA_G3_BASE64` | [apple.com/certificateauthority](https://www.apple.com/certificateauthority/), base64 of `AppleRootCA-G3.cer` |
+| `IAP_PRODUCT_ID` | `com.nihi.mahjong.lifetime` |
+| `APPLE_BUNDLE_ID` | blocked on D-001 |
+
+**Pin the root; never fetch it at runtime.** A root you download at boot is a
+root an attacker who controls the network can replace. A malformed pin fails at
+construction, so a bad deployment breaks at boot rather than on the first
+customer's purchase.
 
 ---
 
@@ -467,11 +557,44 @@ anything that survives a reinstall.
 
 ---
 
+## Data that gets stored
+
+`supabase/migrations/0001_init.sql`. Four tables, deliberately no more.
+
+| Table | Holds | Notably does not hold |
+|---|---|---|
+| `accounts` | Apple's opaque `sub`, a uuid, a timestamp | email, name, anything reversible to a person |
+| `settings` | the settings blob, a revision | anything about play |
+| `unlocks` | one verified purchase per account | payment details |
+| `session_analytics` | counts and durations | **no `account_id` column** |
+
+Three choices worth knowing about:
+
+- **`unlocks.original_transaction_id` is UNIQUE.** One purchase cannot unlock two
+  accounts. That is receipt sharing, and the constraint belongs in the database
+  rather than in application code that someone might refactor around.
+- **`session_analytics` has no account column, on purpose.** Adding one later
+  would silently turn an anonymous count into a behavioural profile, so the
+  column does not exist to be added by accident.
+- **RLS is on with no permissive policies.** The API uses the service-role key
+  and enforces ownership itself, by only ever querying an `accountId` that came
+  out of a verified session token. Deny-by-default is the backstop for anything
+  that ever reaches these tables with an anon key.
+
+Migrations are **append-only**. Never edit a file that has run anywhere.
+
+---
+
 ## Notes for Codex
 
 - **Build the play loop against 1, 2, 5, 6, 7 today.** They are pure and need no
-  credentials. 3, 4, 8, 9, 10 answer in their final shape with honest states, so
-  you can wire the UI now and it will light up when the infrastructure lands.
+  credentials.
+- **3, 4, 9 and 10 also work today** — start the API with `NIHI_DEV_STORE=memory`
+  and you have real sign-in, real settings sync and real unlock lookup against an
+  in-process store. Nothing about the request or response shape changes when
+  Supabase lands.
+- **8 is the only one still dark**, and it fails closed. Do not build a UI path
+  that treats a `not_configured` receipt response as a purchase.
 - **Render `fallback_reason` nowhere.** It is diagnostic. The player-safe string
   is always `error.message`.
 - **Do not gate the paywall on contract 9.** The device entitlement is

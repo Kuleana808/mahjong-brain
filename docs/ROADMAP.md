@@ -20,35 +20,46 @@ the work is findable from where it happens.
 - **`packages/core`** — game engine and AI hint routing extracted, runtime-
   agnostic, importable as `@nihi/core`.
 - **The ten contracts** — shapes, handlers, 5-state envelope, dev server.
-  1, 2, 5, 6 and 7 are `live_verified` and callable today.
+- **The adapters** — Apple identity verification, HMAC sessions, StoreKit 2 JWS
+  with full `x5c` chain validation, a Supabase store over PostgREST, and an
+  in-process dev store. 1, 2, 5, 6, 7 are live; 3, 4, 9, 10 work today against
+  the dev store; 8 fails closed until its root is pinned.
+- **The schema** — `supabase/migrations/0001_init.sql`, append-only, RLS on.
 
 ---
 
 ## Claude Code — next
 
-### C1 — Supabase project and the four blocked contracts
+### C1 — Stand up the Supabase project
 
-Unblocks 3, 4, 9, 10 in one go. Free tier.
+The adapters are written and tested. What is missing is a project to point them
+at. Free tier.
 
-- Postgres schema, append-only migrations: `accounts`, `settings`, `unlocks`,
-  `sessions_analytics`.
-- Real `StorePort` and `SessionPort` adapters behind the existing interfaces —
-  the handlers do not change, only the ports get implementations.
-- Apple identity-token verification: JWKS fetch and cache, signature check,
-  issuer, audience, expiry. Audience is the bundle id, so this needs **D-001**.
-- Row-level security so an account can only ever read its own row.
+- Create the project; run `supabase/migrations/0001_init.sql`.
+- Set `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` and contracts 4, 9 and 10 go
+  from the dev store to real rows with no code change.
+- Set `APPLE_BUNDLE_ID` and contract 3 goes live — the Apple verifier is already
+  written, tested against real signatures, and only needs an audience to check.
+- Deploy `handle()` as an Edge Function. The router is transport-independent and
+  the adapters use `fetch`, not the Supabase SDK, so this is packaging, not a
+  port.
 
 Blocked on: **D-001** (bundle id) and a Supabase project existing.
 
-### C2 — StoreKit 2 receipt validation for real
+### C2 — Turn on StoreKit verification
 
-- Implement `StoreKitPort`: JWS parse, leaf certificate extraction, chain
-  validation to Apple's Root CA G3, payload checks.
+The verifier is written and tested against generated chains, including the
+attack cases. What is missing is the pinned root and the product id.
+
+- Download Apple Root CA G3, base64 it into `APPLE_ROOT_CA_G3_BASE64`.
+- Set `IAP_PRODUCT_ID`.
 - App Store Server Notifications V2 endpoint, so refunds and family-sharing
-  removal revoke the unlock without the app having to ask.
-- Sandbox verification against a real test purchase.
+  removal revoke the unlock without the app having to ask. Same verifier.
+- Verify against a real sandbox purchase — that is what moves contract 8 from
+  `configured` to `live_verified`.
 
-Blocked on: **D-005** (which StoreKit bridge Codex ships against).
+Blocked on: **D-005** (which StoreKit bridge Codex ships against) and an App
+Store Connect record.
 
 ### C3 — Coach the mistake, not just the move
 

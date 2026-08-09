@@ -65,10 +65,11 @@ async function requireAccount(
 
   const accountId = await ports.session!.verify(sessionToken);
   if (!accountId) {
+    // Configured and working; the caller simply is not signed in.
     return fail(CONTRACT, CONTRACT_VERSION, {
       code: 'unauthenticated',
       message: 'Sign in to sync your settings across devices.',
-    }, { now });
+    }, { now, state: 'configured' });
   }
   return { accountId };
 }

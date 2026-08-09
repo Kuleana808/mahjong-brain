@@ -12,17 +12,20 @@
 
 import { createServer } from 'node:http';
 
-import type { Ports } from '@nihi/core/contracts';
+import { createPorts } from './config';
 import { handle } from './router';
 
 const PORT = Number(process.env.PORT ?? 5185);
 
 /**
- * No store, no session, no Apple, no StoreKit. That is the whole point: the
- * endpoints that need them must degrade honestly rather than pretend.
- * Wire real adapters in here when the credentials exist (D-001, D-005).
+ * Ports come from the environment, and every one of them is optional. Whatever
+ * is not configured stays absent, and the handlers that need it answer
+ * `source_available` naming the missing key. Nothing is faked.
+ *
+ * For a fully working local backend without Supabase:
+ *   NIHI_DEV_STORE=memory SESSION_SIGNING_KEY=$(openssl rand -hex 32) npm run api
  */
-const ports: Ports = {};
+const { ports, lines } = createPorts();
 
 const server = createServer((req, res) => {
   const url = new URL(req.url ?? '/', `http://localhost:${PORT}`);
@@ -95,6 +98,6 @@ const server = createServer((req, res) => {
 
 server.listen(PORT, () => {
   console.info(`nihi contracts API on http://localhost:${PORT}`);
-  console.info('No store, session, Apple or StoreKit adapter is wired — contracts 3, 4, 8, 9 and 10');
-  console.info('will answer source_available with a fallback_reason naming what is missing.');
+  for (const line of lines) console.info(`  ${line}`);
+  console.info('  contracts 1, 2, 5, 6, 7 need none of the above and are always live');
 });

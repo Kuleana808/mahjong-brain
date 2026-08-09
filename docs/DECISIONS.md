@@ -204,3 +204,48 @@ shuts itself down — no branch deleted, no infrastructure torn down, no
 "we're closing" message to a real user — without Brent saying so first.
 
 Brent, verbatim: *"Don't give kill instructions. I want to be able to iterate."*
+
+---
+
+## D-012 — WebCrypto only, no crypto libraries · **SETTLED**
+
+Apple identity tokens and StoreKit transactions both need real signature
+verification. The obvious moves would be `jose` for JWS and Node's
+`crypto.X509Certificate` for the chain. Neither is used, and the reason is
+portability, not purity: `apps/api` is a dev server today and a **Supabase Edge
+Function** in production, and Edge Functions do not have Node's `crypto` module.
+WebCrypto exists in Node, in Deno, in workerd and in the browser.
+
+So the code is WebCrypto plus about 130 lines of DER reading
+(`apps/api/src/adapters/crypto/der.ts`) for the one thing WebCrypto cannot do:
+parse a certificate. The same files run unmodified in both places.
+
+What that buys and costs:
+
+- **Buys:** no dependency to audit, no supply-chain surface on the path that
+  guards the paywall, and one implementation instead of two.
+- **Costs:** we own the DER reader. It is deliberately minimal — it reads four
+  fields and refuses everything else — and it must not grow into a general
+  ASN.1 library. If it needs to, take the dependency instead.
+
+Tested with real keys, real signatures and real certificate chains generated in
+the test, including the attacks each check exists to stop: a token minted for
+another app, a self-rooted certificate chain, a forged chain link, a tampered
+payload, `alg: none`, and a purchase for someone else's product.
+
+---
+
+## D-013 — An in-process dev store, so Codex is not blocked on Supabase · **SETTLED**
+
+Contracts 3, 4, 9 and 10 all need somewhere to put rows, and there is no
+Supabase project yet (D-001 blocks part of it). Rather than leave four endpoints
+dark while Codex builds sign-in and paywall UI against them, `StorePort` has a
+second implementation that keeps everything in process, optionally persisted to
+a JSON file.
+
+`NIHI_DEV_STORE=memory` turns it on. It is ignored whenever real Supabase
+credentials are present, so it cannot be reached in production by accident.
+
+The important property: **nothing else changes.** Same handlers, same envelopes,
+same request and response shapes, same real Apple token verification. Only the
+row storage differs. When Supabase lands, Codex's UI does not move.

@@ -290,6 +290,27 @@ describe('purchases fail closed', () => {
     expect(JSON.stringify(envelope)).not.toMatch(/"unlocked":true/);
   });
 
+  it('distinguishes "not deployed" from "bad transaction" in the state', async () => {
+    // Codex reads `state` to know whether an endpoint is worth calling. A
+    // working verifier rejecting a bad token must not look like an unbuilt
+    // endpoint, and an unbuilt endpoint must not look like a working one.
+    const unconfigured = await validateReceipt({ signedTransaction: 'a.b.c' }, fixed);
+    expect(unconfigured.state).toBe('source_available');
+    expect(unconfigured.error?.code).toBe('not_configured');
+
+    const configured = await validateReceipt({ signedTransaction: 'a.b.c' }, {
+      ...fixed,
+      store: stubStore(),
+      storekit: {
+        verifySignedTransaction: async () => {
+          throw new Error('nope');
+        },
+      },
+    });
+    expect(configured.state).toBe('configured');
+    expect(configured.error?.code).toBe('unverified_transaction');
+  });
+
   it('a failed verification returns unlocked false, not an unlock', async () => {
     const ports: Ports = {
       ...fixed,
@@ -426,6 +447,13 @@ describe('settings sync', () => {
     expect(written.data!.settings.fontScale).toBe(1.45);
     expect(written.data!.revision).toBe(1);
     expect((await getSettings('token', ports)).data!.settings.fontScale).toBe(1.45);
+  });
+
+  it('reports configured, not source_available, for a signed-out caller', async () => {
+    const ports = withAccount();
+    const envelope = await getSettings(null, ports);
+    expect(envelope.state).toBe('configured');
+    expect(envelope.error?.code).toBe('unauthenticated');
   });
 
   it('refuses a value outside the contract instead of coercing it', async () => {

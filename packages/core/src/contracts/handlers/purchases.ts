@@ -49,7 +49,7 @@ export async function validateReceipt(
 
   const missing: string[] = [];
   if (!ports.storekit) {
-    missing.push('APPLE_ROOT_CA_G3 + APP_STORE_ISSUER_ID + APP_STORE_KEY_ID (blocked on D-005)');
+    missing.push('APPLE_ROOT_CA_G3_BASE64 + IAP_PRODUCT_ID + APPLE_BUNDLE_ID (blocked on D-005)');
   }
   if (!ports.store) missing.push('SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY');
   if (missing.length > 0) {
@@ -66,6 +66,8 @@ export async function validateReceipt(
       message: 'That purchase could not be verified. Try Restore Purchases.',
     }, {
       now,
+      // Verifier present and running; this transaction failed it.
+      state: 'configured',
       fallbackReason: `StoreKit transaction rejected: ${(cause as Error).message}`,
     });
   }
