@@ -16,7 +16,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react
 import { freeTiles, openSides, type Tile } from '../../packages/core/src/game/board';
 import { faceName } from '../../packages/core/src/game/tiles';
 import { computeView, tileRect, paintOrder, type View } from '../render/geometry';
-import { render } from '../render/boardRenderer';
+import { render, type TileMotion } from '../render/boardRenderer';
 import { PALETTES } from '../render/palette';
 import { useGame } from '../state/store';
 
@@ -29,6 +29,8 @@ export function BoardView() {
 
   const wrapRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const previousBoardRef = useRef(board);
+  const animationRef = useRef<number | null>(null);
   const [view, setView] = useState<View | null>(null);
   const [box, setBox] = useState({ w: 0, h: 0 });
 
@@ -49,18 +51,49 @@ export function BoardView() {
     const canvas = canvasRef.current;
     if (!canvas || !board || box.w === 0 || box.h === 0) return;
 
-    const live = board.tiles.filter((t) => board.remaining.has(t.id));
-    const nextView = render(canvas, {
-      board,
-      palette,
-      selectedId,
-      hintedIds: hint ? [hint.pair[0].id, hint.pair[1].id] : [],
-      freeIds: new Set(freeTiles(board).map((t) => t.id)),
-      dimBlocked: settings.dimBlocked,
-    });
-    setView(nextView);
-    void live;
-  }, [board, palette, selectedId, hint, settings.dimBlocked, box]);
+    if (animationRef.current !== null) cancelAnimationFrame(animationRef.current);
+
+    const previous = previousBoardRef.current;
+    const removed =
+      previous && previous.seed === board.seed
+        ? [...previous.remaining].filter((id) => !board.remaining.has(id))
+        : [];
+    const animateMatch = !settings.reduceMotion && removed.length === 2;
+    const startedAt = performance.now();
+    const duration = 180;
+
+    const paint = (now: number) => {
+      const progress = animateMatch ? Math.min(1, (now - startedAt) / duration) : 1;
+      const eased = 1 - Math.pow(1 - progress, 3);
+      const motion = new Map<number, TileMotion>();
+      if (animateMatch) {
+        for (const id of removed) motion.set(id, { alpha: 1 - eased, lift: 1 + eased * 0.35 });
+      }
+
+      const presentationBoard = animateMatch && progress < 1 ? previous! : board;
+      const nextView = render(canvas, {
+        board: presentationBoard,
+        palette,
+        selectedId,
+        hintedIds: hint ? [hint.pair[0].id, hint.pair[1].id] : [],
+        freeIds: new Set(freeTiles(board).map((t) => t.id)),
+        dimBlocked: settings.dimBlocked,
+        motion,
+      });
+      setView(nextView);
+
+      if (animateMatch && progress < 1) animationRef.current = requestAnimationFrame(paint);
+      else animationRef.current = null;
+    };
+
+    animationRef.current = requestAnimationFrame(paint);
+    previousBoardRef.current = board;
+
+    return () => {
+      if (animationRef.current !== null) cancelAnimationFrame(animationRef.current);
+      animationRef.current = null;
+    };
+  }, [board, palette, selectedId, hint, settings.dimBlocked, settings.reduceMotion, box]);
 
   const moveFocus = useCallback(
     (from: Tile, direction: 'up' | 'down' | 'left' | 'right') => {
