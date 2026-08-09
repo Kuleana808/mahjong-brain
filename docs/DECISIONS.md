@@ -139,3 +139,68 @@ silently.
 
 Brief said React 18; `create-vite` ships 19 and nothing in the app depends on
 18-only behaviour. Downgrading would be strictly worse.
+
+---
+
+## D-009 — Boards are seed-only, not server-authoritative · **SETTLED**
+
+The brief left contract 1 open: "server-authoritative or seed-only". It is
+**seed-only**.
+
+A server-authoritative board needs a session before the first tile appears and a
+round trip before the first tap. That breaks two non-negotiables simultaneously:
+*no login required for free play*, and *one tap to start*. Neither survives a
+spinner on a train.
+
+A seed plus a layout reproduces the board exactly and deterministically on any
+device, offline. The server can still verify any position later by replaying the
+same seed — which is exactly what contract 2 does, with no server-side session
+state at all.
+
+The objection is that the client can see the whole board. True, and irrelevant:
+single player, no leaderboard, no score, no currency, nobody to cheat. Revisit
+only if a competitive mode ever appears.
+
+---
+
+## D-010 — Two-agent split, contracts as the seam · **SETTLED (Brent, 2026-08-09)**
+
+| | Owns |
+|---|---|
+| **Claude Code** | `packages/core/**`, `apps/api/**`, auth, settings sync, AI routing, StoreKit receipt validation, `site/`, `docs/` |
+| **Codex** | `apps/mobile/**`, `ios/**`, tile rendering, calm-first visual language, accessibility, StoreKit UI and paywall screen, TestFlight |
+
+Consequences already applied:
+
+- The game engine and AI routing moved from `src/` to `packages/core/`. Nothing
+  in `src/render`, `src/ui`, `src/state` or `ios/` was edited to do it —
+  tooling updated the import paths, and `@nihi/core` is the supported entry
+  point going forward.
+- Every endpoint answers in the 5-state envelope, so Codex can build against
+  contracts that are not configured yet and see exactly what is missing.
+- `main` protected, `-claude` and `codex/*` branch prefixes,
+  `--force-with-lease`, PR-only, green CI before merge, and a 24-hour
+  same-file deferral rule in both directions.
+
+The tile renderer question (PixiJS vs Canvas) now belongs to Codex. D-002 records
+why Canvas won the first evaluation and what would justify revisiting it; the
+decision is theirs to keep or overturn.
+
+---
+
+## D-011 — The day-30 threshold is an iteration trigger, not a kill switch · **SETTLED (Brent, 2026-08-09)**
+
+Superseded: the earlier "D30 retention < 25% or paid conversion < 3% → the
+project is killed."
+
+Now: at day 30 post-TestFlight, if either number misses, **pause**. Report the
+miss and the underlying cause, put the options on the table — difficulty curve,
+paywall timing, audience, price, layouts, hint style — and Brent decides:
+iterate, pivot, park, or stop.
+
+The measurement bar is unchanged. What changed is what happens when it is hit:
+the threshold forces the conversation, it does not make the decision. Nothing
+shuts itself down — no branch deleted, no infrastructure torn down, no
+"we're closing" message to a real user — without Brent saying so first.
+
+Brent, verbatim: *"Don't give kill instructions. I want to be able to iterate."*

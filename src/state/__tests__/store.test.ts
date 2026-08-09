@@ -30,8 +30,8 @@ vi.mock('../../render/boardRenderer', () => ({
   clearFaceCache: () => undefined,
 }));
 
-const { availableMoves, freeTiles } = await import('../../game/board');
-const { createRng } = await import('../../game/rng');
+const { availableMoves, freeTiles } = await import('../../../packages/core/src/game/board');
+const { createRng } = await import('../../../packages/core/src/game/rng');
 const { MockPurchases, setPurchases } = await import('../../iap');
 const { PAYWALL_AFTER_BOARDS, useGame, DEFAULT_SETTINGS } = await import('../store');
 

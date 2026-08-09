@@ -12,8 +12,8 @@
  * a redraw is 144 `drawImage` calls.
  */
 
-import type { BoardState, Tile } from '../game/board';
-import type { TileFace } from '../game/tiles';
+import type { BoardState, Tile } from '../../packages/core/src/game/board';
+import type { TileFace } from '../../packages/core/src/game/tiles';
 import { computeView, paintOrder, SIDE_DEPTH, tileRect, type View } from './geometry';
 import type { Palette } from './palette';
 import { drawFace } from './tileArt';

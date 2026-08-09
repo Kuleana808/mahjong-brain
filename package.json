@@ -12,7 +12,9 @@
     "test:watch": "vitest",
     "typecheck": "tsc -b --noEmit false",
     "ios:sync": "npm run build && npx cap sync ios",
-    "ios:open": "npx cap open ios"
+    "ios:open": "npx cap open ios",
+    "api:dev": "npm --workspace @nihi/api run dev",
+    "api": "npm --workspace @nihi/api run start"
   },
   "dependencies": {
     "@capacitor/core": "^8.5.0",
@@ -32,8 +34,13 @@
     "@vitejs/plugin-react": "^6.0.4",
     "@vitest/coverage-v8": "^4.1.10",
     "oxlint": "^1.75.0",
+    "tsx": "^4.23.11",
     "typescript": "~6.0.2",
     "vite": "^8.2.0",
     "vitest": "^4.1.10"
-  }
+  },
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ]
 }

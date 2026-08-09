@@ -112,20 +112,43 @@ checklist:
   `prefers-reduced-motion` plus an in-app override.
 - Pinch-zoom is left enabled (WCAG 1.4.4). Every target is ≥44×44 px.
 
-## The kill signal
+## The iteration trigger
 
-Pre-committed, on purpose, before anyone is attached to it:
+Pre-committed, on purpose, before anyone is attached to the numbers:
 
 > **Day 30 after TestFlight — if D30 retention < 25% or paid conversion < 3% of
-> installs, the project is killed.**
+> installs, pause.** Report the miss and the underlying cause, put the iteration
+> options on the table, and Brent decides: iterate, pivot, park, or stop.
 
-Do not move the numbers after seeing the results.
+The threshold exists to force honest measurement, not to make the decision.
+Nothing shuts itself down: no branch gets deleted, no infrastructure gets torn
+down, and no "we're closing" message reaches a real user without Brent saying so
+first.
+
+Do not move the numbers after seeing the results — moving them is how you avoid
+the conversation the trigger is meant to start.
+
+## Who owns what
+
+Two agents build this, and contracts are the seam between them.
+
+| | Owns |
+|---|---|
+| **Claude Code** | `packages/core/**` game engine, `apps/api/**`, auth, settings sync, AI hint routing, StoreKit receipt validation, `site/` |
+| **Codex** | `apps/mobile/**`, `ios/**`, tile rendering, the calm-first visual language, accessibility, StoreKit UI and paywall screen, TestFlight |
+
+Neither side pushes across the line without an explicit contract change. The
+contracts live in [docs/api-contracts.md](docs/api-contracts.md) — that document
+is the interface, and changing a shape there is a PR both sides review.
 
 ## Contributing
 
-`main` is protected. Work on `<topic>-claude` branches, push with
-`--force-with-lease`, and open a PR. Roadmap is in
-[docs/ROADMAP.md](docs/ROADMAP.md).
+`main` is protected. Claude Code works on `<topic>-claude` branches, Codex on
+`codex/*`. Push with `--force-with-lease`, PR only, green CI before merge. Run
+`git status` before writing to a shared file, and if the other side touched it
+in the last 24 hours, defer.
+
+Roadmap is in [docs/ROADMAP.md](docs/ROADMAP.md).
 
 Any PR that adds an image asset to the tile pipeline must state where the asset
 came from. See D-006.

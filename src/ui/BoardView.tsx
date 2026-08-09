@@ -13,8 +13,8 @@
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 
-import { freeTiles, openSides, type Tile } from '../game/board';
-import { faceName } from '../game/tiles';
+import { freeTiles, openSides, type Tile } from '../../packages/core/src/game/board';
+import { faceName } from '../../packages/core/src/game/tiles';
 import { computeView, tileRect, paintOrder, type View } from '../render/geometry';
 import { render } from '../render/boardRenderer';
 import { PALETTES } from '../render/palette';

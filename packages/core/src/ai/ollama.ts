@@ -11,10 +11,9 @@
  * arrives now.
  */
 
+import { config } from '../env';
 import type { HintAnalysis } from './analysis';
 
-const HOST = import.meta.env.VITE_OLLAMA_HOST ?? 'http://localhost:11434';
-const MODEL = import.meta.env.VITE_OLLAMA_MODEL ?? 'gemma3:4b';
 const TIMEOUT_MS = 1500;
 const PROBE_TIMEOUT_MS = 400;
 
@@ -29,14 +28,19 @@ const SYSTEM_PROMPT = [
 
 let availability: Promise<boolean> | null = null;
 
+/** Test/host hook: forget the cached probe so config changes take effect. */
+export function resetOllamaProbe(): void {
+  availability = null;
+}
+
 /** Cached one-shot probe. Re-probed only on a full page load. */
 export function ollamaAvailable(): Promise<boolean> {
   if (availability) return availability;
 
   availability = (async () => {
-    if (import.meta.env.VITE_DISABLE_OLLAMA === 'true') return false;
+    if (!config().ollamaEnabled) return false;
     try {
-      const response = await fetch(`${HOST}/api/tags`, {
+      const response = await fetch(`${config().ollamaHost}/api/tags`, {
         signal: AbortSignal.timeout(PROBE_TIMEOUT_MS),
       });
       return response.ok;
@@ -62,12 +66,12 @@ export async function explainWithOllama(analysis: HintAnalysis): Promise<string 
   };
 
   try {
-    const response = await fetch(`${HOST}/api/generate`, {
+    const response = await fetch(`${config().ollamaHost}/api/generate`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       signal: AbortSignal.timeout(TIMEOUT_MS),
       body: JSON.stringify({
-        model: MODEL,
+        model: config().ollamaModel,
         system: SYSTEM_PROMPT,
         prompt: JSON.stringify(payload),
         stream: false,

@@ -8,7 +8,7 @@
 
 import { create } from 'zustand';
 
-import { getHint, type Hint } from '../ai/hintCoach';
+import { getHint, type Hint } from '../../packages/core/src/ai/hintCoach';
 import {
   availableMoves,
   freeTiles,
@@ -17,16 +17,16 @@ import {
   removePair,
   undoLast,
   type BoardState,
-} from '../game/board';
-import { canReshuffle, deal, reshuffle } from '../game/deal';
+} from '../../packages/core/src/game/board';
+import { canReshuffle, deal, reshuffle } from '../../packages/core/src/game/deal';
 import {
   chooseLayout,
   INITIAL_PROFILE,
   recordOutcome,
   type SkillProfile,
-} from '../game/difficulty';
-import type { LayoutId } from '../game/layouts';
-import { randomSeed } from '../game/rng';
+} from '../../packages/core/src/game/difficulty';
+import type { LayoutId } from '../../packages/core/src/game/layouts';
+import { randomSeed } from '../../packages/core/src/game/rng';
 import { purchases } from '../iap';
 import { clearFaceCache } from '../render/boardRenderer';
 import { PALETTES, type ThemeName } from '../render/palette';

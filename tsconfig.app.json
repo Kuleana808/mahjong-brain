@@ -4,7 +4,7 @@
     "target": "es2023",
     "lib": ["ES2023", "DOM"],
     "module": "esnext",
-    "types": ["vite/client"],
+    "types": ["vite/client", "node"],
     "allowArbitraryExtensions": true,
     "skipLibCheck": true,
 
@@ -16,11 +16,18 @@
     "noEmit": true,
     "jsx": "react-jsx",
 
+    /* Workspace resolution. `@nihi/core` is the supported entry point for the
+       shared engine — prefer it over deep relative paths into packages/. */
+    "paths": {
+      "@nihi/core": ["./packages/core/src/index.ts"],
+      "@nihi/core/*": ["./packages/core/src/*"]
+    },
+
     /* Linting */
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src"]
+  "include": ["src", "packages/*/src", "apps/*/src"]
 }

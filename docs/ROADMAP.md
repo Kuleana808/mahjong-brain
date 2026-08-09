@@ -1,73 +1,90 @@
 # Roadmap to TestFlight
 
-Scaffold is done. What follows is the next three PRs, in order, each shippable
-on its own. Target is TestFlight in 2–4 weeks.
+Two agents build this. Contracts are the seam — see
+[api-contracts.md](api-contracts.md) and D-010.
 
-The same TODOs are marked at their call sites in the code so they are findable
-from where the work happens, not only from here.
+| | Owns |
+|---|---|
+| **Claude Code** | `packages/core/**`, `apps/api/**`, auth, settings sync, AI routing, receipt validation, `site/`, `docs/` |
+| **Codex** | `apps/mobile/**`, `ios/**`, tile rendering, visual language, accessibility, StoreKit UI, TestFlight |
 
----
-
-## PR 2 — Make it feel like a real board
-
-*The scaffold plays correctly. It does not yet feel good under a thumb.*
-
-- **Tile lift and land.** The one animation the brief allows: 120ms lift on
-  select, land on match. Nothing else moves. Must no-op under reduced motion.
-- **Match feedback.** Matched tiles fade rather than vanish, so the eye can
-  follow what left the board.
-- **Board fill on start.** Tiles arrive in construction order over ~600ms. This
-  is the "board fills → play" beat in the brief; it is also the only moment in
-  the app where motion is doing narrative work.
-- **Portrait/landscape reflow** without a redeal — the deal is seed-based, so
-  this is a view concern only.
-- **Real app icon and launch screen.** Currently Capacitor defaults.
-- Golden-image tests for the tile art, so a refactor cannot silently change a
-  face.
-
-Files: `src/render/`, `src/ui/BoardView.tsx`, `ios/App/App/Assets.xcassets`.
+Target is TestFlight in 2–4 weeks. TODOs are marked at the call sites too, so
+the work is findable from where it happens.
 
 ---
 
-## PR 3 — Coach the mistake, not just the move
+## Done
 
-*Right now the coach explains the move it recommends. The teachable moment is
-the move the player is about to get wrong.*
-
-- **Look-ahead on player intent.** When the tapped pair is legal but strands the
-  other two tiles of its group, say so *before* the move: "those two work, but
-  the other two 3 of Bamboo are under the stack." Offer it, do not block it.
-- **Stuck prediction.** Warn one move before a deadlock is unavoidable, once,
-  quietly. No modal.
-- **Hint escalation.** First tap points at a region. Second tap on the same
-  position names the tiles. Nobody gets handed the answer on the first ask.
-- Wire `getHint` into the coach's second mode; extend `HintAnalysis` with the
-  candidate move rather than only the recommended one.
-
-Files: `src/ai/analysis.ts`, `src/ai/hintCoach.ts` (TODO is marked there),
-`src/ai/localExplainer.ts`.
+- **Scaffold** — playable board end to end, 87 tests, iOS builds clean on
+  Xcode 26.
+- **`packages/core`** — game engine and AI hint routing extracted, runtime-
+  agnostic, importable as `@nihi/core`.
+- **The ten contracts** — shapes, handlers, 5-state envelope, dev server.
+  1, 2, 5, 6 and 7 are `live_verified` and callable today.
 
 ---
 
-## PR 4 — Ship the unlock and get onto TestFlight
+## Claude Code — next
 
-*Everything above is playable without an Apple developer account. This is the
-part that is not.*
+### C1 — Supabase project and the four blocked contracts
 
-- **Resolve D-005** (StoreKit bridge) and implement `Purchases` for real.
-  Recommendation in the doc is an in-house StoreKit 2 plugin.
-- **Restore purchases** verified on a second device and a fresh install — App
-  Review checks this and rejects for it.
-- **StoreKit configuration file** so the paywall can be tested in the simulator
-  without a sandbox account.
-- **Supabase project** for optional settings/unlock sync. Free tier. Opt-in, and
-  never a precondition for playing — no login for free play, ever. TODO is
-  marked in `src/state/persist.ts`.
-- **App Store Connect record**, screenshots, privacy nutrition label (it is
-  genuinely "no data collected" — keep it that way), age rating.
-- First TestFlight build, internal testers only.
+Unblocks 3, 4, 9, 10 in one go. Free tier.
 
-Files: `src/iap/`, `src/state/persist.ts`, `ios/`.
+- Postgres schema, append-only migrations: `accounts`, `settings`, `unlocks`,
+  `sessions_analytics`.
+- Real `StorePort` and `SessionPort` adapters behind the existing interfaces —
+  the handlers do not change, only the ports get implementations.
+- Apple identity-token verification: JWKS fetch and cache, signature check,
+  issuer, audience, expiry. Audience is the bundle id, so this needs **D-001**.
+- Row-level security so an account can only ever read its own row.
+
+Blocked on: **D-001** (bundle id) and a Supabase project existing.
+
+### C2 — StoreKit 2 receipt validation for real
+
+- Implement `StoreKitPort`: JWS parse, leaf certificate extraction, chain
+  validation to Apple's Root CA G3, payload checks.
+- App Store Server Notifications V2 endpoint, so refunds and family-sharing
+  removal revoke the unlock without the app having to ask.
+- Sandbox verification against a real test purchase.
+
+Blocked on: **D-005** (which StoreKit bridge Codex ships against).
+
+### C3 — Coach the mistake, not just the move
+
+The coach explains the move it recommends. The teachable moment is the move the
+player is about to get wrong.
+
+- Look-ahead on player intent: when the tapped pair is legal but strands the
+  other two of its group, say so *before* the move. Offer it, do not block it.
+- Warn one move before an unavoidable deadlock. Once, quietly, no modal.
+- Hint escalation: first tap points at a region, second names the tiles. Nobody
+  gets the answer on the first ask.
+- Extends `HintAnalysis` with the *candidate* move, not only the recommended
+  one. TODO is marked in `packages/core/src/ai/hintCoach.ts`.
+
+Not blocked. Can start now.
+
+### C4 — Marketing site live
+
+Static, one page, already written in `site/`. Needs a domain — **D-004** — and
+nothing has been purchased.
+
+---
+
+## Codex — next (theirs to schedule)
+
+Listed so the two roadmaps interlock, not to assign work.
+
+- Tile lift and land; board fill on start. The one place motion earns its keep.
+- Real app icon and launch screen (currently Capacitor defaults).
+- Portrait/landscape reflow without a redeal — the deal is seed-based, so this
+  is a view concern only.
+- Move rendering and UI into `apps/mobile/`, importing `@nihi/core`.
+- Paywall and Restore Purchases UI against contracts 8 and 9. **Do not gate on
+  contract 9** — the device entitlement is authoritative.
+- WCAG 2.1 AA pass on the web build.
+- TestFlight submission cycle.
 
 ---
 
@@ -75,12 +92,11 @@ Files: `src/iap/`, `src/state/persist.ts`, `ios/`.
 
 Listed so they do not creep in:
 
-- More layouts. Three is enough to validate; the difficulty ladder needs rungs,
-  not variety.
-- Android. Capacitor gives it to us nearly free, but it splits review attention.
-- Sound. Would need original audio, which is a commissioning decision.
-- Any form of account, leaderboard, or social feature.
-- Anything that nudges a player to return — that is the whole point.
+- More layouts. Three is enough to validate; the ladder needs rungs, not variety.
+- Android. Capacitor nearly gives it to us, but it splits review attention.
+- Sound. Original audio is a commissioning decision.
+- Any account, leaderboard, or social feature.
+- Anything that nudges a player to return. That is the whole point.
 
 ---
 
@@ -90,6 +106,18 @@ See [DECISIONS.md](DECISIONS.md).
 
 | | Blocks |
 |---|---|
-| **D-001** final app name | App Store record, and it is permanent |
-| **D-004** domain purchase | marketing site going live |
-| **D-005** StoreKit bridge | PR 4 |
+| **D-001** final app name | C1, and the App Store record is permanent |
+| **D-004** domain — both candidates were available, nothing bought | C4 |
+| **D-005** StoreKit bridge | C2 |
+
+---
+
+## Day 30 after TestFlight
+
+If D30 retention < 25% or paid conversion < 3% of installs: **pause**. Report
+the miss and the cause, surface the options — difficulty curve, paywall timing,
+audience, price, layouts, hint style — and Brent decides: iterate, pivot, park,
+or stop.
+
+The threshold forces the conversation. It does not make the decision, and
+nothing shuts itself down on its own. See D-011.
