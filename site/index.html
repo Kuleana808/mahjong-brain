@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Nihi Mahjong — mahjong without the ads</title>
+    <meta
+      name="description"
+      content="Solitaire mahjong with no ads, no timers, no streaks and no daily nagging. One quiet board, and a hint coach that teaches you to see the pattern. $4.99 once."
+    />
+    <meta name="theme-color" content="#EDE8DE" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#191B1E" media="(prefers-color-scheme: dark)" />
+    <meta property="og:title" content="Nihi Mahjong — mahjong without the ads" />
+    <meta
+      property="og:description"
+      content="No ads. No timers. No streaks. One quiet board at a time, and a coach that teaches. $4.99 once."
+    />
+    <meta property="og:type" content="website" />
+    <link rel="icon" href="data:," />
+
+    <style>
+      /*
+       * One page, one offer, one button. Self-contained so it can deploy to any
+       * static host the moment the domain question (D-004) is settled.
+       */
+      :root {
+        --felt: #ede8de;
+        --felt-edge: #e3dccf;
+        --surface: #fbf8f2;
+        --ink: #33302a;
+        --ink-soft: #6b655b;
+        --edge: #b9af9c;
+        --accent: #2e6f6a;
+        --measure: 34rem;
+        color-scheme: light dark;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --felt: #191b1e;
+          --felt-edge: #131518;
+          --surface: #2a2d31;
+          --ink: #e8e4dc;
+          --ink-soft: #a7a199;
+          --edge: #43484e;
+          --accent: #6fc0b8;
+        }
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        padding: clamp(2rem, 8vw, 6rem) 1.5rem;
+        background: radial-gradient(120% 80% at 50% 0%, var(--felt) 0%, var(--felt-edge) 100%);
+        color: var(--ink);
+        font: 400 clamp(1rem, 0.95rem + 0.3vw, 1.125rem) / 1.65 ui-rounded, 'SF Pro Rounded',
+          -apple-system, 'Segoe UI', system-ui, sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      main {
+        max-width: var(--measure);
+        margin: 0 auto;
+      }
+
+      h1 {
+        margin: 0 0 0.6rem;
+        font-size: clamp(2.25rem, 1.6rem + 3vw, 3.5rem);
+        font-weight: 600;
+        line-height: 1.08;
+        letter-spacing: -0.02em;
+        text-wrap: balance;
+      }
+
+      .lede {
+        margin: 0 0 3.5rem;
+        font-size: clamp(1.125rem, 1rem + 0.6vw, 1.375rem);
+        color: var(--ink-soft);
+        text-wrap: pretty;
+      }
+
+      h2 {
+        margin: 3.5rem 0 0.75rem;
+        font-size: 1.0625rem;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--ink-soft);
+      }
+
+      p {
+        margin: 0 0 1.1rem;
+        text-wrap: pretty;
+      }
+
+      ul {
+        margin: 0 0 1.1rem;
+        padding: 0;
+        list-style: none;
+      }
+
+      li {
+        position: relative;
+        padding: 0.3rem 0 0.3rem 1.6rem;
+      }
+
+      li::before {
+        content: '';
+        position: absolute;
+        left: 0.35rem;
+        top: 1.1em;
+        transform: translateY(-50%);
+        width: 0.45rem;
+        height: 0.45rem;
+        border-radius: 50%;
+        background: var(--accent);
+      }
+
+      .card {
+        margin: 2.5rem 0;
+        padding: 2.25rem 1.75rem;
+        border: 1px solid color-mix(in srgb, var(--edge) 50%, transparent);
+        border-radius: 1.5rem;
+        background: var(--surface);
+        text-align: center;
+      }
+
+      .card .price {
+        display: block;
+        font-size: clamp(2.75rem, 2rem + 3vw, 3.75rem);
+        font-weight: 600;
+        line-height: 1;
+        letter-spacing: -0.03em;
+      }
+
+      .card .once {
+        display: block;
+        margin: 0.5rem 0 1.75rem;
+        color: var(--ink-soft);
+      }
+
+      .cta {
+        display: inline-block;
+        min-width: 15rem;
+        min-height: 52px;
+        padding: 0.9rem 2rem;
+        border-radius: 0.875rem;
+        background: var(--accent);
+        color: #fff;
+        font-weight: 600;
+        text-decoration: none;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        .cta {
+          color: #10201f;
+        }
+      }
+
+      .cta:focus-visible {
+        outline: 3px solid var(--ink);
+        outline-offset: 3px;
+      }
+
+      .cta-note {
+        margin: 0.9rem 0 0;
+        font-size: 0.9375rem;
+        color: var(--ink-soft);
+      }
+
+      .not {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+        gap: 0.5rem;
+        margin: 0 0 1.1rem;
+        padding: 0;
+        list-style: none;
+      }
+
+      .not li {
+        padding: 0.7rem 0.9rem;
+        border: 1px solid color-mix(in srgb, var(--edge) 40%, transparent);
+        border-radius: 0.75rem;
+        color: var(--ink-soft);
+        text-align: center;
+      }
+
+      .not li::before {
+        content: none;
+      }
+
+      footer {
+        margin-top: 4.5rem;
+        padding-top: 1.75rem;
+        border-top: 1px solid color-mix(in srgb, var(--edge) 35%, transparent);
+        font-size: 0.9375rem;
+        color: var(--ink-soft);
+      }
+
+      footer a {
+        color: inherit;
+      }
+    </style>
+  </head>
+
+  <body>
+    <main>
+      <h1>Mahjong, with nothing in the way.</h1>
+      <p class="lede">
+        Solitaire mahjong for people who want to think, not to be sold to. No ads. No timers. No
+        streaks. No reason to come back tomorrow except that you felt like it.
+      </p>
+
+      <h2>What it is</h2>
+      <p>
+        The classic tile game — turtle, pyramid, dragon — with large, high-contrast tiles you can
+        actually read, and a coach that teaches you to see the board instead of handing you the
+        answer.
+      </p>
+      <p>
+        Ask for a hint and it does not point at two tiles. It says: <em>look at the top-right — the
+        two bamboo threes. Taking them releases three more underneath.</em> After a few boards you
+        stop needing to ask.
+      </p>
+
+      <h2>What it is not</h2>
+      <ul class="not">
+        <li>No ads</li>
+        <li>No timers</li>
+        <li>No streaks</li>
+        <li>No energy</li>
+        <li>No daily rewards</li>
+        <li>No account</li>
+      </ul>
+      <p>
+        Not in the free version either. There is no free version, in the usual sense — the game is
+        the game, and one payment removes the only thing we ever ask you for.
+      </p>
+
+      <h2>The board adjusts to you</h2>
+      <p>
+        Quietly. It notices how long you take and how often you ask for help, and picks a board that
+        fits. It will never tell you it did that, and there is no difficulty setting to get wrong.
+      </p>
+
+      <div class="card">
+        <span class="price">$4.99</span>
+        <span class="once">Once. Not a subscription.</span>
+
+        <a class="cta" href="#testflight">Get on TestFlight</a>
+        <p class="cta-note">Free to download and play. The unlock is optional, and it is the only one.</p>
+      </div>
+
+      <h2>Accessibility</h2>
+      <ul>
+        <li>Three text sizes, applied to everything including the board</li>
+        <li>A high-contrast theme, and a dark one</li>
+        <li>Every tile is told apart by shape and number as well as colour</li>
+        <li>Fully playable by keyboard, and readable by VoiceOver</li>
+      </ul>
+
+      <footer>
+        <p>
+          Nihi Mahjong is an independent game. It is not affiliated with, endorsed by, or derived
+          from any other mahjong app. All artwork is original.
+        </p>
+        <p>
+          Made in Hawai&#699;i. <em>Nihi</em> means quiet.
+        </p>
+      </footer>
+    </main>
+  </body>
+</html>

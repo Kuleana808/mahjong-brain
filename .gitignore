@@ -1,0 +1,42 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# --- Capacitor / iOS -------------------------------------------------------
+# The web build is copied into the native project on every `cap sync`; it is
+# generated, so it does not belong in git.
+ios/App/App/public
+ios/App/App/capacitor.config.json
+ios/App/App/config.xml
+ios/DerivedData
+*.xcuserstate
+xcuserdata/
+ios/App/Pods
+ios/App/Podfile.lock
+
+# --- Local ------------------------------------------------------------------
+.env
+.env.*
+!.env.example
+coverage
