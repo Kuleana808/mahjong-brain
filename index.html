@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <!--
+      viewport-fit=cover so the board can sit under the notch; the app shell
+      pads itself back out with env(safe-area-inset-*).
+      maximum-scale is deliberately NOT set — pinch-zoom stays available, which
+      WCAG 1.4.4 requires and which this audience actually uses.
+    -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#EDE8DE" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#191B1E" media="(prefers-color-scheme: dark)" />
+    <meta
+      name="description"
+      content="Nihi Mahjong — solitaire mahjong with no ads, no timers, and no daily nagging. One quiet board at a time."
+    />
+    <title>Nihi Mahjong</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
