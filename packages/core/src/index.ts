@@ -1,5 +1,5 @@
 /**
- * `@nihi/core` — everything both sides of the build share.
+ * `@mahjong-brain/core` — everything both sides of the build share.
  *
  * Ownership: this package is Claude Code's. The rendering layer, the native
  * shell and the UI are Codex's, under `apps/mobile/**` and `ios/**`. The two

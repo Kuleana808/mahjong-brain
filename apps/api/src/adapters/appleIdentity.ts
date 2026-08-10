@@ -18,7 +18,7 @@
  * throws.
  */
 
-import type { AppleIdentityPort, VerifiedAppleIdentity } from '@nihi/core/contracts';
+import type { AppleIdentityPort, VerifiedAppleIdentity } from '@mahjong-brain/core/contracts';
 
 import { parseJws, verifyRs256 } from './crypto/jws';
 

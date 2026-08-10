@@ -1,4 +1,4 @@
--- Nihi Mahjong — initial schema.
+-- Mahjong Brain — initial schema.
 --
 -- APPEND-ONLY MIGRATIONS. Never edit a file that has run anywhere; add a new
 -- one. This file is 0001 and should stay exactly as it is once applied.

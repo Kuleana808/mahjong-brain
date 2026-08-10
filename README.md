@@ -1,11 +1,12 @@
-# Nihi Mahjong
+# Mahjong Brain
 
 Tile-matching solitaire with a four-slot holder, built as a **functional-parity
 clone of the category leader with entirely original art** — then iterated on
 live data.
 
-*Nihi* is Hawaiian for quiet. The name is provisional — see
-[docs/DECISIONS.md](docs/DECISIONS.md), D-001.
+Name locked 2026-08-09 (D-001). The **bundle id is not** — it becomes the App
+Store record permanently, so it stays on a placeholder until it is chosen. See
+[docs/DECISIONS.md](docs/DECISIONS.md).
 
 ---
 

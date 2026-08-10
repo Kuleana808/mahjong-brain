@@ -1,13 +1,19 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 /**
- * NOTE: `appId` and `appName` are provisional — the final name is Brent's call
- * (docs/DECISIONS.md, D-001). Changing `appId` after the first TestFlight build
- * means a new App Store record, so settle it before the first upload.
+ * `appName` is settled: Mahjong Brain (D-001, locked 2026-08-09).
+ *
+ * `appId` is NOT. It becomes the App Store record and cannot be changed
+ * afterwards without a new listing, so it stays on the old value until Brent
+ * picks — deliberately, rather than being guessed at and then changed twice.
+ * Candidates and the trade-offs are in D-001.
+ *
+ * The iOS project carries its own copy of both (Info.plist, project.pbxproj).
+ * That is Codex's side of the line and is not updated here.
  */
 const config: CapacitorConfig = {
   appId: 'com.nihi.mahjong',
-  appName: 'Nihi Mahjong',
+  appName: 'Mahjong Brain',
   webDir: 'dist',
   ios: {
     // The felt colour, so there is no white flash behind the board while the

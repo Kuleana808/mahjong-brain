@@ -8,7 +8,7 @@
  *
  * Optionally persists to a JSON file so a restart does not wipe the state you
  * were mid-test on. Never used in production: `createPorts` only reaches for
- * this when `NIHI_DEV_STORE=memory` is set explicitly.
+ * this when `MAHJONG_BRAIN_DEV_STORE=memory` is set explicitly.
  */
 
 import { readFileSync, writeFileSync } from 'node:fs';
@@ -19,7 +19,7 @@ import type {
   StorePort,
   SyncedSettings,
   UnlockRecord,
-} from '@nihi/core/contracts';
+} from '@mahjong-brain/core/contracts';
 
 interface Snapshot {
   accounts: AccountRecord[];

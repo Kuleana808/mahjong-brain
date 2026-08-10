@@ -25,8 +25,8 @@ import {
   validateReceipt,
   type ContractEnvelope,
   type Ports,
-} from '@nihi/core/contracts';
-import { fail } from '@nihi/core/contracts';
+} from '@mahjong-brain/core/contracts';
+import { fail } from '@mahjong-brain/core/contracts';
 
 export interface ApiRequest {
   readonly method: string;

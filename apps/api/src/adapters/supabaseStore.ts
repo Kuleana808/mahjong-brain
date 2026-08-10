@@ -21,7 +21,7 @@ import type {
   StorePort,
   SyncedSettings,
   UnlockRecord,
-} from '@nihi/core/contracts';
+} from '@mahjong-brain/core/contracts';
 
 export interface SupabaseStoreOptions {
   readonly url: string;

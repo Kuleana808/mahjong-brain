@@ -1,5 +1,5 @@
 {
-  "name": "@nihi/api",
+  "name": "@mahjong-brain/api",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -9,6 +9,6 @@
     "start": "tsx src/server.ts"
   },
   "dependencies": {
-    "@nihi/core": "*"
+    "@mahjong-brain/core": "*"
   }
 }

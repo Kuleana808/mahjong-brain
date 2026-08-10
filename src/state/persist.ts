@@ -12,7 +12,7 @@
 
 import { Preferences } from '@capacitor/preferences';
 
-const KEY = 'nihi.state.v1';
+const KEY = 'mahjongbrain.state.v1';
 
 export interface PersistedState {
   readonly version: 1;

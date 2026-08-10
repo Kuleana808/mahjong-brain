@@ -11,7 +11,7 @@
  * rejected.
  */
 
-import type { SessionPort } from '@nihi/core/contracts';
+import type { SessionPort } from '@mahjong-brain/core/contracts';
 
 import { base64UrlToBytes, bytesToBase64Url, toArrayBuffer } from './crypto/jws';
 

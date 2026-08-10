@@ -18,14 +18,14 @@ the work is findable from where it happens.
 - **Scaffold** — playable board end to end, 87 tests, iOS builds clean on
   Xcode 26.
 - **`packages/core`** — game engine and AI hint routing extracted, runtime-
-  agnostic, importable as `@nihi/core`.
+  agnostic, importable as `@mahjong-brain/core`.
 - **The ten contracts** — shapes, handlers, 5-state envelope, dev server.
 - **The adapters** — Apple identity verification, HMAC sessions, StoreKit 2 JWS
   with full `x5c` chain validation, a Supabase store over PostgREST, and an
   in-process dev store. 1, 2, 5, 6, 7 are live; 3, 4, 9, 10 work today against
   the dev store; 8 fails closed until its root is pinned.
 - **The schema** — `supabase/migrations/`, append-only, RLS on, cohort views.
-- **The holder mechanic** (D-015) — `@nihi/core/play`, the parity loop.
+- **The holder mechanic** (D-015) — `@mahjong-brain/core/play`, the parity loop.
 - **Instrumentation** (contract 11) — closed event catalogue covering every
   onboarding screen, tap, holder fill, ad and IAP funnel step, plus D1/D7/D30
   cohort views.
@@ -109,14 +109,14 @@ Listed so the two roadmaps interlock, not to assign work. The parity doctrine
 
 - **The holder** (D-015). A four-slot tray, tiles animating into it, the fill
   state, the loss state, and the Revive offer at the moment the fourth slot
-  fills. `@nihi/core/play` gives you the whole state machine.
+  fills. `@mahjong-brain/core/play` gives you the whole state machine.
 - **Onboarding, beat for beat** — age gate, TOS-accept modal, motivational
   loading quote, progressive tutorial with confetti on the first cleared pair.
 - **Ad and IAP surfaces** — Revive prompt, Hint rewarded-video prompt, Shuffle
-  store. `PRODUCT_CATALOGUE` in `@nihi/core/contracts` is the source of truth.
+  store. `PRODUCT_CATALOGUE` in `@mahjong-brain/core/contracts` is the source of truth.
 - **Daily reward and streak UI** against contract 12.
 - Real app icon and launch screen; portrait/landscape reflow without a redeal.
-- Move rendering and UI into `apps/mobile/`, importing `@nihi/core`.
+- Move rendering and UI into `apps/mobile/`, importing `@mahjong-brain/core`.
 - WCAG 2.1 AA pass. **Accessibility is not retired by the parity doctrine** —
   it is part of the creative half, which stays ours.
 - TestFlight submission cycle.

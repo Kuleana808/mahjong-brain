@@ -16,11 +16,11 @@
     "noEmit": true,
     "jsx": "react-jsx",
 
-    /* Workspace resolution. `@nihi/core` is the supported entry point for the
+    /* Workspace resolution. `@mahjong-brain/core` is the supported entry point for the
        shared engine — prefer it over deep relative paths into packages/. */
     "paths": {
-      "@nihi/core": ["./packages/core/src/index.ts"],
-      "@nihi/core/*": ["./packages/core/src/*"]
+      "@mahjong-brain/core": ["./packages/core/src/index.ts"],
+      "@mahjong-brain/core/*": ["./packages/core/src/*"]
     },
 
     /* Linting */

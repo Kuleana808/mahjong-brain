@@ -13,6 +13,9 @@
  * wired up everywhere and the paywall is fully playable in the simulator.
  */
 
+// PLACEHOLDER — derived from the bundle id, which is still Brent's call (D-001).
+// Superseded in spirit by PRODUCT_CATALOGUE in @mahjong-brain/core; both change
+// together once the bundle id is locked.
 export const PRODUCT_ID = 'com.nihi.mahjong.lifetime';
 export const PRICE_DISPLAY = '$4.99';
 

@@ -12,7 +12,7 @@
 
 import { beforeAll, describe, expect, it } from 'vitest';
 
-import type { Ports } from '@nihi/core/contracts';
+import type { Ports } from '@mahjong-brain/core/contracts';
 
 import { createAppleIdentityPort } from '../adapters/appleIdentity';
 import { createMemoryStore } from '../adapters/memoryStore';

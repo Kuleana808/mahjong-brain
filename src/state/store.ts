@@ -394,7 +394,7 @@ async function tap(): Promise<void> {
 // Dev-only handle, so a state that takes three boards to reach can be inspected
 // in one line from the console. Stripped from production builds.
 if (import.meta.env.DEV) {
-  (globalThis as Record<string, unknown>).__nihi = useGame;
+  (globalThis as Record<string, unknown>).__mahjongBrain = useGame;
 }
 
 /** Convenience selector: the palette for the current theme. */

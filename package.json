@@ -1,5 +1,5 @@
 {
-  "name": "nihi-mahjong",
+  "name": "mahjong-brain",
   "private": true,
   "version": "0.1.0",
   "type": "module",
@@ -13,8 +13,8 @@
     "typecheck": "tsc -b --noEmit false",
     "ios:sync": "npm run build && npx cap sync ios",
     "ios:open": "npx cap open ios",
-    "api:dev": "npm --workspace @nihi/api run dev",
-    "api": "npm --workspace @nihi/api run start"
+    "api:dev": "npm --workspace @mahjong-brain/api run dev",
+    "api": "npm --workspace @mahjong-brain/api run start"
   },
   "dependencies": {
     "@capacitor/core": "^8.5.0",
