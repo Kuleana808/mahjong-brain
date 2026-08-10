@@ -6,8 +6,8 @@
  * lives in one place and neither owns it.
  */
 
-import type { Cell } from '../game/layouts';
-import { LAYOUTS, type LayoutId } from '../game/layouts';
+import type { Cell } from '../../packages/core/src/game/layouts';
+import { LAYOUTS, type LayoutId } from '../../packages/core/src/game/layouts';
 
 /** Tile proportions. Slightly taller than wide, as a real tile is. */
 export const TILE_ASPECT = 1.32;

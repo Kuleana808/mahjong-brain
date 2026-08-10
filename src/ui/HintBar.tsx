@@ -6,7 +6,7 @@
  * appears — a board that moves under your finger is not calm.
  */
 
-import { canReshuffle } from '../game/deal';
+import { canReshuffle } from '../../packages/core/src/game/deal';
 import { useGame } from '../state/store';
 
 export function HintBar() {

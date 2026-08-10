@@ -20,10 +20,12 @@ export interface RouteRecord {
 const LOG_LIMIT = 50;
 const log: RouteRecord[] = [];
 
+import { config } from '../env';
+
 export function recordRoute(record: RouteRecord): void {
   log.push(record);
   if (log.length > LOG_LIMIT) log.shift();
-  if (import.meta.env.DEV) {
+  if (config().debug) {
     const suffix = record.fallbackFrom ? ` (fell back from ${record.fallbackFrom}: ${record.reason})` : '';
     console.info(`[hint] ${record.tier} in ${Math.round(record.latencyMs)}ms${suffix}`);
   }

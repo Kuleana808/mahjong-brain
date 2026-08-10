@@ -12,8 +12,8 @@
  * a redraw is 144 `drawImage` calls.
  */
 
-import type { BoardState, Tile } from '../game/board';
-import type { TileFace } from '../game/tiles';
+import type { BoardState, Tile } from '../../packages/core/src/game/board';
+import type { TileFace } from '../../packages/core/src/game/tiles';
 import { computeView, paintOrder, SIDE_DEPTH, tileRect, type View } from './geometry';
 import type { Palette } from './palette';
 import { drawFace } from './tileArt';
@@ -26,6 +26,14 @@ export interface RenderState {
   /** Ids to draw dimmed — everything that cannot be picked up right now. */
   readonly freeIds: ReadonlySet<number>;
   readonly dimBlocked: boolean;
+  /** Per-tile presentation used only during the short interaction animations. */
+  readonly motion?: ReadonlyMap<number, TileMotion>;
+}
+
+export interface TileMotion {
+  readonly alpha?: number;
+  /** 0 = resting, 1 = fully lifted. */
+  readonly lift?: number;
 }
 
 const faceCache = new Map<string, HTMLCanvasElement>();
@@ -145,28 +153,34 @@ export function render(canvas: HTMLCanvasElement, state: RenderState): View {
     const isHinted = hinted.has(tile.id);
     const isFree = state.freeIds.has(tile.id);
 
+    const motion = state.motion?.get(tile.id);
+    const lift = motion?.lift ?? (isSelected ? 1 : 0);
+    const liftY = rect.w * 0.075 * lift;
+    const drawY = rect.y - liftY;
+
     ctx.save();
+    ctx.globalAlpha *= motion?.alpha ?? 1;
     if (state.dimBlocked && !isFree && !isSelected && !isHinted) {
-      ctx.globalAlpha = state.palette.dimAlpha;
+      ctx.globalAlpha *= state.palette.dimAlpha;
     }
 
-    drawTileBody(ctx, rect.x, rect.y, rect.w, rect.h, state.palette, isSelected, tile.z);
+    drawTileBody(ctx, rect.x, drawY, rect.w, rect.h, state.palette, lift > 0, tile.z);
 
     ctx.save();
     ctx.beginPath();
-    ctx.roundRect(rect.x, rect.y, rect.w, rect.h, rect.w * 0.13);
+    ctx.roundRect(rect.x, drawY, rect.w, rect.h, rect.w * 0.13);
     ctx.clip();
     ctx.drawImage(
       faceCanvas(tile.face, state.palette, rect.w, rect.h, dpr),
       rect.x,
-      rect.y,
+      drawY,
       rect.w,
       rect.h,
     );
     ctx.restore();
 
-    if (isSelected) drawRing(ctx, rect.x, rect.y, rect.w, rect.h, state.palette.selected);
-    else if (isHinted) drawRing(ctx, rect.x, rect.y, rect.w, rect.h, state.palette.hinted);
+    if (isSelected) drawRing(ctx, rect.x, drawY, rect.w, rect.h, state.palette.selected);
+    else if (isHinted) drawRing(ctx, rect.x, drawY, rect.w, rect.h, state.palette.hinted);
 
     ctx.restore();
   }

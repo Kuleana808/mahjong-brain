@@ -1,0 +1,14 @@
+{
+  "name": "@nihi/api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Dev server for the ten contracts. Production target is Supabase Edge Functions wrapping the same router.",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "start": "tsx src/server.ts"
+  },
+  "dependencies": {
+    "@nihi/core": "*"
+  }
+}

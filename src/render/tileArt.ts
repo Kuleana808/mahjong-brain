@@ -19,8 +19,8 @@
  * and legibility beats tradition.
  */
 
-import type { TileFace } from '../game/tiles';
-import { DRAGON_NAMES, WIND_NAMES } from '../game/tiles';
+import type { TileFace } from '../../packages/core/src/game/tiles';
+import { DRAGON_NAMES, WIND_NAMES } from '../../packages/core/src/game/tiles';
 import { suitKey, type Palette } from './palette';
 
 type Ctx = CanvasRenderingContext2D;
