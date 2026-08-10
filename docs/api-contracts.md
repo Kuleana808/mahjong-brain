@@ -31,17 +31,17 @@ curl "localhost:5185/api/game/board/generate?layout=turtle&seed=42"
 Contracts 3, 4, 9 and 10 light up completely against an in-process store:
 
 ```bash
-NIHI_DEV_STORE=memory \
+MAHJONG_BRAIN_DEV_STORE=memory \
 SESSION_SIGNING_KEY=$(openssl rand -hex 32) \
 APPLE_BUNDLE_ID=com.nihi.mahjong \
 npm run api
 ```
 
-Add `NIHI_DEV_STORE_FILE=./.nihi-dev-store.json` to survive restarts. The boot
+Add `MAHJONG_BRAIN_DEV_STORE_FILE=./.mahjong-brain-dev-store.json` to survive restarts. The boot
 banner prints exactly which ports came up:
 
 ```
-nihi contracts API on http://localhost:5185
+mahjong-brain contracts API on http://localhost:5185
   store       in-memory (dev)
   session     hs256
   apple       verifying aud=com.nihi.mahjong
@@ -50,7 +50,7 @@ nihi contracts API on http://localhost:5185
 ```
 
 Same handlers, same envelopes, same everything — only the row storage differs.
-`NIHI_DEV_STORE=memory` is ignored whenever real Supabase credentials are set.
+`MAHJONG_BRAIN_DEV_STORE=memory` is ignored whenever real Supabase credentials are set.
 
 Production target is Supabase Edge Functions wrapping the same
 `handle()` from `apps/api/src/router.ts`. The dev server is Node's built-in
@@ -214,7 +214,7 @@ board, `removed` replays the history, and the resulting position is checked.
 > **The shipping mechanic is the four-slot holder (D-015), not direct pairs.**
 > This contract validates direct-pair moves and stays as it is so nothing that
 > already calls it breaks. The holder session lives in
-> [`@nihi/core/play`](../packages/core/src/play/session.ts) and runs entirely on
+> [`@mahjong-brain/core/play`](../packages/core/src/play/session.ts) and runs entirely on
 > the client — `startSession`, `tapTile`, `revive`, `shuffle`, `hintPair`. It is
 > deterministic and replayable from `(layout, seed, taps)`, so a server-side
 > holder validation contract can be added later from the same primitives if
@@ -712,7 +712,7 @@ Migrations are **append-only**. Never edit a file that has run anywhere.
 
 ## Notes for Codex
 
-- **The game is the holder now.** `@nihi/core/play` — `startSession`, `tapTile`,
+- **The game is the holder now.** `@mahjong-brain/core/play` — `startSession`, `tapTile`,
   `revive`, `shuffle`, `hintPair`, `HOLDER_CAPACITY`. It is pure, synchronous
   and fully tested; the UI work is a holder tray, a fill state, a loss state,
   and the Revive offer at the moment the fourth slot fills. The existing
@@ -723,7 +723,7 @@ Migrations are **append-only**. Never edit a file that has run anywhere.
   contract PR and I will add it.
 - **Build the play loop against 1, 2, 5, 6, 7 today.** They are pure and need no
   credentials.
-- **3, 4, 9 and 10 also work today** — start the API with `NIHI_DEV_STORE=memory`
+- **3, 4, 9 and 10 also work today** — start the API with `MAHJONG_BRAIN_DEV_STORE=memory`
   and you have real sign-in, real settings sync and real unlock lookup against an
   in-process store. Nothing about the request or response shape changes when
   Supabase lands.
@@ -735,8 +735,8 @@ Migrations are **append-only**. Never edit a file that has run anywhere.
   is always `error.message`.
 - **Do not gate the paywall on contract 9.** The device entitlement is
   authoritative; contract 9 is cross-device convenience.
-- **`@nihi/core` is the supported import path** for the shared engine —
-  `import { deal, availableMoves } from '@nihi/core'`. Deep relative paths into
+- **`@mahjong-brain/core` is the supported import path** for the shared engine —
+  `import { deal, availableMoves } from '@mahjong-brain/core'`. Deep relative paths into
   `packages/core/src/**` work but are not the contract; prefer the alias when you
   move rendering into `apps/mobile/`.
 - If you need a shape that is not here, open a contract PR rather than reaching

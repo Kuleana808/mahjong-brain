@@ -11,7 +11,7 @@
  * failure mode of guessing is worse than the failure mode of refusing.
  */
 
-import type { Ports } from '@nihi/core/contracts';
+import type { Ports } from '@mahjong-brain/core/contracts';
 
 import { createAppleIdentityPort } from './adapters/appleIdentity';
 import { createMemoryStore } from './adapters/memoryStore';
@@ -37,7 +37,7 @@ export function createPorts(): ConfigReport {
   // --- store ---------------------------------------------------------------
   const supabaseUrl = env('SUPABASE_URL');
   const serviceRoleKey = env('SUPABASE_SERVICE_ROLE_KEY');
-  const devStore = env('NIHI_DEV_STORE');
+  const devStore = env('MAHJONG_BRAIN_DEV_STORE');
 
   if (supabaseUrl && serviceRoleKey) {
     ports.store = createSupabaseStore({ url: supabaseUrl, serviceRoleKey });
@@ -47,12 +47,12 @@ export function createPorts(): ConfigReport {
       'store       DISABLED — only half the Supabase credentials are set; refusing to guess',
     );
   } else if (devStore === 'memory') {
-    ports.store = createMemoryStore({ file: env('NIHI_DEV_STORE_FILE') });
+    ports.store = createMemoryStore({ file: env('MAHJONG_BRAIN_DEV_STORE_FILE') });
     lines.push(
-      `store       in-memory (dev)${env('NIHI_DEV_STORE_FILE') ? ` → ${env('NIHI_DEV_STORE_FILE')}` : ''}`,
+      `store       in-memory (dev)${env('MAHJONG_BRAIN_DEV_STORE_FILE') ? ` → ${env('MAHJONG_BRAIN_DEV_STORE_FILE')}` : ''}`,
     );
   } else {
-    lines.push('store       none — set SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY, or NIHI_DEV_STORE=memory');
+    lines.push('store       none — set SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY, or MAHJONG_BRAIN_DEV_STORE=memory');
   }
 
   // --- session -------------------------------------------------------------

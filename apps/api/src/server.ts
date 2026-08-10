@@ -23,7 +23,7 @@ const PORT = Number(process.env.PORT ?? 5185);
  * `source_available` naming the missing key. Nothing is faked.
  *
  * For a fully working local backend without Supabase:
- *   NIHI_DEV_STORE=memory SESSION_SIGNING_KEY=$(openssl rand -hex 32) npm run api
+ *   MAHJONG_BRAIN_DEV_STORE=memory SESSION_SIGNING_KEY=$(openssl rand -hex 32) npm run api
  */
 const { ports, lines } = createPorts();
 
@@ -97,7 +97,7 @@ const server = createServer((req, res) => {
 });
 
 server.listen(PORT, () => {
-  console.info(`nihi contracts API on http://localhost:${PORT}`);
+  console.info(`mahjong-brain contracts API on http://localhost:${PORT}`);
   for (const line of lines) console.info(`  ${line}`);
   console.info('  contracts 1, 2, 5, 6, 7 need none of the above and are always live');
 });

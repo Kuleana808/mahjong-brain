@@ -54,7 +54,7 @@ export function Paywall() {
   const close = useGame((s) => s.closePaywall);
 
   return (
-    <Overlay label="Unlock Nihi Mahjong">
+    <Overlay label="Unlock Mahjong Brain">
       <h2>Keep it quiet, for good</h2>
       <p>You have played three boards. Here is the only thing we will ever ask.</p>
 

@@ -279,6 +279,13 @@ export interface ProductDefinition {
   readonly consumable: boolean;
 }
 
+/**
+ * PRODUCT IDS ARE PLACEHOLDERS. They still read `com.nihi.*` because they are
+ * derived from the bundle id, and the bundle id is the one part of the D-001
+ * rename that is NOT settled — it becomes the App Store record and is permanent
+ * once TestFlight sees it. Brent picks; then this list and `apps/api` env change
+ * together. See D-001.
+ */
 export const PRODUCT_CATALOGUE: readonly ProductDefinition[] = [
   { kind: 'revive', source: 'rewarded_ad', productId: null, consumable: true },
   { kind: 'hint', source: 'rewarded_ad', productId: null, consumable: true },

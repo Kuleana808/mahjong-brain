@@ -15,7 +15,7 @@
  * *something*; it is only our unlock if it is for our product.
  */
 
-import type { StoreKitPort, VerifiedTransaction } from '@nihi/core/contracts';
+import type { StoreKitPort, VerifiedTransaction } from '@mahjong-brain/core/contracts';
 
 import { base64ToBytes, parseJws, verifyEs256WithChain } from './crypto/jws';
 import { parseCertificate } from './crypto/der';

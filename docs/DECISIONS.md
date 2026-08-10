@@ -5,25 +5,43 @@ nobody relitigates it) or **needs Brent** (blocked on a call only he makes).
 
 ---
 
-## D-001 — Final app name · **NEEDS BRENT**
+## D-001 — Final app name · **LOCKED: Mahjong Brain** (Brent, 2026-08-09)
 
-Working name is **Nihi Mahjong** (*nihi* = quiet, in Hawaiian). Everything in the
-repo — bundle id `com.nihi.mahjong`, the marketing page, the `<title>` — uses it
-provisionally.
+Repo renamed to `Kuleana808/mahjong-brain` (GitHub redirects the old URLs, so
+existing clones and links keep working). Package scope is `@mahjong-brain/core`.
+Local path is `~/mahjong-brain`.
 
-Why it needs deciding before the first TestFlight upload: the bundle id creates
-the App Store record and cannot be changed afterwards without starting a new
-listing and losing the review history.
+### The bundle id is NOT locked, and stays unlocked on purpose
 
-What to weigh:
+Everything named `com.nihi.*` still reads that way — the product ids in
+`PRODUCT_CATALOGUE`, `appId` in `capacitor.config.ts`, and the iOS project. That
+is deliberate, not an oversight. The bundle id creates the App Store record and
+cannot be changed afterwards without a new listing, so guessing it and changing
+it twice is worse than leaving one obvious pending value.
 
-- `nihimahjong.com` is **available** as of 2026-08-09 (whois: no match). So is
-  `playnihi.com`. Neither has been bought — see D-004.
-- "Mahjong" in the name is worth keeping. It is the search term; "mahjong
-  without ads" is the wedge keyword and the incumbent owns the generic space.
-- No trademark search has been run yet. Do that before committing the name.
+Candidates:
 
----
+| | Notes |
+|---|---|
+| `com.mahjongbrain.game` | Reads best. Implies we own `mahjongbrain.com`, which **we do not** — see D-004. |
+| `com.kuleana.mahjongbrain` | Ties to a domain Brent controls. Reverse-DNS convention actually satisfied. |
+| `com.kuleana808.mahjongbrain` | Matches the GitHub org exactly. |
+
+Recommendation: **`com.kuleana.mahjongbrain`**. Apple does not verify domain
+ownership, so `com.mahjongbrain.game` would be accepted — but the convention is
+reverse-DNS of a domain you control, and `mahjongbrain.com` belongs to someone
+else. Naming ourselves after a domain another party registered three months ago
+is a bad look if the name is ever disputed.
+
+Changing it is a three-line change once decided: `capacitor.config.ts`,
+`PRODUCT_CATALOGUE`, and the `APPLE_BUNDLE_ID` env var (contract 3's audience).
+The iOS project is Codex's to update.
+
+### Still outstanding
+
+**No trademark search has been run on "Mahjong Brain".** Worth doing before the
+App Store record exists, and see the D-004 note — someone registered
+`mahjongbrain.com` in May 2026.
 
 ## D-002 — Canvas 2D over PixiJS · **SETTLED**
 
@@ -61,19 +79,26 @@ never ships in the app bundle — and the fix is upstream's to make.
 
 ---
 
-## D-004 — Domain purchase · **NEEDS BRENT (do not buy without a yes)**
+## D-004 — Domain · **NEEDS BRENT (nothing purchased)**
 
-Checked 2026-08-09, nothing purchased:
+Rechecked 2026-08-09 against the locked name:
 
-- `nihimahjong.com` — **available**
-- `playnihi.com` — **available**
-- `nihimahjong.app`, `nihi.game` — whois inconclusive, needs a registrar check
+| Domain | Status |
+|---|---|
+| `mahjongbrain.com` | **TAKEN** — registered 2026-05-25 via Dynadot, behind Cloudflare, currently serving a 404 |
+| `mahjongbrain.app` | whois inconclusive (the `.app` registry restricts it) — needs a registrar check |
+| `mahjongbrain.game` | **available** |
+| `mahjong-brain.com` | **available** |
 
-Per the standing spend rule, every purchase of any amount needs an explicit yes.
-A `.com` is roughly $12/year. The marketing page in `site/` is static and can
-deploy anywhere, so nothing is blocked while this waits.
+The `.com` being taken matters more than as an inconvenience. It was registered
+about three months ago, it resolves through Cloudflare, and it serves nothing —
+which is either a squatter or somebody building under the same name. Either way
+it is worth knowing before the name goes on an App Store listing, and it feeds
+directly into the bundle-id recommendation in D-001.
 
----
+`mahjong-brain.com` is the cheapest clean option and matches the repo name.
+Nothing has been purchased; per the standing rule every purchase needs an
+explicit yes.
 
 ## D-005 — StoreKit bridge · **NEEDS BRENT**
 
@@ -174,7 +199,7 @@ Consequences already applied:
 
 - The game engine and AI routing moved from `src/` to `packages/core/`. Nothing
   in `src/render`, `src/ui`, `src/state` or `ios/` was edited to do it —
-  tooling updated the import paths, and `@nihi/core` is the supported entry
+  tooling updated the import paths, and `@mahjong-brain/core` is the supported entry
   point going forward.
 - Every endpoint answers in the 5-state envelope, so Codex can build against
   contracts that are not configured yet and see exactly what is missing.
@@ -243,7 +268,7 @@ dark while Codex builds sign-in and paywall UI against them, `StorePort` has a
 second implementation that keeps everything in process, optionally persisted to
 a JSON file.
 
-`NIHI_DEV_STORE=memory` turns it on. It is ignored whenever real Supabase
+`MAHJONG_BRAIN_DEV_STORE=memory` turns it on. It is ignored whenever real Supabase
 credentials are present, so it cannot be reached in production by accident.
 
 The important property: **nothing else changes.** Same handlers, same envelopes,
