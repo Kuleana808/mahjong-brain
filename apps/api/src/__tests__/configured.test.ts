@@ -29,8 +29,8 @@ import {
 } from '../adapters/__tests__/testCerts';
 import { handle, type ApiRequest } from '../router';
 
-const BUNDLE_ID = 'com.nihi.mahjong';
-const PRODUCT_ID = 'com.nihi.mahjong.lifetime';
+const BUNDLE_ID = 'com.mahjongbrain.game';
+const PRODUCT_ID = 'com.mahjongbrain.game.removeads';
 const NOW_MS = Date.UTC(2026, 7, 9, 12, 0, 0);
 
 let ports: Ports;

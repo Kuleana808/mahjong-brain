@@ -29,8 +29,8 @@ import {
   type TestCert,
 } from './testCerts';
 
-const BUNDLE_ID = 'com.nihi.mahjong';
-const PRODUCT_ID = 'com.nihi.mahjong.lifetime';
+const BUNDLE_ID = 'com.mahjongbrain.game';
+const PRODUCT_ID = 'com.mahjongbrain.game.removeads';
 const NOW_MS = Date.UTC(2026, 7, 9, 12, 0, 0);
 
 // ---------------------------------------------------------------- session --
@@ -275,7 +275,7 @@ describe('StoreKit 2 transactions', () => {
   it('refuses a tampered payload', async () => {
     const jws = await signEs256(payload(), leafKeys, chain());
     const [header, , signature] = jws.split('.');
-    const forged = btoa(JSON.stringify(payload({ productId: 'com.nihi.mahjong.everything' })))
+    const forged = btoa(JSON.stringify(payload({ productId: 'com.mahjongbrain.game.everything' })))
       .replace(/\+/g, '-')
       .replace(/\//g, '_')
       .replace(/=+$/, '');

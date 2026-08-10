@@ -11,6 +11,8 @@
 
 export * from './game';
 export * from './play';
+export * from './flow';
+export * from './progression';
 export * from './ai';
 export * from './contracts';
 export { config, configure, resetConfig, type CoreConfig } from './env';
