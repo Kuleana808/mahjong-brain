@@ -40,3 +40,4 @@ ios/App/Podfile.lock
 .env.*
 !.env.example
 coverage
+ios/App/App.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/configuration

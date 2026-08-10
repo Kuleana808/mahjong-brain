@@ -1,0 +1,415 @@
+/*
+ * Calm-first visual language.
+ *
+ * Generous negative space, one accent, no saturated colour, and no motion that
+ * is not load-bearing. Theme colours are pushed in from `palette.ts` as custom
+ * properties so the canvas and the chrome can never disagree.
+ *
+ * Accessibility: every interactive target is at least 44x44 CSS px, focus is
+ * always visible, and `--font-scale` (a user setting) multiplies every type
+ * size in the app.
+ */
+
+:root {
+  --font-scale: 1;
+
+  --felt: #ede8de;
+  --felt-edge: #e3dccf;
+  --ink: #33302a;
+  --ink-soft: #6b655b;
+  --surface: #fbf8f2;
+  --edge: #b9af9c;
+  --accent: #2e6f6a;
+  --hint: #8a6a2f;
+
+  --space-1: 0.5rem;
+  --space-2: 0.875rem;
+  --space-3: 1.375rem;
+  --space-4: 2.25rem;
+  --radius: 0.875rem;
+
+  --font: ui-rounded, 'SF Pro Rounded', -apple-system, 'Segoe UI', system-ui, sans-serif;
+
+  color-scheme: light dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--felt);
+  color: var(--ink);
+  font-family: var(--font);
+  font-size: calc(1rem * var(--font-scale));
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  /* Never bounce or zoom the board out from under a shaky tap. */
+  overscroll-behavior: none;
+  touch-action: manipulation;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* --------------------------------------------------------------- app shell */
+
+.app {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  height: 100%;
+  /* Respect the notch and the home indicator. */
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom)
+    env(safe-area-inset-left);
+  background: radial-gradient(120% 90% at 50% 0%, var(--felt) 0%, var(--felt-edge) 100%);
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+}
+
+.topbar__count {
+  font-size: calc(0.9375rem * var(--font-scale));
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+.topbar__actions {
+  display: flex;
+  gap: var(--space-1);
+}
+
+.iconbutton {
+  min-width: 44px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4em;
+  padding: 0 var(--space-2);
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--ink-soft);
+  font-size: calc(0.9375rem * var(--font-scale));
+  cursor: pointer;
+}
+
+.iconbutton:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--ink) 6%, transparent);
+  color: var(--ink);
+}
+
+.iconbutton:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* -------------------------------------------------------------------- board */
+
+.board {
+  position: relative;
+  min-height: 0;
+}
+
+.board__canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/*
+ * One transparent button per tile, laid over the canvas.
+ *
+ * This is the accessibility layer, not a hack: it gives every tile a real
+ * accessible name, real keyboard focus, and real hit-testing, none of which a
+ * bare canvas can offer. The canvas below is aria-hidden.
+ */
+.board__hit {
+  position: absolute;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  border-radius: 10%;
+}
+
+.board__hit:disabled {
+  cursor: default;
+}
+
+.board__hit:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 1px;
+}
+
+/* --------------------------------------------------------------- hint panel */
+
+.hintbar {
+  min-height: 4.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-2) var(--space-3) var(--space-3);
+}
+
+.hint {
+  max-width: 34rem;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid color-mix(in srgb, var(--edge) 55%, transparent);
+  color: var(--ink);
+  font-size: calc(1rem * var(--font-scale));
+  text-align: center;
+  text-wrap: balance;
+}
+
+.hint__dismiss {
+  display: block;
+  margin: var(--space-1) auto 0;
+  min-height: 44px;
+  padding: 0 var(--space-2);
+  border: none;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+
+/* ------------------------------------------------------------------ overlay */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: var(--space-3);
+  background: color-mix(in srgb, var(--felt) 82%, transparent);
+  backdrop-filter: blur(6px);
+  z-index: 10;
+}
+
+.card {
+  width: min(30rem, 100%);
+  max-height: 100%;
+  overflow-y: auto;
+  padding: var(--space-4) var(--space-3);
+  border-radius: 1.5rem;
+  background: var(--surface);
+  border: 1px solid color-mix(in srgb, var(--edge) 45%, transparent);
+  text-align: center;
+}
+
+.card h2 {
+  margin: 0 0 var(--space-1);
+  font-size: calc(1.5rem * var(--font-scale));
+  font-weight: 600;
+}
+
+.card p {
+  margin: 0 0 var(--space-3);
+  color: var(--ink-soft);
+  text-wrap: pretty;
+}
+
+.card__price {
+  display: block;
+  margin: var(--space-2) 0;
+  font-size: calc(2.25rem * var(--font-scale));
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.card__list {
+  margin: 0 auto var(--space-3);
+  padding: 0;
+  list-style: none;
+  text-align: left;
+  max-width: 22rem;
+}
+
+.card__list li {
+  padding: 0.35rem 0 0.35rem 1.6rem;
+  position: relative;
+  color: var(--ink-soft);
+}
+
+.card__list li::before {
+  content: '';
+  position: absolute;
+  left: 0.3rem;
+  /* Sits on the first line, not on the vertical middle of a wrapped item. */
+  top: 1.05em;
+  transform: translateY(-50%);
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.button {
+  display: block;
+  width: 100%;
+  min-height: 52px;
+  padding: 0 var(--space-3);
+  border: none;
+  border-radius: var(--radius);
+  background: var(--accent);
+  color: #fff;
+  font-size: calc(1.0625rem * var(--font-scale));
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.button--quiet {
+  background: transparent;
+  color: var(--ink-soft);
+  font-weight: 400;
+  min-height: 48px;
+  margin-top: var(--space-1);
+}
+
+/* ----------------------------------------------------------------- settings */
+
+.setting {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--space-2) 0;
+  text-align: left;
+  border-bottom: 1px solid color-mix(in srgb, var(--edge) 30%, transparent);
+}
+
+.setting:last-of-type {
+  border-bottom: none;
+}
+
+.setting__label {
+  font-size: calc(1rem * var(--font-scale));
+}
+
+.setting__hint {
+  display: block;
+  font-size: calc(0.8125rem * var(--font-scale));
+  color: var(--ink-soft);
+}
+
+.segmented {
+  display: inline-flex;
+  gap: 2px;
+  padding: 2px;
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--ink) 7%, transparent);
+}
+
+.segmented button {
+  min-height: 40px;
+  padding: 0 var(--space-2);
+  border: none;
+  border-radius: calc(var(--radius) - 3px);
+  background: transparent;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+
+.segmented button[aria-pressed='true'] {
+  background: var(--surface);
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.switch {
+  position: relative;
+  width: 52px;
+  height: 32px;
+  flex: none;
+  border: none;
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--ink) 18%, transparent);
+  cursor: pointer;
+}
+
+.switch[aria-checked='true'] {
+  background: var(--accent);
+}
+
+.switch::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 140ms ease;
+}
+
+.switch[aria-checked='true']::after {
+  transform: translateX(20px);
+}
+
+/* ------------------------------------------------------------------- motion */
+
+/*
+ * The only motion in the app: a tile lifting on selection, and a card fading
+ * in. Both go away entirely under reduced motion.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+.app[data-reduce-motion='true'] * {
+  animation-duration: 0.001ms !important;
+  transition-duration: 0.001ms !important;
+}
+
+.overlay {
+  animation: fade 180ms ease;
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+}
+
+/* --------------------------------------------------------------- utilities */
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

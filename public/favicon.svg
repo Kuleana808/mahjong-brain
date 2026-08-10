@@ -1,0 +1,19 @@
+<!--
+  Three stacked tiles, in the calm palette. Drawn here, like everything else in
+  the tile pipeline — see docs/DECISIONS.md D-006.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <rect width="64" height="64" rx="14" fill="#EDE8DE" />
+
+  <!-- back tile -->
+  <rect x="10" y="20" width="24" height="31" rx="5" fill="#D9D1C2" />
+  <rect x="10" y="20" width="21" height="28" rx="5" fill="#FBF8F2" stroke="#B9AF9C" stroke-width="1.4" />
+
+  <!-- front tile -->
+  <rect x="27" y="14" width="27" height="35" rx="5.5" fill="#D9D1C2" />
+  <rect x="27" y="14" width="24" height="32" rx="5.5" fill="#FFFDF8" stroke="#B9AF9C" stroke-width="1.4" />
+
+  <!-- a single dot mark, the quietest tile in the set -->
+  <circle cx="39" cy="30" r="7" fill="none" stroke="#2F6B4F" stroke-width="2.6" />
+  <circle cx="39" cy="30" r="2.4" fill="#2F6B4F" />
+</svg>
