@@ -6,7 +6,8 @@
   "description": "Dev server for the ten contracts. Production target is Supabase Edge Functions wrapping the same router.",
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "start": "tsx src/server.ts"
+    "start": "tsx src/server.ts",
+    "smoke:events": "tsx src/smoke/events.ts"
   },
   "dependencies": {
     "@mahjong-brain/core": "*"

@@ -8,7 +8,10 @@ Two agents build this. Contracts are the seam — see
 | **Claude Code** | `packages/core/**`, `apps/api/**`, auth, settings sync, AI routing, receipt validation, `site/`, `docs/` |
 | **Codex** | `apps/mobile/**`, `ios/**`, tile rendering, visual language, accessibility, StoreKit UI, TestFlight |
 
-Target is TestFlight in 2–4 weeks. TODOs are marked at the call sites too, so
+**Compressed to this week (Brent 2026-08-10) — see
+[launch-week.md](launch-week.md) for day-1 status and blockers.**
+
+Original target was TestFlight in 2–4 weeks. TODOs are marked at the call sites too, so
 the work is findable from where it happens.
 
 ---
@@ -33,6 +36,13 @@ the work is findable from where it happens.
 - **The nine-screen flow machine** — `@mahjong-brain/core/flow`, with the gates,
   resume behaviour and instrumentation attached. See [screen-flow.md](screen-flow.md).
 - **Level and IQ** — `@mahjong-brain/core/progression`. Tuning provisional.
+- **Marketing site shell** — `apps/marketing/`, Next.js static export for
+  Cloudflare Pages. Copy scaffold; Codex owns polish.
+- **Instrumentation smoke test** — `npm run smoke:events`, real machines through
+  the real handler. 165 events / 39 names against the dev store; the Supabase
+  run is waiting on a project existing.
+- **Pre-submission gate** — `npm run preflight`. Currently exits 1 on the
+  placeholder bundle id, by design.
 
 ---
 

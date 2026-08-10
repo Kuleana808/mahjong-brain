@@ -1,0 +1,16 @@
+{
+  "name": "@mahjong-brain/marketing",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Marketing site. Next.js static export, deployed to Cloudflare Pages.",
+  "scripts": {
+    "dev": "next dev --port 5186",
+    "build": "next build",
+    "start": "npx serve out"
+  },
+  "dependencies": {
+    "next": "^15.5.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  }
+}
