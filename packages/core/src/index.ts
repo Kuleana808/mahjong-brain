@@ -10,6 +10,7 @@
  */
 
 export * from './game';
+export * from './play';
 export * from './ai';
 export * from './contracts';
 export { config, configure, resetConfig, type CoreConfig } from './env';

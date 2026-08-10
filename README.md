@@ -1,9 +1,8 @@
 # Nihi Mahjong
 
-Solitaire mahjong that stays quiet. No ads, no timers, no streaks, no daily
-check-ins, no energy meter, no "come back tomorrow". One board, one tap to
-start, and a hint coach that teaches you to see the pattern instead of just
-pointing at a pair.
+Tile-matching solitaire with a four-slot holder, built as a **functional-parity
+clone of the category leader with entirely original art** — then iterated on
+live data.
 
 *Nihi* is Hawaiian for quiet. The name is provisional — see
 [docs/DECISIONS.md](docs/DECISIONS.md), D-001.
@@ -13,23 +12,53 @@ pointing at a pair.
 ## Why this exists
 
 The category leader is #1 in Board, #7 overall, 4.9★ across 1.6M ratings — and
-its loudest one-star cluster is people saying the ads break the calm. There is
-no AI anywhere in it. "Mahjong without ads" is a phrase people actually type
-into the App Store.
+there is no AI anywhere in it.
 
-So: the same proven mechanic, rebuilt with the interruptions removed and an
-actual coach in the box. **Mechanic only.** None of the incumbent's art, layout
-art, name, logo, or UI chrome is reproduced here, and none of it ever will be —
-see D-006. Clone litigation is live in this niche.
+**We ship its game, not our opinion of its game.** v0.1 is functional parity:
+the same holder mechanic, the same onboarding beats, the same monetisation
+hooks, the same retention loops. Differentiation is earned after parity with
+cohort data, not asserted before it (see [D-014](docs/DECISIONS.md)).
 
-## Business model
+What is ours from day one is the **art and the creative** — every tile drawn
+here, our own brand, our own voice. That is the anti-litigation layer and the
+only thing that makes this a product rather than a reskin. Nothing of the
+incumbent's art, layout art, name, logo or UI chrome is reproduced, and it never
+will be. See D-006.
 
-Free download. **$4.99 once**, for the ad-free experience and the AI hint coach.
+The AI hint coach — the one thing that could make this ours — is deliberately
+**not in v0.1**. It ships once instrumentation shows what teaching hints change.
 
-That is the entire model. No IAP tiers, no consumables, no subscription, no
-rewarded video, and no ads even in the free tier. The paywall appears exactly
-once, after the third *completed* board — never before one, never mid-board,
-never on a timer.
+## The loop
+
+Tap a free tile and it goes into a **four-slot holder**. Two matching tiles in
+the holder clear. Fill all four with no match and the run ends — which is the
+moment Revive is offered, and the reason Shuffle and Hint exist.
+
+## Money
+
+Parity monetisation, live from tile one:
+
+| | |
+|---|---|
+| **Revive** | rewarded ad, offered when the holder fills |
+| **Hint** | rewarded ad |
+| **Shuffle** | IAP, consumable |
+| **Remove ads** | IAP, non-consumable — a post-launch A/B test, not the pitch |
+
+No API grants any of it from a click. A revive needs a verified ad callback and
+a purchase needs a verified StoreKit transaction.
+
+## Measurement
+
+Instrumentation ships before feature #1 and **nothing launches without it**.
+Every onboarding screen, every tap, every holder fill, every ad and IAP funnel
+step, D1/D7/D30 cohorts. First-party only — no third-party analytics SDK, a
+rotating resettable device id, and no way to join an event to an identity. See
+[D-016](docs/DECISIONS.md), which also flags what an ad SDK does to the privacy
+label.
+
+No feature ships without a hypothesis and a metric. v0.1 goes to 50-100 users,
+v0.2 follows a week of data. There is no "1.0".
 
 ## Stack
 
@@ -41,8 +70,9 @@ never on a timer.
 | State | Zustand |
 | Storage | `@capacitor/preferences`, on-device only |
 | AI coach | Offline explainer by default; Ollama for phrasing on web/dev |
-| Purchases | StoreKit 2 behind a two-method interface (bridge TBD, D-005) |
-| Analytics | None. No vendors, no SDKs, no third-party pixels. |
+| Purchases | StoreKit 2, consumables + one non-consumable (bridge TBD, D-005) |
+| Instrumentation | First-party, Supabase-native. No third-party analytics SDK. |
+| Ads | Rewarded video for Revive and Hint. Network not chosen — needs a yes. |
 
 Shipped bundle: **~76 KB gzipped**.
 
@@ -80,19 +110,21 @@ Override with `VITE_OLLAMA_MODEL` / `VITE_OLLAMA_HOST`, or turn it off with
 ## Layout of the code
 
 ```
-src/
+packages/core/src/
   game/       pure rules — tiles, layouts, freeness, dealing, difficulty
+  play/       the four-slot holder session — the parity mechanic (D-015)
   ai/         the hint coach: analysis → explanation, and the model router
-  render/     palette, layout→screen geometry, tile artwork, canvas renderer
-  state/      zustand store and on-device persistence
-  iap/        the lifetime unlock, behind an interface
-  ui/         React components
+  telemetry/  the closed event catalogue
+  contracts/  the twelve API contracts, shapes and handlers
+apps/api/     dev server + adapters (Apple, StoreKit, sessions, stores)
+supabase/     append-only migrations, RLS on, cohort views
+src/          rendering and UI — Codex's, moving to apps/mobile/
 site/         the one-page marketing site
-docs/         decisions and roadmap
+docs/         decisions, roadmap, and the API contracts
 ```
 
-`src/game/` has no imports from React, the DOM, or anything above it. It is
-pure and it is where the tests live.
+`packages/core/` imports nothing from React, the DOM, Capacitor or the
+filesystem. It is pure and it is where most of the tests live.
 
 ## Accessibility
 
@@ -110,6 +142,8 @@ checklist:
 - **High-contrast theme** clears AAA.
 - **Motion** is limited to a tile lift and a card fade, and both respect
   `prefers-reduced-motion` plus an in-app override.
+- The accessibility bar is **not** retired by the parity doctrine — it is part
+  of the creative half, which stays ours.
 - Pinch-zoom is left enabled (WCAG 1.4.4). Every target is ≥44×44 px.
 
 ## The iteration trigger
@@ -134,8 +168,8 @@ Two agents build this, and contracts are the seam between them.
 
 | | Owns |
 |---|---|
-| **Claude Code** | `packages/core/**` game engine, `apps/api/**`, auth, settings sync, AI hint routing, StoreKit receipt validation, `site/` |
-| **Codex** | `apps/mobile/**`, `ios/**`, tile rendering, the calm-first visual language, accessibility, StoreKit UI and paywall screen, TestFlight |
+| **Claude Code** | `packages/core/**` game engine, `apps/api/**`, `supabase/**`, auth, settings sync, instrumentation, AI routing, receipt validation, `site/` |
+| **Codex** | `apps/mobile/**`, `ios/**`, tile rendering, the visual language, accessibility, onboarding screens, ad and StoreKit UI, TestFlight |
 
 Neither side pushes across the line without an explicit contract change. The
 contracts live in [docs/api-contracts.md](docs/api-contracts.md) — that document

@@ -17,6 +17,7 @@
 
 import type {
   AccountRecord,
+  DailyRewardRecord,
   StorePort,
   SyncedSettings,
   UnlockRecord,
@@ -176,6 +177,33 @@ export function createSupabaseStore(options: SupabaseStoreOptions): StorePort {
       await request<void>('/session_analytics', {
         method: 'POST',
         body: JSON.stringify(row),
+      });
+    },
+
+    async recordEvents(rows) {
+      if (rows.length === 0) return;
+      // One insert for the whole batch: an offline queue can arrive 500 deep,
+      // and 500 round trips would be a self-inflicted outage.
+      await request<void>('/events', { method: 'POST', body: JSON.stringify(rows) });
+    },
+
+    async getDailyReward(accountId): Promise<DailyRewardRecord | null> {
+      const rows = await request<{ last_claimed_on: string | null; streak_days: number }[]>(
+        `/daily_rewards?account_id=eq.${encode(accountId)}&select=last_claimed_on,streak_days&limit=1`,
+      );
+      const row = rows[0];
+      return row ? { lastClaimedOn: row.last_claimed_on, streakDays: row.streak_days } : null;
+    },
+
+    async putDailyReward(accountId, record) {
+      await request<void>('/daily_rewards', {
+        method: 'POST',
+        headers: { prefer: 'resolution=merge-duplicates' },
+        body: JSON.stringify({
+          account_id: accountId,
+          last_claimed_on: record.lastClaimedOn,
+          streak_days: record.streakDays,
+        }),
       });
     },
   };

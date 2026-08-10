@@ -9,10 +9,13 @@
 
 import {
   authenticateWithApple,
+  claimDailyReward,
   generateBoard,
   generateHint,
+  getDailyReward,
   getSettings,
   httpStatus,
+  ingestEvents,
   logPlayPattern,
   nextBoard,
   patchSettings,
@@ -129,6 +132,17 @@ export async function handle(request: ApiRequest, ports: Ports): Promise<ApiResp
     // 10
     if (method === 'POST' && path === '/api/analytics/session') {
       return recordSessionAnalytics(unvalidated(body), ports);
+    }
+
+    // 11
+    if (method === 'POST' && path === '/api/events/batch') {
+      return ingestEvents(unvalidated(body), ports);
+    }
+
+    // 12
+    if (path === '/api/retention/daily') {
+      if (method === 'GET') return getDailyReward(bearer, query.get('localDate') ?? '', ports);
+      if (method === 'POST') return claimDailyReward(bearer, unvalidated(body), ports);
     }
 
     return fail('api/unknown', '1', {

@@ -17,6 +17,9 @@ export { generateHint } from './handlers/hints';
 export { logPlayPattern, nextBoard } from './handlers/difficulty';
 export { unlockStatus, validateReceipt } from './handlers/purchases';
 export { recordSessionAnalytics } from './handlers/analytics';
+export { ingestEvents } from './handlers/telemetry';
+export { claimDailyReward, getDailyReward } from './handlers/retention';
+export * from '../telemetry/events';
 
 /** Readiness at a glance. Kept honest by `contracts.test.ts`. */
 export const CONTRACT_REGISTRY = [
@@ -30,4 +33,6 @@ export const CONTRACT_REGISTRY = [
   { id: 'api/receipts/validate', method: 'POST', path: '/api/receipts/validate', needs: ['storekit', 'store'] },
   { id: 'api/unlock-status', method: 'GET', path: '/api/unlock-status', needs: ['store', 'session'] },
   { id: 'api/analytics/session', method: 'POST', path: '/api/analytics/session', needs: ['store'] },
+  { id: 'api/events/batch', method: 'POST', path: '/api/events/batch', needs: ['store'] },
+  { id: 'api/retention/daily', method: 'GET|POST', path: '/api/retention/daily', needs: ['store', 'session'] },
 ] as const;

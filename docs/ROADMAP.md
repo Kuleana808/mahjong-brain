@@ -24,7 +24,12 @@ the work is findable from where it happens.
   with full `x5c` chain validation, a Supabase store over PostgREST, and an
   in-process dev store. 1, 2, 5, 6, 7 are live; 3, 4, 9, 10 work today against
   the dev store; 8 fails closed until its root is pinned.
-- **The schema** — `supabase/migrations/0001_init.sql`, append-only, RLS on.
+- **The schema** — `supabase/migrations/`, append-only, RLS on, cohort views.
+- **The holder mechanic** (D-015) — `@nihi/core/play`, the parity loop.
+- **Instrumentation** (contract 11) — closed event catalogue covering every
+  onboarding screen, tap, holder fill, ad and IAP funnel step, plus D1/D7/D30
+  cohort views.
+- **Daily reward and streaks** (contract 12).
 
 ---
 
@@ -61,7 +66,19 @@ attack cases. What is missing is the pinned root and the product id.
 Blocked on: **D-005** (which StoreKit bridge Codex ships against) and an App
 Store Connect record.
 
-### C3 — Coach the mistake, not just the move
+### C3 — Ad reward verification (contract 13)
+
+Blocked on an ad network being chosen, which is a vendor decision and needs a
+yes. Same fail-closed pattern as contract 8: the network calls us signed, and a
+client-side "the ad finished" is instrumentation, not entitlement.
+
+### C4 — Consumable grants
+
+Contract 8 currently models one non-consumable. Shuffle packs are consumables:
+repeatable purchases, no restore, and `unlocks.original_transaction_id` being
+UNIQUE is wrong for them. Needs its own table and a migration. See D-005.
+
+### C5 — Coach the mistake, not just the move — POST-PARITY
 
 The coach explains the move it recommends. The teachable moment is the move the
 player is about to get wrong.
@@ -76,7 +93,7 @@ player is about to get wrong.
 
 Not blocked. Can start now.
 
-### C4 — Marketing site live
+### C6 — Marketing site live
 
 Static, one page, already written in `site/`. Needs a domain — **D-004** — and
 nothing has been purchased.
@@ -85,29 +102,44 @@ nothing has been purchased.
 
 ## Codex — next (theirs to schedule)
 
-Listed so the two roadmaps interlock, not to assign work.
+Listed so the two roadmaps interlock, not to assign work. The parity doctrine
+(D-014) moved most of the near-term weight to this side.
 
-- Tile lift and land; board fill on start. The one place motion earns its keep.
-- Real app icon and launch screen (currently Capacitor defaults).
-- Portrait/landscape reflow without a redeal — the deal is seed-based, so this
-  is a view concern only.
+**Parity UI, in rough order:**
+
+- **The holder** (D-015). A four-slot tray, tiles animating into it, the fill
+  state, the loss state, and the Revive offer at the moment the fourth slot
+  fills. `@nihi/core/play` gives you the whole state machine.
+- **Onboarding, beat for beat** — age gate, TOS-accept modal, motivational
+  loading quote, progressive tutorial with confetti on the first cleared pair.
+- **Ad and IAP surfaces** — Revive prompt, Hint rewarded-video prompt, Shuffle
+  store. `PRODUCT_CATALOGUE` in `@nihi/core/contracts` is the source of truth.
+- **Daily reward and streak UI** against contract 12.
+- Real app icon and launch screen; portrait/landscape reflow without a redeal.
 - Move rendering and UI into `apps/mobile/`, importing `@nihi/core`.
-- Paywall and Restore Purchases UI against contracts 8 and 9. **Do not gate on
-  contract 9** — the device entitlement is authoritative.
-- WCAG 2.1 AA pass on the web build.
+- WCAG 2.1 AA pass. **Accessibility is not retired by the parity doctrine** —
+  it is part of the creative half, which stays ours.
 - TestFlight submission cycle.
 
----
+**Instrument as you go.** Every screen ships with its event from the catalogue
+in the same PR. If an event you need is missing, open a contract PR.
+
+**Where the ATT prompt goes is a real design decision** — see D-016. After a
+first completed board reads far better than on cold launch, especially for a
+60+ audience.
 
 ## Not in scope before TestFlight
 
 Listed so they do not creep in:
 
+- **The AI hint coach.** It is the one differentiation and it is deliberately
+  post-parity — v0.2 or later, gated on what instrumentation says about teaching
+  hints versus answer hints. The engine and routing are already built and idle.
 - More layouts. Three is enough to validate; the ladder needs rungs, not variety.
 - Android. Capacitor nearly gives it to us, but it splits review attention.
 - Sound. Original audio is a commissioning decision.
-- Any account, leaderboard, or social feature.
-- Anything that nudges a player to return. That is the whole point.
+- Leaderboards and versus mode — parity items, but only once the incumbent's
+  cadence is actually studied rather than guessed at.
 
 ---
 

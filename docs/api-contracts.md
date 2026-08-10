@@ -4,6 +4,14 @@ This document is the interface between the two halves of the build. Claude Code
 produces these shapes; Codex consumes them. **Changing a shape here is a PR both
 sides review** — neither side pushes work across the line without one.
 
+> **Parity doctrine (D-014) changed what ships.** v0.1 is functional parity with
+> the incumbent: ads on Revive, rewarded video for Hint, IAP for Shuffle, daily
+> rewards and streaks. The earlier "$4.99 lifetime, no ads, no streaks" spec is
+> retired. Contracts 11 and 12 are new; contract 8's product catalogue grew.
+>
+> **The core mechanic changed too (D-015).** The game is a four-slot holder, not
+> direct-pair matching. Contract 2 documents both.
+
 - Types: [`packages/core/src/contracts/types.ts`](../packages/core/src/contracts/types.ts)
 - Handlers: [`packages/core/src/contracts/handlers/`](../packages/core/src/contracts/handlers/)
 - Tests that keep this honest: [`contracts.test.ts`](../packages/core/src/contracts/__tests__/contracts.test.ts)
@@ -123,12 +131,15 @@ All ten are implemented. What varies is whether the credentials exist.
 | 8 | `POST /api/receipts/validate` | `source_available` | `source_available` | Apple root CA + product id (D-005) |
 | 9 | `GET /api/unlock-status` | `source_available` | **`configured`** | Supabase |
 | 10 | `POST /api/analytics/session` | `source_available` | **`configured`** | Supabase |
+| 11 | `POST /api/events/batch` | `source_available` | **`configured`** | Supabase |
+| 12 | `GET`/`POST /api/retention/daily` | `source_available` | **`configured`** | Supabase |
 
 **1, 2, 5, 6 and 7 need no credentials and never will** — they are pure functions
 of the request.
 
-**3, 4, 9 and 10 work right now** against the dev store (see above). Real Apple
-identity tokens are verified for real; only the row storage is in-process.
+**3, 4, 9, 10, 11 and 12 work right now** against the dev store (see above).
+Real Apple identity tokens are verified for real; only the row storage is
+in-process.
 
 **8 is the one that stays dark**, deliberately. It needs Apple Root CA G3 pinned,
 and it fails closed until it has it — see below.
@@ -199,6 +210,15 @@ backwards from a valid removal order, so a winning line exists by construction.
 
 Server-side truth with **no server-side session state**: the seed reproduces the
 board, `removed` replays the history, and the resulting position is checked.
+
+> **The shipping mechanic is the four-slot holder (D-015), not direct pairs.**
+> This contract validates direct-pair moves and stays as it is so nothing that
+> already calls it breaks. The holder session lives in
+> [`@nihi/core/play`](../packages/core/src/play/session.ts) and runs entirely on
+> the client — `startSession`, `tapTile`, `revive`, `shuffle`, `hintPair`. It is
+> deterministic and replayable from `(layout, seed, taps)`, so a server-side
+> holder validation contract can be added later from the same primitives if
+> anything ever needs it. Nothing does today.
 
 **Request**
 
@@ -557,6 +577,111 @@ anything that survives a reinstall.
 
 ---
 
+## 11. `POST /api/events/batch`
+
+**Nothing launches without this.** Every onboarding screen, every tap, every
+holder fill, every ad and IAP funnel step.
+
+```jsonc
+{
+  "schemaVersion": 1,
+  "anonymousDeviceId": "rotating-device-local-id",
+  "sessionId": "new-on-every-cold-start",
+  "appVersion": "0.1.0",
+  "platform": "ios",
+  "events": [
+    { "name": "holder_full", "at": "2026-08-09T12:01:00.000Z", "sequence": 41,
+      "properties": { "holderCount": 4, "tilesRemaining": 88, "layout": "turtle" } }
+  ]
+}
+```
+
+**Response** `{ "accepted": 2, "rejected": [{ "index": 1, "reason": "unknown event name \"bogus\"" }], "schemaVersion": 1 }`
+
+### The catalogue is closed
+
+Event names come from `EVENT_NAMES` in
+[`telemetry/events.ts`](../packages/core/src/telemetry/events.ts). An unknown
+name is rejected, not stored. Adding one is a contract PR — that friction is the
+point, because a typo in an event name is a silently missing funnel step.
+
+Properties are **allow-listed**, not deny-listed. There is deliberately no free
+`metadata` bag: the moment one exists, something identifying ends up in it. A
+test sends an `idfa`, an `appleUserId` and an `email` and asserts none of them
+reach the row.
+
+### Partial acceptance
+
+One bad event does not discard the batch — a client shipping one malformed event
+should not lose the other 499. Rejections come back per-index and set
+`fallback_reason`, so a client bug is visible rather than quietly halving a
+funnel for a release.
+
+Cap is 500 events per request; a deeper offline queue sends several. Ordering is
+recoverable from `sequence`, because a queued batch will arrive out of order.
+
+### Privacy
+
+No session token, no `account_id` column, no way to join an event to an
+identity even from inside the database. `anonymousDeviceId` is rotating,
+device-local and resettable — not an IDFA, not Apple's `sub`, and it does not
+survive a reinstall.
+
+> **This holds only while no ad SDK shares the pipeline.** AdMob and Unity Ads
+> collect an advertising identifier, which is tracking, which requires an ATT
+> prompt and changes the privacy nutrition label. See D-016 — worth reading
+> before wiring an ad network, particularly for where the ATT prompt goes.
+
+---
+
+## 12. `GET /api/retention/daily` · `POST /api/retention/daily`
+
+`Authorization: Bearer <sessionToken>`. `GET` takes `?localDate=YYYY-MM-DD`;
+`POST` takes `{ "localDate": "YYYY-MM-DD" }` and claims.
+
+```jsonc
+{
+  "day": 3,
+  "streakDays": 2,
+  "claimableToday": true,
+  "reward": { "kind": "hint", "quantity": 2 },
+  "lastClaimedOn": "2026-08-08",
+  "streakBroken": false,
+  "granted": { "kind": "hint", "quantity": 2 }   // POST only; null if nothing was granted
+}
+```
+
+Seven-day cycle, then it repeats. Streak breaks on a missed **day**, not a
+missed session.
+
+### The day boundary is the player's, not the server's
+
+The client sends its local date. A reward keyed to UTC rolls over at 2pm in
+Hawai'i — a player claiming after lunch gets two, a player claiming in the
+evening loses a streak they did not break.
+
+That is spoofable: change the device clock, claim twice. It is the right trade
+for a single-player game with no economy to inflate, and it should be revisited
+the moment a reward is worth money.
+
+**Claiming is idempotent.** A double tap or a retry after a dropped response
+returns the same state with `granted: null` and a `fallback_reason`, rather than
+paying out twice.
+
+---
+
+## 13. `POST /api/ads/reward-callback` — **not built yet**
+
+Shape is defined in `types.ts`; there is no handler until an ad network is
+chosen (that is a vendor decision, so it needs a yes).
+
+The rule it will follow is the same one contract 8 follows: **the client never
+gets to assert that an ad was watched.** The network calls this endpoint,
+signed, and the grant happens on a verified callback. A `revive_ad_completed`
+event from the client is instrumentation, not entitlement.
+
+---
+
 ## Data that gets stored
 
 `supabase/migrations/0001_init.sql`. Four tables, deliberately no more.
@@ -587,14 +712,25 @@ Migrations are **append-only**. Never edit a file that has run anywhere.
 
 ## Notes for Codex
 
+- **The game is the holder now.** `@nihi/core/play` — `startSession`, `tapTile`,
+  `revive`, `shuffle`, `hintPair`, `HOLDER_CAPACITY`. It is pure, synchronous
+  and fully tested; the UI work is a holder tray, a fill state, a loss state,
+  and the Revive offer at the moment the fourth slot fills. The existing
+  direct-pair board API still exports, so nothing breaks while you migrate.
+- **Instrument as you build, not after.** Every screen you add needs its event
+  from the catalogue in the same PR — that is what "no feature without a metric"
+  means in practice. If the event you need is not in `EVENT_NAMES`, open a
+  contract PR and I will add it.
 - **Build the play loop against 1, 2, 5, 6, 7 today.** They are pure and need no
   credentials.
 - **3, 4, 9 and 10 also work today** — start the API with `NIHI_DEV_STORE=memory`
   and you have real sign-in, real settings sync and real unlock lookup against an
   in-process store. Nothing about the request or response shape changes when
   Supabase lands.
-- **8 is the only one still dark**, and it fails closed. Do not build a UI path
-  that treats a `not_configured` receipt response as a purchase.
+- **8 is still dark** and fails closed. Do not build a UI path that treats a
+  `not_configured` receipt response as a purchase.
+- **13 does not exist yet.** A `revive_ad_completed` event is instrumentation,
+  not entitlement — do not grant a revive from a client-side ad callback.
 - **Render `fallback_reason` nowhere.** It is diagnostic. The player-safe string
   is always `error.message`.
 - **Do not gate the paywall on contract 9.** The device entitlement is
