@@ -32,10 +32,10 @@ export const EVENT_NAMES = [
   'session_end',
 
   // Does onboarding land? Every screen, so a drop-off has a location.
+  'tos_shown',
   'age_gate_shown',
   'age_gate_passed',
   'age_gate_failed',
-  'tos_shown',
   'tos_accepted',
   'loading_quote_shown',
   'tutorial_step_shown',
@@ -89,6 +89,13 @@ export const EVENT_NAMES = [
   // Settings, so an accessibility change is visible in the data.
   'settings_opened',
   'setting_changed',
+
+  // Progression surfaces. Level is a ratchet, IQ is an estimate — see
+  // progression/progression.ts for why they are separate numbers.
+  'level_up',
+  'iq_changed',
+  'home_shown',
+  'game_over_shown',
 ] as const;
 
 export type EventName = (typeof EVENT_NAMES)[number];
@@ -120,6 +127,9 @@ export interface EventProperties {
   /** Setting key for `setting_changed`. Never the value. */
   readonly settingKey?: string;
   readonly streakDays?: number;
+  readonly level?: number;
+  readonly iq?: number;
+  readonly screen?: string;
 }
 
 export interface ClientEvent {
@@ -205,6 +215,9 @@ const ALLOWED_PROPERTIES = [
   'reason',
   'settingKey',
   'streakDays',
+  'level',
+  'iq',
+  'screen',
 ] as const;
 
 /**

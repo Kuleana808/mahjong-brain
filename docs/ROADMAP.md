@@ -30,6 +30,9 @@ the work is findable from where it happens.
   onboarding screen, tap, holder fill, ad and IAP funnel step, plus D1/D7/D30
   cohort views.
 - **Daily reward and streaks** (contract 12).
+- **The nine-screen flow machine** — `@mahjong-brain/core/flow`, with the gates,
+  resume behaviour and instrumentation attached. See [screen-flow.md](screen-flow.md).
+- **Level and IQ** — `@mahjong-brain/core/progression`. Tuning provisional.
 
 ---
 
@@ -105,13 +108,17 @@ nothing has been purchased.
 Listed so the two roadmaps interlock, not to assign work. The parity doctrine
 (D-014) moved most of the near-term weight to this side.
 
-**Parity UI, in rough order:**
+**Parity UI, in rough order.** The sequencing is already built and tested —
+`@mahjong-brain/core/flow`, documented in [screen-flow.md](screen-flow.md). These
+are views over it, not new logic.
 
+- **The nine screens** — tos, age gate, loading, tutorial A/B/C, home, gameplay,
+  game over. Visual spec is the Notion page; the machine handles order, gates,
+  resume and instrumentation.
 - **The holder** (D-015). A four-slot tray, tiles animating into it, the fill
   state, the loss state, and the Revive offer at the moment the fourth slot
   fills. `@mahjong-brain/core/play` gives you the whole state machine.
-- **Onboarding, beat for beat** — age gate, TOS-accept modal, motivational
-  loading quote, progressive tutorial with confetti on the first cleared pair.
+- **Level and IQ surfaces** — `@mahjong-brain/core/progression`.
 - **Ad and IAP surfaces** — Revive prompt, Hint rewarded-video prompt, Shuffle
   store. `PRODUCT_CATALOGUE` in `@mahjong-brain/core/contracts` is the source of truth.
 - **Daily reward and streak UI** against contract 12.

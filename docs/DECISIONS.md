@@ -13,7 +13,7 @@ Local path is `~/mahjong-brain`.
 
 ### The bundle id is NOT locked, and stays unlocked on purpose
 
-Everything named `com.nihi.*` still reads that way — the product ids in
+Everything named `com.mahjongbrain.game.*` is a PLACEHOLDER — the product ids in
 `PRODUCT_CATALOGUE`, `appId` in `capacitor.config.ts`, and the iOS project. That
 is deliberate, not an oversight. The bundle id creates the App Store record and
 cannot be changed afterwards without a new listing, so guessing it and changing

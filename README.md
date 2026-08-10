@@ -112,8 +112,10 @@ Override with `VITE_OLLAMA_MODEL` / `VITE_OLLAMA_HOST`, or turn it off with
 
 ```
 packages/core/src/
-  game/       pure rules — tiles, layouts, freeness, dealing, difficulty
-  play/       the four-slot holder session — the parity mechanic (D-015)
+  game/         pure rules — tiles, layouts, freeness, dealing, difficulty
+  play/         the four-slot holder session — the parity mechanic (D-015)
+  flow/         the nine-screen state machine (docs/screen-flow.md)
+  progression/  level and IQ
   ai/         the hint coach: analysis → explanation, and the model router
   telemetry/  the closed event catalogue
   contracts/  the twelve API contracts, shapes and handlers

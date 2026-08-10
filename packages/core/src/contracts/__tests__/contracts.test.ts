@@ -332,7 +332,7 @@ describe('purchases fail closed', () => {
       ...fixed,
       storekit: {
         verifySignedTransaction: async () => ({
-          productId: 'com.nihi.mahjong.lifetime',
+          productId: 'com.mahjongbrain.game.removeads',
           originalTransactionId: '2000000000000001',
           purchasedAt: NOW,
           environment: 'sandbox',
@@ -351,7 +351,7 @@ describe('purchases fail closed', () => {
       ...fixed,
       storekit: {
         verifySignedTransaction: async () => ({
-          productId: 'com.nihi.mahjong.lifetime',
+          productId: 'com.mahjongbrain.game.removeads',
           originalTransactionId: '2000000000000001',
           purchasedAt: NOW,
           environment: 'production',

@@ -12,7 +12,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
  * That is Codex's side of the line and is not updated here.
  */
 const config: CapacitorConfig = {
-  appId: 'com.nihi.mahjong',
+  appId: 'com.mahjongbrain.game',
   appName: 'Mahjong Brain',
   webDir: 'dist',
   ios: {
