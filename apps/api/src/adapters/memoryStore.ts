@@ -13,17 +13,31 @@
 
 import { readFileSync, writeFileSync } from 'node:fs';
 
-import type { StorePort, AccountRecord, UnlockRecord } from '@nihi/core/contracts';
-import type { SyncedSettings } from '@nihi/core/contracts';
+import type {
+  AccountRecord,
+  DailyRewardRecord,
+  StorePort,
+  SyncedSettings,
+  UnlockRecord,
+} from '@nihi/core/contracts';
 
 interface Snapshot {
   accounts: AccountRecord[];
   settings: Record<string, { settings: SyncedSettings; revision: number; updatedAt: string }>;
   unlocks: Record<string, UnlockRecord>;
   sessions: Record<string, unknown>[];
+  events: Record<string, unknown>[];
+  daily: Record<string, DailyRewardRecord>;
 }
 
-const empty = (): Snapshot => ({ accounts: [], settings: {}, unlocks: {}, sessions: [] });
+const empty = (): Snapshot => ({
+  accounts: [],
+  settings: {},
+  unlocks: {},
+  sessions: [],
+  events: [],
+  daily: {},
+});
 
 export interface MemoryStoreOptions {
   /** Where to persist between restarts. Omit to keep everything in memory. */
@@ -92,6 +106,22 @@ export function createMemoryStore(options: MemoryStoreOptions = {}): StorePort {
 
     async recordSession(row) {
       data.sessions.push(row);
+      flush();
+    },
+
+    async recordEvents(rows) {
+      data.events.push(...rows);
+      // A dev store should not grow without bound during a long session.
+      if (data.events.length > 5000) data.events.splice(0, data.events.length - 5000);
+      flush();
+    },
+
+    async getDailyReward(accountId) {
+      return data.daily[accountId] ?? null;
+    },
+
+    async putDailyReward(accountId, record) {
+      data.daily[accountId] = record;
       flush();
     },
   };

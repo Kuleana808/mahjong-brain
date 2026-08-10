@@ -46,6 +46,21 @@ export interface StorePort {
 
   /** Opt-in only. Called solely when the request carried `consent: true`. */
   recordSession(row: Record<string, unknown>): Promise<void>;
+
+  /**
+   * Product analytics (contract 11). Rows are pre-sanitised by the handler and
+   * carry no account id — see the privacy note in handlers/telemetry.ts.
+   */
+  recordEvents(rows: readonly Record<string, unknown>[]): Promise<void>;
+
+  getDailyReward(accountId: string): Promise<DailyRewardRecord | null>;
+  putDailyReward(accountId: string, record: DailyRewardRecord): Promise<void>;
+}
+
+export interface DailyRewardRecord {
+  /** ISO date, the player's local day. Never a timestamp. */
+  readonly lastClaimedOn: string | null;
+  readonly streakDays: number;
 }
 
 export interface SessionPort {

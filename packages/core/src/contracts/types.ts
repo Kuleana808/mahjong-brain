@@ -249,3 +249,101 @@ export interface SessionAnalyticsResponse {
   readonly stored: boolean;
   readonly reason: string | null;
 }
+
+// ---------------------------------------------------------------------------
+// Parity additions (D-014). Contracts 11-13.
+//
+// The launch monetisation and retention loops mirror the incumbent's, so these
+// exist to serve them: instrumentation for every funnel step, a daily reward
+// loop, and server-side verification of rewarded ads.
+// ---------------------------------------------------------------------------
+
+// --- the product catalogue -------------------------------------------------
+
+/**
+ * Everything a player can obtain, and how.
+ *
+ * `remove_ads` is the old "$4.99 lifetime, no ads" positioning, demoted from
+ * launch pitch to one product among several. It ships as a **post-parity A/B
+ * test**, not as the thing the app is about (D-014).
+ */
+export type GrantKind = 'revive' | 'hint' | 'shuffle' | 'remove_ads';
+
+export type GrantSource = 'rewarded_ad' | 'iap' | 'daily_reward' | 'free_allowance';
+
+export interface ProductDefinition {
+  readonly kind: GrantKind;
+  readonly source: GrantSource;
+  /** StoreKit product id, for the ones that are purchases. */
+  readonly productId: string | null;
+  readonly consumable: boolean;
+}
+
+export const PRODUCT_CATALOGUE: readonly ProductDefinition[] = [
+  { kind: 'revive', source: 'rewarded_ad', productId: null, consumable: true },
+  { kind: 'hint', source: 'rewarded_ad', productId: null, consumable: true },
+  { kind: 'shuffle', source: 'iap', productId: 'com.nihi.mahjong.shuffle5', consumable: true },
+  { kind: 'remove_ads', source: 'iap', productId: 'com.nihi.mahjong.lifetime', consumable: false },
+];
+
+// --- 11. POST /api/events/batch --------------------------------------------
+
+export interface EventsBatchResponse {
+  readonly accepted: number;
+  /** Per-event rejections, so a client bug is visible rather than silent. */
+  readonly rejected: readonly { readonly index: number; readonly reason: string }[];
+  readonly schemaVersion: number;
+}
+
+// --- 12. GET /api/retention/daily, POST /api/retention/daily/claim ---------
+
+export interface DailyRewardState {
+  /** 1-7, cycling. Day 7 is the big one, then it starts over. */
+  readonly day: number;
+  readonly streakDays: number;
+  readonly claimableToday: boolean;
+  /** What claiming today gives. */
+  readonly reward: { readonly kind: GrantKind; readonly quantity: number };
+  /** ISO date (not timestamp) of the last claim, in the player's day boundary. */
+  readonly lastClaimedOn: string | null;
+  /** True when a day was missed and the streak restarts at 1. */
+  readonly streakBroken: boolean;
+}
+
+export interface DailyClaimRequest {
+  /**
+   * The player's local date, `YYYY-MM-DD`. Sent by the client because a daily
+   * reward is a local-midnight concept, and a server in UTC would roll the day
+   * over mid-evening in Hawai'i.
+   */
+  readonly localDate: string;
+}
+
+export interface DailyClaimResponse extends DailyRewardState {
+  readonly granted: { readonly kind: GrantKind; readonly quantity: number } | null;
+}
+
+// --- 13. POST /api/ads/reward-callback -------------------------------------
+
+/**
+ * Server-side verification of a rewarded ad.
+ *
+ * The ad network calls this, signed. The *client* never gets to assert that an
+ * ad was watched — same rule as purchases: no API grants anything from a click.
+ */
+export interface AdRewardCallbackRequest {
+  readonly placement: 'revive' | 'hint';
+  /** Opaque per-impression id from the network, used to prevent replay. */
+  readonly transactionId: string;
+  /** The signed payload exactly as the network sent it, for verification. */
+  readonly signature: string;
+  readonly rawQuery: string;
+  readonly anonymousDeviceId: string;
+}
+
+export interface AdRewardCallbackResponse {
+  readonly granted: boolean;
+  readonly kind: GrantKind | null;
+  /** True when this impression id was already redeemed. */
+  readonly duplicate: boolean;
+}

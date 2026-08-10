@@ -53,7 +53,7 @@ describe('the envelope', () => {
       expect(entry.id).toMatch(/^(game|api)\//);
       expect(entry.path.startsWith('/api/')).toBe(true);
     }
-    expect(CONTRACT_REGISTRY).toHaveLength(10);
+    expect(CONTRACT_REGISTRY).toHaveLength(12);
   });
 });
 
@@ -502,6 +502,11 @@ function stubStore(): StorePort {
       unlock = record;
     },
     async recordSession() {},
+    async recordEvents() {},
+    async getDailyReward() {
+      return null;
+    },
+    async putDailyReward() {},
   };
 }
 
