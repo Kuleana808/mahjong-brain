@@ -1,0 +1,163 @@
+/*
+ * Calm register — a starting point, not the locked visual language.
+ *
+ * The palette here is the one the app already ships (packages/core render
+ * palette), so the site and the game do not look like two products. The locked
+ * spec is in Notion and is not readable from here; when it lands, this file is
+ * the single place the site's look changes.
+ *
+ * Deliberately plain CSS rather than Tailwind: this is one page, and a build
+ * step that a designer has to learn before they can move a margin is friction
+ * for no return. Swap it if Codex would rather work in Tailwind.
+ */
+
+:root {
+  --felt: #ede8de;
+  --felt-edge: #e3dccf;
+  --surface: #fbf8f2;
+  --ink: #33302a;
+  --ink-soft: #6b655b;
+  --edge: #b9af9c;
+  --accent: #2e6f6a;
+  --measure: 34rem;
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --felt: #191b1e;
+    --felt-edge: #131518;
+    --surface: #2a2d31;
+    --ink: #e8e4dc;
+    --ink-soft: #a7a199;
+    --edge: #43484e;
+    --accent: #6fc0b8;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: clamp(2rem, 8vw, 6rem) 1.5rem;
+  background: radial-gradient(120% 80% at 50% 0%, var(--felt) 0%, var(--felt-edge) 100%);
+  color: var(--ink);
+  font:
+    400 clamp(1rem, 0.95rem + 0.3vw, 1.125rem) / 1.65 ui-rounded,
+    'SF Pro Rounded',
+    -apple-system,
+    'Segoe UI',
+    system-ui,
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+main {
+  max-width: var(--measure);
+  margin: 0 auto;
+}
+
+h1 {
+  margin: 0 0 0.6rem;
+  font-size: clamp(2.25rem, 1.6rem + 3vw, 3.5rem);
+  font-weight: 600;
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+.lede {
+  margin: 0 0 3.5rem;
+  font-size: clamp(1.125rem, 1rem + 0.6vw, 1.375rem);
+  color: var(--ink-soft);
+  text-wrap: pretty;
+}
+
+h2 {
+  margin: 3.5rem 0 0.75rem;
+  font-size: 1.0625rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+p {
+  margin: 0 0 1.1rem;
+  text-wrap: pretty;
+}
+
+.steps {
+  margin: 0 0 1.1rem;
+  padding-left: 1.4rem;
+}
+
+.steps li {
+  padding: 0.3rem 0;
+}
+
+.checks {
+  margin: 0 0 1.1rem;
+  padding: 0;
+  list-style: none;
+}
+
+.checks li {
+  position: relative;
+  padding: 0.3rem 0 0.3rem 1.6rem;
+}
+
+.checks li::before {
+  content: '';
+  position: absolute;
+  left: 0.35rem;
+  top: 1.1em;
+  transform: translateY(-50%);
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.cta-card {
+  margin: 3rem 0;
+  padding: 2.25rem 1.75rem;
+  border: 1px solid color-mix(in srgb, var(--edge) 50%, transparent);
+  border-radius: 1.5rem;
+  background: var(--surface);
+  text-align: center;
+}
+
+/* Obviously unfinished on purpose — a convincing fake badge is worse than a
+   visible gap, because it is the thing most likely to ship by accident. */
+.badge-placeholder {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 1rem 2.5rem;
+  border: 2px dashed color-mix(in srgb, var(--edge) 70%, transparent);
+  border-radius: 0.75rem;
+  color: var(--ink-soft);
+  font-weight: 600;
+}
+
+.badge-placeholder small {
+  font-weight: 400;
+  font-size: 0.8125rem;
+}
+
+.cta-note {
+  margin: 1.1rem 0 0;
+  font-size: 0.9375rem;
+  color: var(--ink-soft);
+}
+
+footer {
+  margin-top: 4.5rem;
+  padding-top: 1.75rem;
+  border-top: 1px solid color-mix(in srgb, var(--edge) 35%, transparent);
+  font-size: 0.9375rem;
+  color: var(--ink-soft);
+}

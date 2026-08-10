@@ -77,13 +77,22 @@ v0.2 follows a week of data. There is no "1.0".
 
 Shipped bundle: **~76 KB gzipped**.
 
+## Launch week
+
+Compressed plan and honest status in **[docs/launch-week.md](docs/launch-week.md)** —
+what is actually verified, what is blocked on whom, and the pre-submission gate.
+
 ## Getting started
 
 ```bash
 npm install
-npm run dev        # http://localhost:5183
-npm test           # game core, difficulty model, hint coach
-npm run build      # typecheck + production build
+npm run dev             # the game, :5183
+npm run api             # contracts dev server, :5185
+npm run marketing:dev   # marketing site, :5186
+npm test                # 231 tests
+npm run smoke:events    # instrumentation, end to end
+npm run preflight       # pre-submission gate — run before any upload
+npm run build           # typecheck + production build
 ```
 
 iOS:
@@ -119,7 +128,8 @@ packages/core/src/
   ai/         the hint coach: analysis → explanation, and the model router
   telemetry/  the closed event catalogue
   contracts/  the twelve API contracts, shapes and handlers
-apps/api/     dev server + adapters (Apple, StoreKit, sessions, stores)
+apps/api/       dev server + adapters (Apple, StoreKit, sessions, stores)
+apps/marketing/ Next.js static export → Cloudflare Pages (copy scaffold)
 supabase/     append-only migrations, RLS on, cohort views
 src/          rendering and UI — Codex's, moving to apps/mobile/
 site/         the one-page marketing site
