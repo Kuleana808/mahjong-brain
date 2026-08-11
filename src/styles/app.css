@@ -547,6 +547,21 @@ a:focus-visible {
 .card__price { display: block; margin: 12px 0; font-family: var(--font-display); font-size: 2.4rem; }
 .card__list { margin: 0 auto 24px; padding-left: 24px; max-width: 24rem; text-align: left; }
 .card__list li { padding: 4px 0; color: #526158; }
+.levels-layout { display: grid; grid-template-columns: minmax(88px, 0.7fr) minmax(170px, 1.3fr); gap: 18px; align-items: center; margin: 22px 0 28px; }
+.level-path { position: relative; display: grid; gap: 12px; margin: 0; padding: 0; list-style: none; }
+.level-path::before { content: ''; position: absolute; top: 24px; bottom: 24px; left: 23px; width: 2px; background: var(--bronze-500); opacity: 0.64; }
+.level-path li { position: relative; z-index: 1; display: grid; grid-template-columns: 48px 1fr; align-items: center; gap: 7px; text-align: left; color: var(--ink-900); }
+.level-path li > span { display: grid; place-items: center; width: 48px; height: 48px; border: 2px solid var(--bronze-500); border-radius: 50%; background: var(--ivory-200); font-family: var(--font-display); font-size: 1.35rem; box-shadow: 0 3px 0 var(--bronze-700); }
+.level-path li > small { font-size: 0.72rem; }
+.level-path .is-current > span { background: var(--jade-800); color: var(--cream-50); outline: 3px solid rgba(185, 138, 62, 0.3); }
+.level-path .is-complete > span::after { content: '✓'; position: absolute; font: 800 0.68rem/1 var(--font-body); transform: translate(17px, -17px); color: var(--jade-800); background: var(--cream-50); border-radius: 50%; padding: 3px; }
+.level-path .is-locked { opacity: 0.54; }
+.level-card { padding: 24px 16px; border: 3px double var(--bronze-500); border-radius: 20px; background: linear-gradient(145deg, #fffdf4, var(--ivory-200)); box-shadow: 0 10px 24px rgba(72, 46, 19, 0.18); }
+.level-card > span, .level-card > small { display: block; }
+.level-card > strong { display: block; margin: -4px 0 8px; font-family: var(--font-display); font-size: 4.6rem; line-height: 1; }
+.level-card > b { display: block; margin: 4px 0; font-family: var(--font-display); font-size: 2.15rem; }
+.level-card .home-progress { margin: 10px 0 7px; }
+.level-card hr { margin: 20px 0; border: 0; border-top: 1px solid rgba(116, 80, 34, 0.36); }
 .button--quiet { width: 100%; margin-top: 8px; color: var(--ink-900); }
 
 .setting { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 0; text-align: left; border-bottom: 1px solid rgba(116, 80, 34, 0.28); }
@@ -603,4 +618,12 @@ a:focus-visible {
   .jade-panel { max-width: 520px; }
   .holder { width: min(calc(100% - 48px), 440px); }
   .bottom-dock { gap: 36px; }
+}
+
+@media (max-width: 430px) {
+  .levels-layout { grid-template-columns: 80px 1fr; gap: 12px; }
+  .level-path li { grid-template-columns: 44px 1fr; gap: 5px; }
+  .level-path li > span { width: 44px; height: 44px; }
+  .level-path li > small { font-size: 0.64rem; }
+  .level-card { padding-inline: 12px; }
 }

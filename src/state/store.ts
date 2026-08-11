@@ -27,6 +27,11 @@ import {
 import { LAYOUTS, type LayoutId } from '../../packages/core/src/game/layouts';
 import { randomSeed } from '../../packages/core/src/game/rng';
 import {
+  INITIAL_PROGRESSION,
+  recordBoard,
+  type Progression,
+} from '../../packages/core/src/progression/progression';
+import {
   eventsFor,
   initialState as initialFlowState,
   reduce as reduceFlow,
@@ -85,6 +90,8 @@ interface SessionStats {
   startedAt: number;
   movesPlayed: number;
   hintsUsed: number;
+  shufflesUsed: number;
+  revivesUsed: number;
 }
 
 export type Status = 'idle' | 'playing' | 'stuck' | 'complete' | 'holder_full';
@@ -110,6 +117,7 @@ interface GameStore {
 
   settings: Settings;
   profile: SkillProfile;
+  progression: Progression;
   boardsCompleted: number;
   /** StoreKit entitlement owned by the Apple ID on this device. */
   deviceUnlocked: boolean;
@@ -149,6 +157,8 @@ const freshSession = (): SessionStats => ({
   startedAt: Date.now(),
   movesPlayed: 0,
   hintsUsed: 0,
+  shufflesUsed: 0,
+  revivesUsed: 0,
 });
 
 function statusFor(board: BoardState): Status {
@@ -230,6 +240,7 @@ export const useGame = create<GameStore>((set, get) => {
       progress: {
         flow: s.flow.progress,
         profile: s.profile,
+        progression: s.progression,
         boardsCompleted: s.boardsCompleted,
         deviceUnlocked: s.deviceUnlocked,
         unlocked: s.unlocked,
@@ -274,6 +285,7 @@ export const useGame = create<GameStore>((set, get) => {
 
     settings: DEFAULT_SETTINGS,
     profile: INITIAL_PROFILE,
+    progression: INITIAL_PROGRESSION,
     boardsCompleted: 0,
     deviceUnlocked: false,
     unlocked: false,
@@ -324,6 +336,7 @@ export const useGame = create<GameStore>((set, get) => {
       const progress = (saved?.progress ?? {}) as {
         flow?: FlowProgress;
         profile?: SkillProfile;
+        progression?: Progression;
         boardsCompleted?: number;
         deviceUnlocked?: boolean;
         unlocked?: boolean;
@@ -343,6 +356,7 @@ export const useGame = create<GameStore>((set, get) => {
         flow: initialFlowState(reconciledFlow),
         settings,
         profile: progress.profile ?? INITIAL_PROFILE,
+        progression: progress.progression ?? INITIAL_PROGRESSION,
         boardsCompleted: storedBoardsCompleted,
         deviceUnlocked: cachedDeviceEntitlement,
         unlocked: cachedDeviceEntitlement,
@@ -581,6 +595,7 @@ export const useGame = create<GameStore>((set, get) => {
         get().dispatchFlow({ type: 'board_won' });
       } else if (nextStatus === 'holder_full') {
         playSound('holder-full', settings.sounds);
+        finishBoard(false);
         get().dispatchFlow({ type: 'holder_full' });
       }
       persist();
@@ -670,6 +685,7 @@ export const useGame = create<GameStore>((set, get) => {
         selectedId: null,
         hint: null,
         announcement: 'Tiles reshuffled.',
+        session: { ...get().session, shufflesUsed: (get().session.shufflesUsed ?? 0) + 1 },
       });
       persist();
     },
@@ -689,6 +705,7 @@ export const useGame = create<GameStore>((set, get) => {
         status: 'playing',
         freeReviveAvailable: false,
         announcement: 'Free revive used. The held tiles returned to the board.',
+        session: { ...get().session, revivesUsed: (get().session.revivesUsed ?? 0) + 1 },
       });
       get().dispatchFlow({ type: 'revive' });
       persist();
@@ -804,7 +821,7 @@ export const useGame = create<GameStore>((set, get) => {
 
   /** Rolls the finished board into the skill profile and decides on the paywall. */
   function finishBoard(completed: boolean) {
-    const { board, session, profile, boardsCompleted, unlocked, purchaseDisplayPrice } = get();
+    const { board, session, profile, progression, boardsCompleted, unlocked, purchaseDisplayPrice } = get();
     if (!board) return;
 
     const nextProfile = recordOutcome(profile, {
@@ -815,9 +832,20 @@ export const useGame = create<GameStore>((set, get) => {
       elapsedSeconds: (Date.now() - session.startedAt) / 1000,
     });
     const total = boardsCompleted + (completed ? 1 : 0);
+    const nextProgression = recordBoard(progression, {
+      layout: board.layoutId,
+      won: completed,
+      pairsCleared: board.removed.length,
+      tilesTotal: board.tiles.length,
+      hintsUsed: session.hintsUsed,
+      revivesUsed: session.revivesUsed ?? 0,
+      shufflesUsed: session.shufflesUsed ?? 0,
+      elapsedSeconds: (Date.now() - session.startedAt) / 1000,
+    });
 
     set({
       profile: nextProfile,
+      progression: nextProgression,
       boardsCompleted: total,
       // Once, after the third finished board, and never for someone who has
       // already paid. Not before a board, not mid-board, not on a timer.

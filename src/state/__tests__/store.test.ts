@@ -593,6 +593,9 @@ describe('persistence', () => {
     expect(useGame.getState().flow.screen).toBe('game_over');
     expect(useGame.getState().boardsCompleted).toBe(1);
     expect(useGame.getState().flow.progress.boardsCompleted).toBe(1);
+    expect(useGame.getState().progression.boardsPlayed).toBe(1);
+    expect(useGame.getState().progression.boardsWon).toBe(1);
+    expect(useGame.getState().progression.xp).toBeGreaterThan(0);
     await Promise.resolve();
 
     useGame.setState({ ...initial, board: null, status: 'idle', hydrated: false });
@@ -601,5 +604,7 @@ describe('persistence', () => {
     expect(useGame.getState().flow.screen).toBe('game_over');
     expect(useGame.getState().boardsCompleted).toBe(1);
     expect(useGame.getState().flow.progress.boardsCompleted).toBe(1);
+    expect(useGame.getState().progression.boardsPlayed).toBe(1);
+    expect(useGame.getState().progression.boardsWon).toBe(1);
   });
 });

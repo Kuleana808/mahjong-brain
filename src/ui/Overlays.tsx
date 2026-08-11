@@ -8,6 +8,7 @@
 
 import { useEffect, useRef, type ReactNode } from 'react';
 
+import { levelProgress, xpForLevel } from '../../packages/core/src/progression/progression';
 import { purchasesConfigured } from '../iap';
 import { useGame, type Settings } from '../state/store';
 
@@ -48,6 +49,50 @@ export function CompletionCard() {
       <button type="button" className="button" onClick={() => start()}>
         Play again
       </button>
+    </Overlay>
+  );
+}
+
+export function LevelsSheet({ onClose }: { onClose: () => void }) {
+  const progression = useGame((s) => s.progression);
+  const progress = levelProgress(progression.xp);
+  const levelFloor = xpForLevel(progression.level);
+  const levelCeiling = xpForLevel(progression.level + 1);
+  const earnedThisLevel = progression.xp - levelFloor;
+  const neededThisLevel = levelCeiling - levelFloor;
+  const firstVisibleLevel = Math.max(1, progression.level - 2);
+  const visibleLevels = Array.from({ length: 5 }, (_, index) => firstVisibleLevel + index);
+
+  return (
+    <Overlay label="Levels">
+      <h2>Levels</h2>
+      <div className="levels-layout">
+        <ol className="level-path" aria-label="Level path">
+          {visibleLevels.map((level) => (
+            <li
+              key={level}
+              className={level === progression.level ? 'is-current' : level < progression.level ? 'is-complete' : 'is-locked'}
+              aria-current={level === progression.level ? 'step' : undefined}
+            >
+              <span>{level}</span>
+              <small>{level < progression.level ? 'Complete' : level === progression.level ? 'Current' : 'Locked'}</small>
+            </li>
+          ))}
+        </ol>
+        <section className="level-card" aria-label={`Current level ${progression.level}`}>
+          <span>Level</span>
+          <strong>{progression.level}</strong>
+          <div className="home-progress" aria-label={`${Math.round(progress * 100)} percent to next level`}>
+            <span style={{ width: `${Math.max(4, progress * 100)}%` }} />
+          </div>
+          <small>{earnedThisLevel} of {neededThisLevel} XP</small>
+          <hr />
+          <span>IQ estimate</span>
+          <b>{progression.iq}</b>
+          <small>{progression.boardsWon} of {progression.boardsPlayed} boards cleared</small>
+        </section>
+      </div>
+      <button type="button" className="button" onClick={onClose}>Done</button>
     </Overlay>
   );
 }
