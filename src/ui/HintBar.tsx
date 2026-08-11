@@ -48,7 +48,7 @@ export function HintBar() {
     <div className="hintbar">
       <div className="hint">
         <p id="hint-text" style={{ margin: 0 }}>
-          {hint.text}
+          {hint.summary}
         </p>
         <button type="button" className="hint__dismiss" onClick={dismissHint}>
           Got it
