@@ -280,9 +280,10 @@ export interface ProductDefinition {
 }
 
 /**
- * PRODUCT IDS ARE PLACEHOLDERS, derived from the placeholder bundle id
- * `com.mahjongbrain.game`. The bundle id becomes the App Store record and is
- * permanent once TestFlight sees it, so Brent locks it at submission — see
+ * Product identifiers are derived from the permanent bundle id
+ * `com.nihi.mahjong`. The bundle id becomes the App Store record and is
+ * permanent once TestFlight sees it. Brent locked it for submission on
+ * 2026-08-11 — see
  * D-001, which also notes that `mahjongbrain.com` belongs to someone else.
  * When it changes, this list, `capacitor.config.ts` and the `APPLE_BUNDLE_ID`
  * env var change together; `ios/**` is Codex's.
@@ -290,8 +291,8 @@ export interface ProductDefinition {
 export const PRODUCT_CATALOGUE: readonly ProductDefinition[] = [
   { kind: 'revive', source: 'rewarded_ad', productId: null, consumable: true },
   { kind: 'hint', source: 'rewarded_ad', productId: null, consumable: true },
-  { kind: 'shuffle', source: 'iap', productId: 'com.mahjongbrain.game.shuffle5', consumable: true },
-  { kind: 'remove_ads', source: 'iap', productId: 'com.mahjongbrain.game.removeads', consumable: false },
+  { kind: 'shuffle', source: 'iap', productId: 'com.nihi.mahjong.shuffle5', consumable: true },
+  { kind: 'remove_ads', source: 'iap', productId: 'com.nihi.mahjong.removeads', consumable: false },
 ];
 
 // --- 11. POST /api/events/batch --------------------------------------------

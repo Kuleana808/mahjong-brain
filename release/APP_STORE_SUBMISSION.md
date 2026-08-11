@@ -10,8 +10,8 @@ with a guessed URL, identifier, price, or review credential.
 | Field | Release value | Gate |
 |---|---|---|
 | Name | Mahjong Brain | Locked |
-| Bundle ID | `PENDING_PERMANENT_BUNDLE_ID` | Must match Capacitor, Xcode, Apple audience, and App Store record |
-| SKU | `PENDING_APP_STORE_SKU` | Internal only; choose before creating record |
+| Bundle ID | `com.nihi.mahjong` | Confirmed 2026-08-11; matches Capacitor, Xcode, Apple audience, and App Store record |
+| SKU | `mahjong-brain-ios-001` | Prepared for the App Store Connect record |
 | Primary category | Games / Board | Confirm in App Store Connect |
 | Secondary category | Games / Puzzle | Confirm in App Store Connect |
 | Age rating | Complete questionnaire from shipped content | No gambling, chat, UGC, or unrestricted web access |

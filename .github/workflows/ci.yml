@@ -59,6 +59,9 @@ jobs:
       - name: Build marketing site
         run: npm run marketing:build
 
+      - name: Verify approved brand assets
+        run: npm run check:brand-assets
+
   # The trademark firewall is the one rule that cannot be left to review
   # attention: original art only, nothing borrowed from any incumbent. A binary
   # image entering the tile pipeline has to be a deliberate, visible act.

@@ -12,6 +12,7 @@
     "test:watch": "vitest",
     "typecheck": "tsc -b --noEmit",
     "check:design-drift": "node scripts/check-design-drift.mjs",
+    "check:brand-assets": "node scripts/check-brand-assets.mjs",
     "ios:sync": "npm run build && npx cap sync ios",
     "ios:open": "npx cap open ios",
     "api:dev": "npm --workspace @mahjong-brain/api run dev",
@@ -19,7 +20,7 @@
     "smoke:events": "npm --workspace @mahjong-brain/api run smoke:events",
     "marketing:dev": "npm --workspace @mahjong-brain/marketing run dev",
     "marketing:build": "npm --workspace @mahjong-brain/marketing run build",
-    "preflight": "npm run check:design-drift && node scripts/preflight.mjs"
+    "preflight": "npm run check:design-drift && npm run check:brand-assets && node scripts/preflight.mjs"
   },
   "dependencies": {
     "@capacitor/core": "^8.5.0",

@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "approvedReference": "Emerald felt, ivory engraved brain tile, olive botanicals, restrained bronze frame",
+  "palette": ["#075a49", "#00483c", "#003b32", "#fff9e9", "#f5ecd5", "#b98a3e", "#745022"],
+  "files": {
+    "design/assets/app-icon-master.svg": {
+      "sha256": "057392b950641ca92d6fb4664cf936fe3dffe72507b5b18e23c3f668d1ad76ed",
+      "kind": "svg",
+      "requiredColors": ["#075a49", "#00483c", "#003b32", "#fff9e9", "#f5ecd5", "#b98a3e", "#745022"]
+    },
+    "design/assets/splash-master.svg": {
+      "sha256": "0b9f1feb438df3c5e362376d23197608ef508cb88f0a78cce42d36088e357a5d",
+      "kind": "svg",
+      "requiredColors": ["#075a49", "#00483c", "#003b32", "#fff9e9", "#b98a3e", "#745022"]
+    },
+    "ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png": {
+      "sha256": "4c6782157364754e328beeaba26f7b6f5dfc50e6616a04e9c7874e99cbb85246",
+      "kind": "png",
+      "width": 1024,
+      "height": 1024,
+      "allowAlpha": false
+    },
+    "ios/App/App/Assets.xcassets/Splash.imageset/splash-2732x2732.png": {
+      "sha256": "7ca94b99f058dc784e0ebe568f365c0940eef53bb4414e5aaeb9abb41085fe81",
+      "kind": "png",
+      "width": 2732,
+      "height": 2732,
+      "allowAlpha": false
+    },
+    "ios/App/App/Assets.xcassets/Splash.imageset/splash-2732x2732-1.png": {
+      "sha256": "7ca94b99f058dc784e0ebe568f365c0940eef53bb4414e5aaeb9abb41085fe81",
+      "kind": "png",
+      "width": 2732,
+      "height": 2732,
+      "allowAlpha": false
+    },
+    "ios/App/App/Assets.xcassets/Splash.imageset/splash-2732x2732-2.png": {
+      "sha256": "7ca94b99f058dc784e0ebe568f365c0940eef53bb4414e5aaeb9abb41085fe81",
+      "kind": "png",
+      "width": 2732,
+      "height": 2732,
+      "allowAlpha": false
+    }
+  }
+}

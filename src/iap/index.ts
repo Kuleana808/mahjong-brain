@@ -18,10 +18,9 @@ import type { ReceiptValidateResponse } from '../../packages/core/src/contracts/
 import { loadAccountSession } from '../auth/apple';
 import { apiConfigured, apiRequest } from '../services/api';
 
-// PLACEHOLDER — derived from the bundle id, which is still Brent's call (D-001).
-// Superseded in spirit by PRODUCT_CATALOGUE in @mahjong-brain/core; both change
-// together once the bundle id is locked.
-export const PRODUCT_ID = 'com.mahjongbrain.game.removeads';
+// Permanent StoreKit namespace confirmed with the app bundle id on 2026-08-11.
+// PRODUCT_CATALOGUE in @mahjong-brain/core remains the source of truth.
+export const PRODUCT_ID = 'com.nihi.mahjong.removeads';
 
 export interface PurchaseProduct {
   readonly productId: string;
