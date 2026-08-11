@@ -17,7 +17,11 @@ function Overlay({ label, children }: { label: string; children: ReactNode }) {
   // Move focus into the card so a keyboard or screen-reader user is not left
   // behind on the board underneath.
   useEffect(() => {
-    ref.current?.querySelector<HTMLElement>('button, [href], input')?.focus();
+    const heading = ref.current?.querySelector<HTMLElement>('h2');
+    if (heading) {
+      heading.tabIndex = -1;
+      heading.focus();
+    }
   }, []);
 
   return (
