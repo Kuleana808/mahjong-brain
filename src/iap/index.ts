@@ -22,7 +22,11 @@ import { apiConfigured, apiRequest } from '../services/api';
 // Superseded in spirit by PRODUCT_CATALOGUE in @mahjong-brain/core; both change
 // together once the bundle id is locked.
 export const PRODUCT_ID = 'com.mahjongbrain.game.removeads';
-export const PRICE_DISPLAY = '$4.99';
+
+export interface PurchaseProduct {
+  readonly productId: string;
+  readonly displayPrice: string;
+}
 
 export interface PurchaseResult {
   readonly status: 'purchased' | 'restored' | 'cancelled' | 'unavailable' | 'error';
@@ -30,6 +34,8 @@ export interface PurchaseResult {
 }
 
 export interface Purchases {
+  /** Localized storefront metadata from StoreKit. */
+  product?(): Promise<PurchaseProduct | null>;
   /** True/false when StoreKit answered; null when entitlement cannot be checked. */
   isUnlocked(): Promise<boolean | null>;
   purchase(): Promise<PurchaseResult>;
@@ -40,6 +46,10 @@ export interface Purchases {
 /** Test-only provider. Production starts unavailable and configures StoreKit explicitly. */
 export class MockPurchases implements Purchases {
   private unlocked = false;
+
+  async product(): Promise<PurchaseProduct> {
+    return { productId: PRODUCT_ID, displayPrice: '$4.99' };
+  }
 
   async isUnlocked(): Promise<boolean> {
     return this.unlocked;
@@ -58,6 +68,9 @@ export class MockPurchases implements Purchases {
 }
 
 class UnavailablePurchases implements Purchases {
+  async product(): Promise<null> {
+    return null;
+  }
   async isUnlocked(): Promise<null> {
     return null;
   }
@@ -78,7 +91,14 @@ interface NativeStoreKitResult {
   readonly signedTransaction?: string;
 }
 
+interface NativeStoreKitProduct {
+  readonly status: 'ready' | 'not_found';
+  readonly productId?: string;
+  readonly displayPrice?: string;
+}
+
 interface NativeStoreKit {
+  productInfo(options: { productId: string }): Promise<NativeStoreKitProduct>;
   purchase(options: { productId: string }): Promise<NativeStoreKitResult>;
   currentEntitlement(options: { productId: string }): Promise<NativeStoreKitResult>;
   restore(options: { productId: string }): Promise<NativeStoreKitResult>;
@@ -93,6 +113,20 @@ class VerifiedStoreKitPurchases implements Purchases {
 
   constructor(productId: string) {
     this.productId = productId;
+  }
+
+  async product(): Promise<PurchaseProduct | null> {
+    try {
+      const result = await NativeStoreKit.productInfo({ productId: this.productId });
+      if (
+        result.status !== 'ready' ||
+        result.productId !== this.productId ||
+        !result.displayPrice
+      ) return null;
+      return { productId: result.productId, displayPrice: result.displayPrice };
+    } catch {
+      return null;
+    }
   }
 
   async isUnlocked(): Promise<boolean | null> {

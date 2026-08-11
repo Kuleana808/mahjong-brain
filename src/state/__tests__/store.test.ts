@@ -129,6 +129,7 @@ describe('session flow', () => {
     expect(status).toBe('playing');
     expect(board!.remaining.size).toBeGreaterThan(0);
     expect(availableMoves(board!).length).toBeGreaterThan(0);
+    expect(useGame.getState().purchaseDisplayPrice).toBe('$4.99');
   });
 
   it('reveals the local game before entitlement verification finishes', async () => {

@@ -43,6 +43,9 @@ the work is findable from where it happens.
   run is waiting on a project existing.
 - **Pre-submission gate** — `npm run preflight`. Currently exits 1 on the
   placeholder bundle id, by design.
+- **Original interaction sound system** — Web Audio synthesis for tile, match,
+  blocked, holder warning/full, hint, shuffle, undo, and win cues; independently
+  controlled from Settings with no borrowed audio samples.
 
 ---
 
@@ -155,7 +158,6 @@ Listed so they do not creep in:
   hints versus answer hints. The engine and routing are already built and idle.
 - More layouts. Three is enough to validate; the ladder needs rungs, not variety.
 - Android. Capacitor nearly gives it to us, but it splits review attention.
-- Sound. Original audio is a commissioning decision.
 - Leaderboards and versus mode — parity items, but only once the incumbent's
   cadence is actually studied rather than guessed at.
 

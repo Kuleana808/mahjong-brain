@@ -4,27 +4,27 @@ Every asset must be original, generated from the locked design language, and tra
 
 | ID | Asset | Required variants | Output | Status | QA acceptance |
 |---|---|---|---|---|---|
-| `brand-mark` | Brain-and-leaf engraved tile | full, compact, monochrome | SVG/code path | draft | Symmetric brain, botanical stem/leaves, no face/mascot, legible at 40 px. |
-| `wordmark` | Mahjong Brain | stacked, single-line | vector/type lockup | draft | Georgia-family display shape, ivory with restrained bronze depth, no logo substitution. |
+| `brand-mark` | Brain-and-leaf engraved tile | full, compact, monochrome | SVG/code path | approved code | Symmetric brain, botanical stem/leaves, no face/mascot, legible at 40 px. Source: `src/ui/FlowScreens.tsx`. |
+| `wordmark` | Mahjong Brain | stacked, single-line | vector/type lockup | approved code | Georgia-family display shape, ivory with restrained bronze depth, no logo substitution. Source: `src/ui/FlowScreens.tsx`. |
 | `app-icon` | Brand tile in emerald frame | 1024 px master plus iOS rendition | SVG master + PNG asset catalog | approved | No transparency; no text; survives 29 px; emerald/ivory/bronze only. Source: `design/assets/app-icon-master.svg`. |
 | `splash` | Centered wordmark and brand tile | iPhone/iPad, lightless emerald | SVG master + PNG asset catalog | approved | No white flash; no progress UI; safe at all aspect ratios. Source: `design/assets/splash-master.svg`. |
-| `felt-background` | Emerald botanical field | phone portrait, iPad portrait/landscape | CSS/vector preferred | draft | Pattern under 18% opacity; does not reduce text contrast. |
-| `panel-ornament` | Bronze corner/keyline motif | top, bottom, full-frame | CSS/SVG | draft | 1–2 px apparent weight; never competes with copy. |
-| `botanical-sprig` | Olive leaves | left, right, compact | code SVG | specified | Same leaf geometry across home, splash, levels, reward. |
+| `felt-background` | Emerald botanical field | phone portrait, iPad portrait/landscape | CSS/vector preferred | approved code | Pattern under 18% opacity; does not reduce text contrast. Source: `src/styles/app.css`. |
+| `panel-ornament` | Bronze corner/keyline motif | top, bottom, full-frame | CSS/SVG | approved code | 1–2 px apparent weight; never competes with copy. Source: `src/styles/app.css`. |
+| `botanical-sprig` | Olive leaves | left, right, compact | code/CSS vector | approved code | Same leaf geometry across home and splash; future levels/reward surfaces reuse it. Source: `src/ui/FlowScreens.tsx`. |
 | `tile-faces` | Full mahjong set | all suits, winds, dragons, flowers, seasons | Canvas code | approved code | Bold central motif; Arabic numeral visible on numbered suits; suit shape distinct without color; traditional wind/dragon glyphs; no external art. |
-| `tile-back` | Brain-and-leaf engraving | standard, compact | Canvas/SVG code | draft | Warm bone relief; same mark as app icon. |
-| `holder-frame` | Four-slot tray | empty, warning, full | CSS/code | draft | Exactly four equal slots; occupancy remains visible at 200% text. |
-| `icon-profile` | Profile medallion | normal, focused, disabled | original inline vector | draft | 24 px glyph in 48 px target; bronze ring. |
+| `tile-back` | Brain-and-leaf engraving | standard, compact | Canvas/SVG code | approved code | Warm bone relief; same mark as app icon. Source: `src/ui/FlowScreens.tsx`. |
+| `holder-frame` | Four-slot tray | empty, warning, full | CSS/code | approved code | Exactly four equal slots; occupancy remains visible at 200% text. Source: `src/ui/Holder.tsx`. |
+| `icon-profile` | Profile medallion | normal, focused, disabled | original inline vector | approved code | 24 px glyph in 48 px target; bronze ring. Source: `src/ui/Icon.tsx`. |
 | `icon-daily` | Daily reward medallion | available, claimed, focused | original inline vector | draft | Sun cue, not casino currency. |
-| `icon-settings` | Settings medallion | normal, focused | original inline vector | draft | Matches profile/reward stroke and optical size. |
-| `icon-hint` | Hint | available, used, unavailable | original inline vector | draft | Lightbulb, never glowing neon. |
-| `icon-undo` | Undo | available, disabled | original inline vector | draft | Counter-clockwise arrow, not shuffle. |
-| `icon-shuffle` | Shuffle | available, disabled, purchase | original inline vector | draft | Crossing arrows and quantity badge where purchased. |
+| `icon-settings` | Settings medallion | normal, focused | original inline vector | approved code | Matches profile/reward stroke and optical size. Source: `src/ui/Icon.tsx`. |
+| `icon-hint` | Hint | available, used, unavailable | original inline vector | approved code | Lightbulb, never glowing neon. Source: `src/ui/Icon.tsx`. |
+| `icon-undo` | Undo | available, disabled | original inline vector | approved code | Counter-clockwise arrow, not shuffle. Source: `src/ui/Icon.tsx`. |
+| `icon-shuffle` | Shuffle | available, disabled, purchase | original inline vector | approved code | Crossing arrows; quantity badge remains non-release until consumables ship. Source: `src/ui/Icon.tsx`. |
 | `game-sounds` | Original interaction audio | tile, blocked, match, holder warning/full, hint, shuffle, undo, win | Web Audio synthesis | approved code | Quiet ceramic/wood character, no borrowed samples, no casino fanfare; Sound toggle silences every cue. |
 | `icon-revive` | Revive | available, ad-required, unavailable | original vector | specified | Return/restore cue; no heart/life system. |
-| `tutorial-match` | Matching diagram | rest, tapped, clearing | live components | draft | Uses actual tile and holder components, not a separate illustration style. |
-| `tutorial-edge` | Free-edge diagram | free, left-right locked | live components | draft | Demonstrates blocking with opacity and arrows plus text. |
-| `tutorial-holder` | Holder-risk diagram | 0, 3-warning, 4-full | live components | draft | Same holder as gameplay; exactly four slots. |
+| `tutorial-match` | Matching diagram | rest, tapped, clearing | live components | approved code | Uses the same tile and holder visual system, not a separate illustration style. Source: `src/ui/FlowScreens.tsx`. |
+| `tutorial-edge` | Free-edge diagram | free, left-right locked | live components | approved code | Demonstrates blocking with opacity and explanatory text. Source: `src/ui/FlowScreens.tsx`. |
+| `tutorial-holder` | Holder-risk diagram | 0, 3-warning, 4-full | live components | approved code | Same holder visual system as gameplay; exactly four slots. Source: `src/ui/FlowScreens.tsx`. |
 | `daily-reward` | Seven-day reward strip | claimable, today, claimed, missed | live components | specified | Today unambiguous without color; reward icon and quantity readable. |
 | `purchase-badge` | Product quantity/status | owned, price, pending | live component | specified | StoreKit price string, never hard-coded for release. |
 | `empty-offline` | Offline/error support mark | offline, retry, unavailable | icon + panel | specified | Calm and factual; no mascot or blame language. |

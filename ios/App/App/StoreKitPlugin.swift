@@ -6,11 +6,31 @@ public final class StoreKitPlugin: CAPPlugin, CAPBridgedPlugin {
     public let identifier = "StoreKitPlugin"
     public let jsName = "MahjongStoreKit"
     public let pluginMethods: [CAPPluginMethod] = [
+        CAPPluginMethod(name: "productInfo", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "purchase", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "currentEntitlement", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "restore", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "finish", returnType: CAPPluginReturnPromise)
     ]
+
+    @objc public func productInfo(_ call: CAPPluginCall) {
+        guard let productID = productID(call) else { return }
+        Task {
+            do {
+                guard let product = try await Product.products(for: [productID]).first else {
+                    call.resolve(["status": "not_found"])
+                    return
+                }
+                call.resolve([
+                    "status": "ready",
+                    "productId": product.id,
+                    "displayPrice": product.displayPrice
+                ])
+            } catch {
+                call.reject("The App Store product is unavailable.", "product_unavailable")
+            }
+        }
+    }
 
     @objc public func purchase(_ call: CAPPluginCall) {
         guard let productID = productID(call) else { return }

@@ -115,6 +115,7 @@ interface GameStore {
   deviceUnlocked: boolean;
   unlocked: boolean;
   purchasePending: 'buying' | 'restoring' | null;
+  purchaseDisplayPrice: string | null;
   paywallOpen: boolean;
   settingsOpen: boolean;
   freeReviveAvailable: boolean;
@@ -277,6 +278,7 @@ export const useGame = create<GameStore>((set, get) => {
     deviceUnlocked: false,
     unlocked: false,
     purchasePending: null,
+    purchaseDisplayPrice: null,
     paywallOpen: false,
     settingsOpen: false,
     freeReviveAvailable: true,
@@ -460,9 +462,10 @@ export const useGame = create<GameStore>((set, get) => {
       // eight-second blank screen.
       set({ hydrated: true });
 
-      const [currentDeviceEntitlement, account] = await Promise.all([
+      const [currentDeviceEntitlement, account, product] = await Promise.all([
         purchases().isUnlocked(),
         restoreAccount(),
+        purchases().product?.() ?? Promise.resolve(null),
       ]);
       // StoreKit is authoritative when it returns a result. A verifier outage
       // returns null and preserves the last verified device entitlement.
@@ -480,6 +483,7 @@ export const useGame = create<GameStore>((set, get) => {
           : s.settings,
         deviceUnlocked,
         unlocked: deviceUnlocked || account?.unlock?.unlocked === true,
+        purchaseDisplayPrice: product?.displayPrice ?? null,
         accountStatus: account ? 'signed_in' : appleSignInAvailable() ? 'signed_out' : 'unavailable',
         accountId: account?.session.accountId ?? null,
       }));
@@ -800,7 +804,7 @@ export const useGame = create<GameStore>((set, get) => {
 
   /** Rolls the finished board into the skill profile and decides on the paywall. */
   function finishBoard(completed: boolean) {
-    const { board, session, profile, boardsCompleted, unlocked } = get();
+    const { board, session, profile, boardsCompleted, unlocked, purchaseDisplayPrice } = get();
     if (!board) return;
 
     const nextProfile = recordOutcome(profile, {
@@ -818,7 +822,11 @@ export const useGame = create<GameStore>((set, get) => {
       // Once, after the third finished board, and never for someone who has
       // already paid. Not before a board, not mid-board, not on a timer.
       paywallOpen:
-        purchasesConfigured() && !unlocked && completed && total === PAYWALL_AFTER_BOARDS,
+        purchasesConfigured() &&
+        purchaseDisplayPrice !== null &&
+        !unlocked &&
+        completed &&
+        total === PAYWALL_AFTER_BOARDS,
     });
   }
 });

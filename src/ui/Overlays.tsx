@@ -8,7 +8,7 @@
 
 import { useEffect, useRef, type ReactNode } from 'react';
 
-import { PRICE_DISPLAY, purchasesConfigured } from '../iap';
+import { purchasesConfigured } from '../iap';
 import { useGame, type Settings } from '../state/store';
 
 function Overlay({ label, children }: { label: string; children: ReactNode }) {
@@ -57,13 +57,14 @@ export function Paywall() {
   const restore = useGame((s) => s.restore);
   const close = useGame((s) => s.closePaywall);
   const pending = useGame((s) => s.purchasePending);
+  const displayPrice = useGame((s) => s.purchaseDisplayPrice);
 
   return (
     <Overlay label="Unlock Mahjong Brain">
       <h2>Keep it quiet, for good</h2>
       <p>You have played three boards. Here is the only thing we will ever ask.</p>
 
-      <strong className="card__price">{PRICE_DISPLAY}</strong>
+      <strong className="card__price">{displayPrice ?? 'Store unavailable'}</strong>
       <p style={{ marginTop: '-0.75rem' }}>Once. Not a subscription.</p>
 
       <ul className="card__list">
@@ -73,8 +74,8 @@ export function Paywall() {
         <li>No timers, no streaks, no daily check-ins</li>
       </ul>
 
-      <button type="button" className="button" disabled={pending !== null} onClick={() => void buy()}>
-        {pending === 'buying' ? 'Contacting Apple…' : `Unlock for ${PRICE_DISPLAY}`}
+      <button type="button" className="button" disabled={pending !== null || !displayPrice} onClick={() => void buy()}>
+        {pending === 'buying' ? 'Contacting Apple…' : displayPrice ? `Unlock for ${displayPrice}` : 'Try again later'}
       </button>
       <button type="button" className="button button--quiet" disabled={pending !== null} onClick={() => void restore()}>
         {pending === 'restoring' ? 'Checking with Apple…' : 'Restore purchase'}
