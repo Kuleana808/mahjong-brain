@@ -89,4 +89,3 @@ Record each separately in the release handoff:
 - App Store processing state
 - internal TestFlight availability
 - tester-group availability
-

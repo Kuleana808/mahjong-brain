@@ -59,7 +59,6 @@ function softRattle(ctx: AudioContext, at: number): void {
     ceramicTap(ctx, at + index * 0.035, 0.78 + index * 0.055);
   }
 }
-
 export function playSound(sound: GameSound, enabled = true): void {
   if (!enabled) return;
   try {
@@ -108,4 +107,3 @@ export function playSound(sound: GameSound, enabled = true): void {
     // Audio availability and permissions never affect the play loop.
   }
 }
-
