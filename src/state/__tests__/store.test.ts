@@ -49,6 +49,8 @@ function reset() {
   useGame.setState({
     ...initial,
     board: null,
+    holder: [],
+    tapHistory: [],
     status: 'idle',
     selectedId: null,
     hint: null,
@@ -90,6 +92,30 @@ function playToCompletion(): { moves: number; shuffles: number } {
 describe('session flow', () => {
   beforeEach(reset);
 
+  it('starts behind the legal gate and follows the shared flow machine', async () => {
+    await useGame.getState().hydrate();
+    expect(useGame.getState().flow.screen).toBe('tos');
+
+    useGame.getState().dispatchFlow({ type: 'accept_tos', at: '2026-08-10T00:00:00.000Z' });
+    expect(useGame.getState().flow.screen).toBe('age_gate');
+
+    useGame.getState().dispatchFlow({ type: 'answer_age_gate', passed: true });
+    expect(useGame.getState().flow.screen).toBe('loading');
+    useGame.getState().dispatchFlow({ type: 'loading_finished' });
+    expect(useGame.getState().flow.screen).toBe('tutorial_a');
+  });
+
+  it('persists onboarding progress across a restart', async () => {
+    await useGame.getState().hydrate();
+    useGame.getState().dispatchFlow({ type: 'accept_tos', at: '2026-08-10T00:00:00.000Z' });
+    useGame.getState().dispatchFlow({ type: 'answer_age_gate', passed: true });
+    await Promise.resolve();
+
+    useGame.setState({ ...initial, board: null, status: 'idle', hydrated: false });
+    await useGame.getState().hydrate();
+    expect(useGame.getState().flow.screen).toBe('tutorial_a');
+  });
+
   it('lands on a playable board with no login and no menu', async () => {
     await useGame.getState().hydrate();
     const { board, status } = useGame.getState();
@@ -118,7 +144,7 @@ describe('session flow', () => {
     expect(useGame.getState().announcement).toMatch(/blocked/i);
   });
 
-  it('treats a non-matching second tap as reselecting, not as an error', async () => {
+  it('moves unmatched free tiles into the four-slot holder', async () => {
     await useGame.getState().hydrate();
     const board = useGame.getState().board!;
     const [first, second] = availableMoves(board)[0];
@@ -128,8 +154,9 @@ describe('session flow', () => {
 
     useGame.getState().tapTile(first.id);
     useGame.getState().tapTile(mismatch!.id);
-    expect(useGame.getState().selectedId).toBe(mismatch!.id);
-    expect(useGame.getState().board!.remaining.size).toBe(board.remaining.size);
+    expect(useGame.getState().holder).toEqual([first.id, mismatch!.id]);
+    expect(useGame.getState().selectedId).toBeNull();
+    expect(useGame.getState().board!.remaining.size).toBe(board.remaining.size - 2);
   });
 
   it('undoes a move', async () => {
@@ -141,7 +168,12 @@ describe('session flow', () => {
     expect(useGame.getState().board!.remaining.size).toBe(before - 2);
 
     useGame.getState().undo();
+    expect(useGame.getState().board!.remaining.size).toBe(before - 1);
+    expect(useGame.getState().holder).toEqual([a.id]);
+
+    useGame.getState().undo();
     expect(useGame.getState().board!.remaining.size).toBe(before);
+    expect(useGame.getState().holder).toEqual([]);
   });
 });
 
@@ -249,6 +281,7 @@ describe('persistence', () => {
 
     const expected = useGame.getState().board!;
     const remaining = expected.remaining.size;
+    const taps = useGame.getState().tapHistory;
 
     // Simulate a cold start: same persisted blob, fresh store.
     useGame.setState({ ...initial, board: null, status: 'idle', hydrated: false });
@@ -258,6 +291,55 @@ describe('persistence', () => {
     expect(restored.seed).toBe(expected.seed);
     expect(restored.layoutId).toBe(expected.layoutId);
     expect(restored.remaining.size).toBe(remaining);
+    expect(useGame.getState().tapHistory).toEqual(taps);
+    expect(useGame.getState().holder).toEqual([]);
+  });
+
+  it('returns an onboarded player directly to an active saved board', async () => {
+    await useGame.getState().hydrate();
+    useGame.getState().dispatchFlow({ type: 'accept_tos', at: '2026-08-10T00:00:00.000Z' });
+    useGame.getState().dispatchFlow({ type: 'answer_age_gate', passed: true });
+    useGame.getState().dispatchFlow({ type: 'loading_finished' });
+    useGame.getState().dispatchFlow({ type: 'skip_tutorial' });
+    useGame.getState().dispatchFlow({ type: 'start_board' });
+
+    const free = freeTiles(useGame.getState().board!)[0];
+    useGame.getState().tapTile(free.id);
+    expect(useGame.getState().holder).toHaveLength(1);
+
+    useGame.setState({
+      ...initial,
+      board: null,
+      holder: [],
+      tapHistory: [],
+      status: 'idle',
+      hydrated: false,
+    });
+    await useGame.getState().hydrate();
+
+    expect(useGame.getState().flow.screen).toBe('gameplay');
+    expect(useGame.getState().holder).toEqual([free.id]);
+  });
+
+  it('keeps the same active board when Back and Level 1 are used to pause and resume', async () => {
+    await useGame.getState().hydrate();
+    useGame.getState().dispatchFlow({ type: 'accept_tos', at: '2026-08-10T00:00:00.000Z' });
+    useGame.getState().dispatchFlow({ type: 'answer_age_gate', passed: true });
+    useGame.getState().dispatchFlow({ type: 'loading_finished' });
+    useGame.getState().dispatchFlow({ type: 'skip_tutorial' });
+    useGame.getState().dispatchFlow({ type: 'start_board' });
+
+    const free = freeTiles(useGame.getState().board!)[0];
+    useGame.getState().tapTile(free.id);
+    const seed = useGame.getState().board!.seed;
+
+    useGame.getState().dispatchFlow({ type: 'leave_board' });
+    expect(useGame.getState().flow.screen).toBe('home');
+    useGame.getState().dispatchFlow({ type: 'start_board' });
+
+    expect(useGame.getState().flow.screen).toBe('gameplay');
+    expect(useGame.getState().board!.seed).toBe(seed);
+    expect(useGame.getState().holder).toEqual([free.id]);
   });
 
   it('starts a fresh board when there is nothing saved', async () => {
@@ -275,5 +357,27 @@ describe('persistence', () => {
 
     expect(useGame.getState().settings.theme).toBe('high-contrast');
     expect(useGame.getState().settings.fontScale).toBe(1.45);
+  });
+
+  it('records a win once and relaunches on the same result without double counting', async () => {
+    await useGame.getState().hydrate();
+    useGame.getState().dispatchFlow({ type: 'accept_tos', at: '2026-08-10T00:00:00.000Z' });
+    useGame.getState().dispatchFlow({ type: 'answer_age_gate', passed: true });
+    useGame.getState().dispatchFlow({ type: 'loading_finished' });
+    useGame.getState().dispatchFlow({ type: 'skip_tutorial' });
+    useGame.getState().dispatchFlow({ type: 'start_board' });
+
+    playToCompletion();
+    expect(useGame.getState().flow.screen).toBe('game_over');
+    expect(useGame.getState().boardsCompleted).toBe(1);
+    expect(useGame.getState().flow.progress.boardsCompleted).toBe(1);
+    await Promise.resolve();
+
+    useGame.setState({ ...initial, board: null, status: 'idle', hydrated: false });
+    await useGame.getState().hydrate();
+
+    expect(useGame.getState().flow.screen).toBe('game_over');
+    expect(useGame.getState().boardsCompleted).toBe(1);
+    expect(useGame.getState().flow.progress.boardsCompleted).toBe(1);
   });
 });

@@ -8,7 +8,7 @@
 
 import { useEffect, useRef, type ReactNode } from 'react';
 
-import { PRICE_DISPLAY } from '../iap';
+import { PRICE_DISPLAY, purchasesConfigured } from '../iap';
 import { useGame, type Settings } from '../state/store';
 
 function Overlay({ label, children }: { label: string; children: ReactNode }) {
@@ -201,7 +201,7 @@ export function SettingsSheet() {
       >
         New board
       </button>
-      {!unlocked ? (
+      {!unlocked && purchasesConfigured() ? (
         <button type="button" className="button button--quiet" onClick={() => void restore()}>
           Restore purchase
         </button>

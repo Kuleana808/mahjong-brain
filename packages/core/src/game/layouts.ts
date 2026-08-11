@@ -82,23 +82,42 @@ const SPECS: readonly LayoutSpec[] = [
     ],
   },
   {
-    // Three clean steps. The gentlest of the three: wide base, few buried
-    // tiles, most of the board free early.
+    // Garden Steps. An original, softly tapered arrangement for the first
+    // board: broad readable edges, staggered shoulders, and a narrow raised
+    // spine. It retains 144 tiles and the same 10 x 8 footprint as the former
+    // rectangular pyramid, so phone tiles stay large without presenting a
+    // visible uniform grid.
     id: 'pyramid',
-    name: 'Pyramid',
+    name: 'Garden Steps',
     relativeDifficulty: 0.3,
     layers: [
       {
         offset: [0, 0],
-        rows: Array.from({ length: 8 }, () => '##########'),
+        rows: [
+          '..######..',
+          '.########.',
+          '##########',
+          '##########',
+          '##########',
+          '##########',
+          '.########.',
+          '..######..',
+        ],
       },
       {
-        offset: [1, 1],
-        rows: Array.from({ length: 6 }, () => '########'),
+        offset: [0, 1],
+        rows: [
+          '.########.',
+          '##########',
+          '##########',
+          '##########',
+          '##########',
+          '.########.',
+        ],
       },
       {
-        offset: [3, 2],
-        rows: Array.from({ length: 4 }, () => '####'),
+        offset: [2, 2],
+        rows: ['.####.', '######', '######', '.####.'],
       },
     ],
   },

@@ -63,6 +63,7 @@ export type FlowAction =
   | { type: 'tutorial_step_done'; step: 'tutorial_a' | 'tutorial_b' | 'tutorial_c' }
   | { type: 'skip_tutorial' }
   | { type: 'start_board' }
+  | { type: 'leave_board' }
   | { type: 'board_won' }
   | { type: 'holder_full' }
   | { type: 'revive' }
@@ -157,6 +158,11 @@ export function reduce(state: FlowState, action: FlowAction): FlowState {
     case 'start_board': {
       if (state.screen !== 'home' && state.screen !== 'game_over') return state;
       return { ...state, screen: 'gameplay' };
+    }
+
+    case 'leave_board': {
+      if (state.screen !== 'gameplay') return state;
+      return { ...state, screen: 'home' };
     }
 
     case 'board_won': {

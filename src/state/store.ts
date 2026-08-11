@@ -15,10 +15,9 @@ import {
   isComplete,
   isStuck,
   removePair,
-  undoLast,
   type BoardState,
 } from '../../packages/core/src/game/board';
-import { canReshuffle, deal, reshuffle } from '../../packages/core/src/game/deal';
+import { deal } from '../../packages/core/src/game/deal';
 import {
   chooseLayout,
   INITIAL_PROFILE,
@@ -27,7 +26,22 @@ import {
 } from '../../packages/core/src/game/difficulty';
 import type { LayoutId } from '../../packages/core/src/game/layouts';
 import { randomSeed } from '../../packages/core/src/game/rng';
-import { purchases } from '../iap';
+import {
+  eventsFor,
+  initialState as initialFlowState,
+  reduce as reduceFlow,
+  type FlowAction,
+  type FlowProgress,
+  type FlowState,
+} from '../../packages/core/src/flow/screens';
+import {
+  replaySession,
+  shuffle as shufflePlaySession,
+  startSession,
+  tapTile as tapPlayTile,
+  type PlaySession,
+} from '../../packages/core/src/play/session';
+import { purchases, purchasesConfigured } from '../iap';
 import { clearFaceCache } from '../render/boardRenderer';
 import { PALETTES, type ThemeName } from '../render/palette';
 import { loadPersisted, savePersisted } from './persist';
@@ -59,10 +73,13 @@ interface SessionStats {
   hintsUsed: number;
 }
 
-export type Status = 'idle' | 'playing' | 'stuck' | 'complete';
+export type Status = 'idle' | 'playing' | 'stuck' | 'complete' | 'holder_full';
 
 interface GameStore {
+  flow: FlowState;
   board: BoardState | null;
+  holder: readonly number[];
+  tapHistory: readonly number[];
   status: Status;
   selectedId: number | null;
   hint: Hint | null;
@@ -81,6 +98,7 @@ interface GameStore {
   session: SessionStats;
 
   hydrate(): Promise<void>;
+  dispatchFlow(action: FlowAction): void;
   start(layoutId?: LayoutId): void;
   tapTile(id: number): void;
   clearSelection(): void;
@@ -107,6 +125,28 @@ function statusFor(board: BoardState): Status {
   return 'playing';
 }
 
+function statusForPlaySession(session: PlaySession): Status {
+  if (session.status === 'won') return 'complete';
+  if (session.status === 'holder_full') return 'holder_full';
+  return 'playing';
+}
+
+function playSessionFromState(
+  board: BoardState,
+  holder: readonly number[],
+  status: Status,
+): PlaySession {
+  return {
+    board,
+    holder,
+    status: status === 'holder_full' ? 'holder_full' : status === 'complete' ? 'won' : 'playing',
+    cleared: board.removed.length * 2,
+    revivesUsed: 0,
+    shufflesUsed: 0,
+    hintsUsed: 0,
+  };
+}
+
 export const useGame = create<GameStore>((set, get) => {
   const persist = () => {
     const s = get();
@@ -114,6 +154,7 @@ export const useGame = create<GameStore>((set, get) => {
       version: 1,
       settings: s.settings,
       progress: {
+        flow: s.flow.progress,
         profile: s.profile,
         boardsCompleted: s.boardsCompleted,
         unlocked: s.unlocked,
@@ -123,6 +164,7 @@ export const useGame = create<GameStore>((set, get) => {
             layoutId: s.board.layoutId,
             seed: s.board.seed,
             removed: s.board.removed,
+            taps: s.tapHistory,
             session: s.session,
           }
         : null,
@@ -130,7 +172,10 @@ export const useGame = create<GameStore>((set, get) => {
   };
 
   return {
+    flow: initialFlowState(),
     board: null,
+    holder: [],
+    tapHistory: [],
     status: 'idle',
     selectedId: null,
     hint: null,
@@ -147,6 +192,28 @@ export const useGame = create<GameStore>((set, get) => {
 
     session: freshSession(),
 
+    dispatchFlow(action) {
+      const before = get().flow;
+      const after = reduceFlow(before, action);
+      if (after === before) return;
+
+      // The flow machine owns sequencing. Event delivery is added at the
+      // contract seam; keeping the names here makes missing instrumentation
+      // visible during development without inventing UI-only events.
+      if (import.meta.env.DEV) {
+        for (const name of eventsFor(action, before, after)) console.debug('[flow]', name);
+      }
+
+      set({ flow: after });
+      // Home doubles as the pause surface. Returning to an active board must
+      // preserve its seed, holder, and move history; only a finished/absent
+      // session receives a fresh deal.
+      if (action.type === 'start_board' && (!get().board || get().status !== 'playing')) {
+        get().start();
+      }
+      persist();
+    },
+
     async hydrate() {
       const saved = await loadPersisted();
       const settings = {
@@ -158,6 +225,7 @@ export const useGame = create<GameStore>((set, get) => {
         ...((saved?.settings as Partial<Settings>) ?? {}),
       };
       const progress = (saved?.progress ?? {}) as {
+        flow?: FlowProgress;
         profile?: SkillProfile;
         boardsCompleted?: number;
         unlocked?: boolean;
@@ -165,29 +233,67 @@ export const useGame = create<GameStore>((set, get) => {
 
       const unlocked = progress.unlocked || (await purchases().isUnlocked());
 
+      const storedBoardsCompleted = progress.boardsCompleted ?? progress.flow?.boardsCompleted ?? 0;
+      const reconciledFlow = progress.flow
+        ? { ...progress.flow, boardsCompleted: storedBoardsCompleted }
+        : progress.flow;
+
       set({
+        flow: initialFlowState(reconciledFlow),
         settings,
         profile: progress.profile ?? INITIAL_PROFILE,
-        boardsCompleted: progress.boardsCompleted ?? 0,
+        boardsCompleted: storedBoardsCompleted,
         unlocked,
         hydrated: true,
       });
 
-      // Restore a board that was in progress; otherwise deal a new one. Either
-      // way the player lands on a playable board with no decision to make.
+      // Restore a board if one exists. Otherwise pre-deal the first board so
+      // Start is instant after onboarding; the flow still prevents it from
+      // being shown or interacted with before the legal/tutorial gates.
       const resume = saved?.resume as
-        | { layoutId: LayoutId; seed: number; removed: [number, number][]; session: SessionStats }
+        | {
+            layoutId: LayoutId;
+            seed: number;
+            removed: [number, number][];
+            taps?: number[];
+            session: SessionStats;
+          }
         | null
         | undefined;
 
       if (resume?.layoutId) {
-        let board = deal(resume.layoutId, resume.seed);
-        for (const [a, b] of resume.removed) board = removePair(board, a, b);
-        set({
-          board,
-          status: statusFor(board),
-          session: resume.session ?? freshSession(),
-        });
+        const restored = resume.taps
+          ? replaySession(resume.layoutId, resume.seed, resume.taps)
+          : null;
+        if (restored) {
+          const currentFlow = get().flow;
+          const canResumeBoard = currentFlow.screen === 'home';
+          set({
+            flow: canResumeBoard
+              ? {
+                  ...currentFlow,
+                  screen: restored.status === 'playing' ? 'gameplay' : 'game_over',
+                }
+              : currentFlow,
+            board: restored.board,
+            holder: restored.holder,
+            tapHistory: resume.taps ?? [],
+            status: statusForPlaySession(restored),
+            session: resume.session ?? freshSession(),
+          });
+        } else if (resume.taps) {
+          get().start(resume.layoutId);
+        } else {
+          let board = deal(resume.layoutId, resume.seed);
+          for (const [a, b] of resume.removed) board = removePair(board, a, b);
+          set({
+            board,
+            holder: [],
+            tapHistory: [],
+            status: statusFor(board),
+            session: resume.session ?? freshSession(),
+          });
+        }
       } else {
         get().start();
       }
@@ -196,65 +302,59 @@ export const useGame = create<GameStore>((set, get) => {
     start(layoutId) {
       const { profile } = get();
       const chosen = layoutId ?? chooseLayout(profile);
-      const board = deal(chosen, randomSeed());
+      const play = startSession(chosen, randomSeed());
       set({
-        board,
+        board: play.board,
+        holder: play.holder,
+        tapHistory: [],
         status: 'playing',
         selectedId: null,
         hint: null,
         session: freshSession(),
-        announcement: `New board. ${board.remaining.size} tiles.`,
+        announcement: `New board. ${play.board.remaining.size} tiles.`,
       });
       persist();
     },
 
     tapTile(id) {
-      const { board, selectedId, settings } = get();
-      if (!board || !board.remaining.has(id)) return;
+      const { board, holder, tapHistory, settings, status } = get();
+      if (!board || !board.remaining.has(id) || status !== 'playing') return;
 
-      if (selectedId === null) {
-        const free = new Set(freeTiles(board).map((t) => t.id));
-        if (!free.has(id)) {
-          set({ announcement: 'That tile is blocked. Try one with an open side.' });
-          return;
-        }
-        set({ selectedId: id, announcement: '' });
+      const play = playSessionFromState(board, holder, status);
+      const next = tapPlayTile(play, id);
+      if (next === play) {
+        set({ announcement: 'That tile is blocked. Try one with an open side.' });
         return;
       }
 
-      if (selectedId === id) {
-        set({ selectedId: null });
-        return;
-      }
-
-      const next = removePair(board, selectedId, id);
-      if (next === board) {
-        // Not a legal pair — treat the tap as picking a new tile rather than
-        // scolding the player. One less thing to think about.
-        set({ selectedId: id, announcement: 'Not a match.' });
-        return;
-      }
-
-      const status = statusFor(next);
+      const nextStatus = statusForPlaySession(next);
       const session = { ...get().session, movesPlayed: get().session.movesPlayed + 1 };
-
       if (settings.haptics) void tap();
 
       set({
-        board: next,
+        board: next.board,
+        holder: next.holder,
+        tapHistory: [...tapHistory, id],
         selectedId: null,
         hint: null,
-        status,
+        status: nextStatus,
         session,
         announcement:
-          status === 'complete'
+          nextStatus === 'complete'
             ? 'Board complete.'
-            : status === 'stuck'
-              ? 'No pairs left. Shuffle to keep going.'
-              : `${next.remaining.size} tiles left.`,
+            : nextStatus === 'holder_full'
+              ? 'The holder is full.'
+              : next.holder.length === 3
+                ? 'Three of four holder slots filled.'
+                : `${next.board.remaining.size} tiles left.`,
       });
 
-      if (status === 'complete') finishBoard(true);
+      if (nextStatus === 'complete') {
+        finishBoard(true);
+        get().dispatchFlow({ type: 'board_won' });
+      } else if (nextStatus === 'holder_full') {
+        get().dispatchFlow({ type: 'holder_full' });
+      }
       persist();
     },
 
@@ -281,13 +381,16 @@ export const useGame = create<GameStore>((set, get) => {
     },
 
     undo() {
-      const { board } = get();
-      if (!board) return;
-      const next = undoLast(board);
-      if (next === board) return;
+      const { board, tapHistory } = get();
+      if (!board || tapHistory.length === 0) return;
+      const taps = tapHistory.slice(0, -1);
+      const next = replaySession(board.layoutId, board.seed, taps);
+      if (!next) return;
       set({
-        board: next,
-        status: statusFor(next),
+        board: next.board,
+        holder: next.holder,
+        tapHistory: taps,
+        status: statusForPlaySession(next),
         selectedId: null,
         hint: null,
         announcement: 'Move undone.',
@@ -296,25 +399,16 @@ export const useGame = create<GameStore>((set, get) => {
     },
 
     shuffleBoard() {
-      const { board } = get();
+      const { board, holder, status } = get();
       if (!board) return;
-
-      // Late in a board the last tiles can end up stacked, and no arrangement
-      // of faces makes a stacked pair takeable. Say so and count the board as
-      // played rather than offering a button that does nothing.
-      if (!canReshuffle(board)) {
-        finishBoard(false);
-        set({
-          announcement: 'These last tiles cannot be freed. Starting a fresh board.',
-        });
-        get().start();
-        return;
-      }
-
-      const next = reshuffle(board, randomSeed());
+      const play = playSessionFromState(board, holder, status);
+      const next = shufflePlaySession(play, randomSeed());
+      if (next === play) return;
       set({
-        board: next,
-        status: statusFor(next),
+        board: next.board,
+        holder: next.holder,
+        tapHistory: [],
+        status: statusForPlaySession(next),
         selectedId: null,
         hint: null,
         announcement: 'Tiles reshuffled.',
@@ -376,7 +470,8 @@ export const useGame = create<GameStore>((set, get) => {
       boardsCompleted: total,
       // Once, after the third finished board, and never for someone who has
       // already paid. Not before a board, not mid-board, not on a timer.
-      paywallOpen: !unlocked && completed && total === PAYWALL_AFTER_BOARDS,
+      paywallOpen:
+        purchasesConfigured() && !unlocked && completed && total === PAYWALL_AFTER_BOARDS,
     });
   }
 });

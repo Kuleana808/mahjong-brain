@@ -11,15 +11,18 @@ import { useEffect } from 'react';
 import { PALETTES } from '../render/palette';
 import { useGame } from '../state/store';
 import { BoardView } from './BoardView';
-import { CompletionCard, Paywall, SettingsSheet } from './Overlays';
+import { BottomDock } from './BottomDock';
+import { Paywall, SettingsSheet } from './Overlays';
+import { FlowRouter } from './FlowScreens';
 import { HintBar } from './HintBar';
+import { Holder } from './Holder';
 import { TopBar } from './TopBar';
 
 export function App() {
   const hydrate = useGame((s) => s.hydrate);
   const hydrated = useGame((s) => s.hydrated);
   const settings = useGame((s) => s.settings);
-  const status = useGame((s) => s.status);
+  const screen = useGame((s) => s.flow.screen);
   const paywallOpen = useGame((s) => s.paywallOpen);
   const settingsOpen = useGame((s) => s.settingsOpen);
   const announcement = useGame((s) => s.announcement);
@@ -44,18 +47,31 @@ export function App() {
     root.style.colorScheme = settings.theme === 'calm-dark' ? 'dark' : 'light';
   }, [settings.theme, settings.fontScale]);
 
+  if (!hydrated) {
+    return <div className="app app--boot" aria-label="Opening Mahjong Brain" />;
+  }
+
+  const isGameplay = screen === 'gameplay';
+
   return (
-    <div className="app" data-reduce-motion={settings.reduceMotion}>
-      <TopBar />
-      <BoardView />
-      <HintBar />
+    <div className={`app ${isGameplay ? 'app--gameplay' : 'app--flow'}`} data-reduce-motion={settings.reduceMotion}>
+      {isGameplay ? (
+        <>
+          <TopBar />
+          <Holder />
+          <BoardView />
+          <HintBar />
+          <BottomDock />
+        </>
+      ) : (
+        <FlowRouter />
+      )}
 
       {/* Every state change the player cannot see, spoken once. */}
       <p aria-live="polite" className="visually-hidden">
         {announcement}
       </p>
 
-      {hydrated && status === 'complete' && !paywallOpen ? <CompletionCard /> : null}
       {paywallOpen ? <Paywall /> : null}
       {settingsOpen ? <SettingsSheet /> : null}
     </div>

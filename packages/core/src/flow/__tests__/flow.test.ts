@@ -188,6 +188,15 @@ describe('the game-over screen', () => {
   });
 });
 
+describe('pausing a board', () => {
+  it('returns from gameplay to home and can resume', () => {
+    let state = reduce(onboard(), { type: 'start_board' });
+    state = reduce(state, { type: 'leave_board' });
+    expect(state.screen).toBe('home');
+    expect(reduce(state, { type: 'start_board' }).screen).toBe('gameplay');
+  });
+});
+
 describe('instrumentation is attached to the machine, not the views', () => {
   it('emits a shown event on arrival at every gated screen', () => {
     let state = initialState();

@@ -129,6 +129,41 @@ function drawRing(
   ctx.stroke();
 }
 
+/**
+ * A quiet ceramic glaze: a narrow top-left reflection and a soft lower falloff.
+ * The opacity is intentionally restrained so the face art stays crisp and the
+ * material reads as fired bone rather than shiny plastic.
+ */
+function drawCeramicGlaze(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+): void {
+  const radius = w * 0.13;
+  ctx.save();
+  ctx.beginPath();
+  ctx.roundRect(x, y, w, h, radius);
+  ctx.clip();
+
+  const sheen = ctx.createLinearGradient(x, y, x + w * 0.72, y + h * 0.62);
+  sheen.addColorStop(0, 'rgba(255, 255, 255, 0.34)');
+  sheen.addColorStop(0.18, 'rgba(255, 255, 255, 0.12)');
+  sheen.addColorStop(0.48, 'rgba(255, 255, 255, 0)');
+  sheen.addColorStop(1, 'rgba(96, 68, 31, 0.08)');
+  ctx.fillStyle = sheen;
+  ctx.fillRect(x, y, w, h);
+
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.58)';
+  ctx.lineWidth = Math.max(0.8, w * 0.018);
+  ctx.beginPath();
+  ctx.moveTo(x + radius, y + ctx.lineWidth);
+  ctx.lineTo(x + w - radius, y + ctx.lineWidth);
+  ctx.stroke();
+  ctx.restore();
+}
+
 export function render(canvas: HTMLCanvasElement, state: RenderState): View {
   const dpr = Math.min(window.devicePixelRatio || 1, 2.5);
   const boxW = canvas.clientWidth;
@@ -178,6 +213,7 @@ export function render(canvas: HTMLCanvasElement, state: RenderState): View {
       rect.h,
     );
     ctx.restore();
+    drawCeramicGlaze(ctx, rect.x, drawY, rect.w, rect.h);
 
     if (isSelected) drawRing(ctx, rect.x, drawY, rect.w, rect.h, state.palette.selected);
     else if (isHinted) drawRing(ctx, rect.x, drawY, rect.w, rect.h, state.palette.hinted);

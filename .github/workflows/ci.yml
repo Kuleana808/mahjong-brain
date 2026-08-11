@@ -39,6 +39,9 @@ jobs:
         # are correct everywhere else. Next has its own checks in its build.
         run: npx oxlint src packages apps/api
 
+      - name: Approved visual system has not drifted
+        run: npm run check:design-drift
+
       - name: Instrumentation smoke test
         # Drives the real state machines through the real ingest handler. Against
         # the dev store here; the Supabase run needs a project that does not

@@ -1,0 +1,75 @@
+{
+  "version": 1,
+  "approvedReference": "Emerald, ivory, amber and bronze boards approved 2026-08-10",
+  "cssTokens": {
+    "--jade-950": "#003b32",
+    "--jade-900": "#00483c",
+    "--jade-800": "#075a49",
+    "--jade-700": "#146b50",
+    "--ivory-100": "#f5ecd5",
+    "--ivory-200": "#e8d8b7",
+    "--cream-50": "#fff7e5",
+    "--amber-600": "#c76508",
+    "--amber-500": "#e07a0b",
+    "--bronze-500": "#b98a3e",
+    "--bronze-700": "#745022",
+    "--leaf-500": "#607b25"
+  },
+  "calmPalette": {
+    "felt": "#00483C",
+    "feltEdge": "#003B32",
+    "tileFace": "#F5ECD5",
+    "tileFaceTop": "#FFF9E9",
+    "tileSide": "#236B4B",
+    "tileEdge": "#0F513A",
+    "selected": "#E07A0B",
+    "hinted": "#607B25"
+  },
+  "presentation": {
+    "fontDisplay": "Georgia, 'Times New Roman', serif",
+    "fontBody": "ui-rounded, 'SF Pro Rounded', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+    "baseUnit": 4,
+    "spacing": { "0": 0, "1": 4, "2": 8, "3": 12, "4": 16, "5": 20, "6": 24, "8": 32, "10": 40, "12": 48, "16": 64 },
+    "radius": { "tile": 8, "control": 12, "panel": 24, "round": 9999 },
+    "typePx": { "caption": 13, "body": 19, "button": 20, "title": 32, "display": 52 },
+    "controlMinHeight": 48,
+    "primaryControlHeight": 64,
+    "cellStepX": 0.47,
+    "cellStepY": 0.62,
+    "holderSlots": 4,
+    "tileMinimumPhoneWidth": 66,
+    "tileMinimumTabletWidth": 80,
+    "motionMs": { "instant": 0, "micro": 100, "short": 180, "medium": 320, "long": 600 },
+    "easing": { "enter": "cubic-bezier(0.2, 0.8, 0.2, 1)", "exit": "cubic-bezier(0.4, 0, 1, 1)", "move": "cubic-bezier(0.4, 0, 0.2, 1)" }
+  },
+  "semantic": {
+    "backgroundApp": "#003B32",
+    "backgroundRaised": "#00483C",
+    "surfacePrimary": "#F5ECD5",
+    "surfaceElevated": "#FFF9E9",
+    "textOnDark": "#FFF7E5",
+    "textOnLight": "#143E34",
+    "textMutedOnLight": "#526158",
+    "actionPrimary": "#C76508",
+    "focus": "#FFF7E5",
+    "success": "#2F6B4F",
+    "warning": "#E07A0B",
+    "danger": "#93361F",
+    "info": "#2C4F73",
+    "disabledOpacity": 0.42,
+    "blockedTileOpacity": 0.72
+  },
+  "components": {
+    "primaryButton": ["rest", "pressed", "focused", "disabled", "loading"],
+    "secondaryButton": ["rest", "pressed", "focused", "disabled"],
+    "iconButton": ["rest", "pressed", "focused", "disabled", "selected"],
+    "tile": ["free", "blocked", "pressed", "hinted", "matched", "removing"],
+    "holder": ["empty", "one", "two", "warning-three", "full-four", "matching", "clearing"],
+    "panel": ["standard", "dialog", "warning", "success", "offline", "error"],
+    "switch": ["off", "on", "focused", "disabled"],
+    "segmentedControl": ["rest", "selected", "focused", "disabled"],
+    "progress": ["empty", "partial", "complete", "indeterminate"],
+    "toast": ["info", "success", "warning", "error"]
+    ,"gameplayChrome": ["top-back", "top-count", "top-settings", "bottom-shuffle", "bottom-hint", "bottom-undo"]
+  }
+}

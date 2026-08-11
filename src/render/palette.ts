@@ -1,8 +1,8 @@
 /**
  * The calm palette.
  *
- * Soft, desaturated, paper-like. Nothing here is above ~55% saturation, because
- * the product *is* the quiet. Every text/background pair below clears WCAG 2.1
+ * Locked to the approved Mahjong Brain reference boards: emerald felt, warm
+ * ivory bone, amber interaction, and restrained bronze. Every text/background pair below clears WCAG 2.1
  * AA (4.5:1 for body, 3:1 for large text and UI boundaries); the high-contrast
  * theme clears AAA.
  *
@@ -48,18 +48,18 @@ export type SuitKey =
 export const PALETTES: Readonly<Record<ThemeName, Palette>> = {
   calm: {
     name: 'calm',
-    felt: '#EDE8DE',
-    feltEdge: '#E3DCCF',
-    tileFace: '#FBF8F2',
-    tileFaceTop: '#FFFDF8',
-    tileSide: '#D9D1C2',
-    tileEdge: '#B9AF9C',
-    tileShadow: 'rgba(60, 52, 38, 0.16)',
-    ink: '#33302A',
-    inkSoft: '#6B655B',
-    selected: '#2E6F6A',
-    hinted: '#8A6A2F',
-    dimAlpha: 0.55,
+    felt: '#00483C',
+    feltEdge: '#003B32',
+    tileFace: '#F5ECD5',
+    tileFaceTop: '#FFF9E9',
+    tileSide: '#236B4B',
+    tileEdge: '#0F513A',
+    tileShadow: 'rgba(0, 20, 15, 0.58)',
+    ink: '#143E34',
+    inkSoft: '#526158',
+    selected: '#E07A0B',
+    hinted: '#607B25',
+    dimAlpha: 0.72,
     suits: {
       bamboo: '#2F6B4F',
       character: '#2C4F73',

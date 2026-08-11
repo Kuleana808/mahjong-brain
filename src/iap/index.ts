@@ -7,10 +7,9 @@
  * without the UI learning anything new.
  *
  * DECISION NEEDED FROM BRENT (docs/DECISIONS.md, D-005): which StoreKit bridge.
- * `@capacitor-community/in-app-purchases` is free and thin but lightly
- * maintained; RevenueCat is free under $2.5k/mo tracked revenue but is a vendor
- * and therefore needs an explicit yes. Until that call, `MockPurchases` is
- * wired up everywhere and the paywall is fully playable in the simulator.
+ * Until that bridge and contract 8's Apple Root CA G3 pin are configured, the
+ * production default fails closed and purchase UI stays hidden. Tests may
+ * inject a signed/test provider; release code never grants a mock entitlement.
  */
 
 // PLACEHOLDER — derived from the bundle id, which is still Brent's call (D-001).
@@ -55,12 +54,32 @@ export class MockPurchases implements Purchases {
   }
 }
 
-let active: Purchases = new MockPurchases();
+class UnavailablePurchases implements Purchases {
+  async isUnlocked(): Promise<boolean> {
+    return false;
+  }
+
+  async purchase(): Promise<PurchaseResult> {
+    return { status: 'unavailable', message: 'Purchases are not available in this build.' };
+  }
+
+  async restore(): Promise<PurchaseResult> {
+    return { status: 'unavailable', message: 'Restore is not available in this build.' };
+  }
+}
+
+let active: Purchases = new UnavailablePurchases();
+let configured = false;
 
 export function purchases(): Purchases {
   return active;
 }
 
+export function purchasesConfigured(): boolean {
+  return configured;
+}
+
 export function setPurchases(implementation: Purchases): void {
   active = implementation;
+  configured = true;
 }
