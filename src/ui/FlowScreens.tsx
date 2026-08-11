@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { useGame } from '../state/store';
 import { Icon } from './Icon';
 
@@ -38,15 +38,59 @@ function ScreenFrame({ children, className = '' }: { children: ReactNode; classN
   return <main className={`flow-screen ${className}`}>{children}</main>;
 }
 
+type LegalDocument = 'terms' | 'privacy';
+
+function LegalDocumentDialog({ document, onClose }: { document: LegalDocument; onClose: () => void }) {
+  const closeRef = useRef<HTMLButtonElement>(null);
+  useEffect(() => closeRef.current?.focus(), []);
+
+  const isPrivacy = document === 'privacy';
+  return (
+    <div className="overlay" role="dialog" aria-modal="true" aria-labelledby="legal-title">
+      <article className="card legal-card">
+        <h2 id="legal-title">{isPrivacy ? 'Privacy Policy' : 'Terms of Service'}</h2>
+        {isPrivacy ? (
+          <>
+            <p>Mahjong Brain is designed to work without advertising profiles. We do not store your email address.</p>
+            <h3>Information we use</h3>
+            <p>We save game progress and settings on your device. If you choose Sign in with Apple, the service receives the Apple account identifier needed to protect your unlock status. Anonymous session events may be used to understand crashes and game completion; those events do not include an account identifier.</p>
+            <h3>Purchases</h3>
+            <p>Apple processes payments. We verify purchase records only to restore the unlock to the correct account and prevent one purchase from unlocking multiple accounts.</p>
+            <h3>Your choices</h3>
+            <p>You can play without personalized advertising. Device permissions remain under your control in iOS Settings.</p>
+          </>
+        ) : (
+          <>
+            <p>Mahjong Brain is a calm tile-matching game. By accepting, you agree to use the app lawfully and to follow the rules shown in the tutorial.</p>
+            <h3>Game and availability</h3>
+            <p>Game progress may be interrupted by device, network, or service conditions. We may update layouts, features, and compatibility while preserving purchases that Apple confirms as valid.</p>
+            <h3>Purchases</h3>
+            <p>Any purchase is handled by Apple and is subject to Apple’s payment terms. Purchase restoration succeeds only after the receipt is securely verified.</p>
+            <h3>Fair use</h3>
+            <p>Do not attempt to interfere with the service, impersonate another player, or bypass purchase verification.</p>
+          </>
+        )}
+        <button ref={closeRef} type="button" className="button" onClick={onClose}>Done</button>
+      </article>
+    </div>
+  );
+}
+
 export function TermsScreen() {
   const dispatch = useGame((s) => s.dispatchFlow);
+  const [legalDocument, setLegalDocument] = useState<LegalDocument | null>(null);
   return (
     <ScreenFrame className="flow-screen--terms">
       <div className="ornament ornament--top" />
       <BrainLeafMark />
       <section className="jade-panel">
         <h1>Welcome to<br />Mahjong Brain!</h1>
-        <p>Please read and accept our Terms of Service and Privacy Policy.</p>
+        <p>
+          Please read and accept our{' '}
+          <button type="button" className="legal-link" onClick={() => setLegalDocument('terms')}>Terms of Service</button>
+          {' '}and{' '}
+          <button type="button" className="legal-link" onClick={() => setLegalDocument('privacy')}>Privacy Policy</button>.
+        </p>
         <button
           type="button"
           className="primary-button"
@@ -55,6 +99,7 @@ export function TermsScreen() {
           Accept
         </button>
       </section>
+      {legalDocument ? <LegalDocumentDialog document={legalDocument} onClose={() => setLegalDocument(null)} /> : null}
     </ScreenFrame>
   );
 }
