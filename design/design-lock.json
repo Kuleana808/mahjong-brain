@@ -1,6 +1,6 @@
 {
-  "version": 1,
-  "approvedReference": "Emerald, ivory, amber and bronze boards approved 2026-08-10",
+  "version": 2,
+  "approvedReference": "Canonical four-state gameplay board approved 2026-08-10",
   "cssTokens": {
     "--jade-950": "#003b32",
     "--jade-900": "#00483c",
@@ -41,6 +41,14 @@
     "tileMinimumTabletWidth": 80,
     "motionMs": { "instant": 0, "micro": 100, "short": 180, "medium": 320, "long": 600 },
     "easing": { "enter": "cubic-bezier(0.2, 0.8, 0.2, 1)", "exit": "cubic-bezier(0.4, 0, 1, 1)", "move": "cubic-bezier(0.4, 0, 0.2, 1)" }
+  },
+  "tileMaterial": {
+    "face": "warm ivory fired ceramic",
+    "finish": "satin glaze",
+    "highlight": "quiet top-left edge and face bloom",
+    "side": "deep botanical jade extrusion",
+    "shadow": "short warm contact shadow plus soft stack shadow",
+    "forbidden": ["mirror glare", "white plastic", "glass", "neon green edge"]
   },
   "semantic": {
     "backgroundApp": "#003B32",

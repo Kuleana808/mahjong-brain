@@ -4,6 +4,19 @@ Flow names and release priority live in `design/FLOWS.md`. Every QA state below 
 
 QA uses this matrix with `DESIGN.md` and `design/design-lock.json`. Capture each ID at 393×852 and 1024×1366 unless the row says otherwise. A state passes only when its structure, component states, tokens, copy hierarchy, safe areas, and interaction target sizes match the contract.
 
+## Approved gameplay composition
+
+The canonical gameplay reference is the four-panel board approved on 2026-08-10: normal play, blocked-tile feedback, three-slot holder warning, and full-holder revive. It fixes the following composition for every gameplay state:
+
+- large overlapping portrait tiles dominate the middle of the screen; the board is a layered silhouette, never a uniform grid;
+- tile faces are warm ivory fired ceramic with a satin glaze, a quiet top-left highlight, deep jade sides, and short contact shadows;
+- highlights describe the tile's curved edge but never form mirror glare, hard white streaks, or a plastic/glass shine;
+- Back, remaining count, and Settings occupy one fixed top row; the four-slot holder sits immediately below it;
+- Shuffle, Hint, and Undo form one fixed three-button bottom dock; gameplay feedback floats over the board without moving any chrome;
+- the full-holder state dims the board and presents one ivory sheet with Revive primary and Restart secondary.
+
+This written contract is the durable QA baseline. Competitor screenshots may explain scale or mechanics but are not visual assets and must not be copied into the product.
+
 ## Global checks for every capture
 
 - Background is emerald, not blue-green, gray, or black.
