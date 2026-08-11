@@ -6,10 +6,10 @@
  * a narrow interface so the real StoreKit implementation can drop in behind it
  * without the UI learning anything new.
  *
- * DECISION NEEDED FROM BRENT (docs/DECISIONS.md, D-005): which StoreKit bridge.
- * Until that bridge and contract 8's Apple Root CA G3 pin are configured, the
- * production default fails closed and purchase UI stays hidden. Tests may
- * inject a signed/test provider; release code never grants a mock entitlement.
+ * The in-house StoreKit 2 bridge returns Apple's signed transaction JWS to
+ * contract 8, whose chain terminates at the source-pinned Apple Root CA G3.
+ * Missing product or server configuration fails closed. Tests may inject a
+ * provider; release code never grants a mock entitlement.
  */
 
 import { Capacitor, registerPlugin } from '@capacitor/core';

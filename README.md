@@ -71,7 +71,7 @@ v0.2 follows a week of data. There is no "1.0".
 | State | Zustand |
 | Storage | `@capacitor/preferences`, on-device only |
 | AI coach | Offline explainer by default; Ollama for phrasing on web/dev |
-| Purchases | StoreKit 2, consumables + one non-consumable (bridge TBD, D-005) |
+| Purchases | In-house StoreKit 2 bridge; server JWS verification pinned to Apple Root CA G3 |
 | Instrumentation | First-party, Supabase-native. No third-party analytics SDK. |
 | Ads | Rewarded video for Revive and Hint. Network not chosen — needs a yes. |
 

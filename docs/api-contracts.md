@@ -141,8 +141,8 @@ of the request.
 Real Apple identity tokens are verified for real; only the row storage is
 in-process.
 
-**8 is the one that stays dark**, deliberately. It needs Apple Root CA G3 pinned,
-and it fails closed until it has it — see below.
+**8 stays dark until permanent product and bundle identifiers exist.** Apple
+Root CA G3 is pinned in source and verification fails closed — see below.
 
 ### `state` distinguishes "not deployed" from "you sent something wrong"
 

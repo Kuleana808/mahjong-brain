@@ -5,9 +5,8 @@
  * for free play, and nothing to sync before you can start — one tap and the
  * board is there.
  *
- * TODO(PR 4): optional Supabase sync for settings and the unlock, so a player
- * who buys on the phone gets it on the iPad. Opt-in, and never a precondition
- * for playing.
+ * Optional account sync for settings and verified unlocks lives in
+ * `src/auth/apple.ts`. It is opt-in and never a precondition for play.
  */
 
 import { Preferences } from '@capacitor/preferences';
