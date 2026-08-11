@@ -29,6 +29,25 @@ const PLACEHOLDER_BUNDLE_ID = 'com.mahjongbrain.game';
 const blockers = [];
 const warnings = [];
 
+const metadataFiles = [
+  'fastlane/metadata/en-US/name.txt',
+  'fastlane/metadata/en-US/subtitle.txt',
+  'fastlane/metadata/en-US/description.txt',
+  'fastlane/metadata/en-US/keywords.txt',
+  'fastlane/metadata/en-US/release_notes.txt',
+  'fastlane/metadata/en-US/support_url.txt',
+  'fastlane/metadata/en-US/privacy_url.txt',
+  'release/APP_STORE_SUBMISSION.md',
+];
+for (const path of metadataFiles) {
+  if (!read(path).trim()) blockers.push(`Required App Store submission file is missing or empty: ${path}.`);
+}
+
+const supportUrl = read('fastlane/metadata/en-US/support_url.txt').trim();
+const privacyUrl = read('fastlane/metadata/en-US/privacy_url.txt').trim();
+if (!/^https:\/\//.test(supportUrl)) blockers.push('App Store support URL is not a final public HTTPS URL.');
+if (!/^https:\/\//.test(privacyUrl)) blockers.push('App Store privacy policy URL is not a final public HTTPS URL.');
+
 // --- the permanent one ------------------------------------------------------
 
 const capacitor = read('capacitor.config.ts');

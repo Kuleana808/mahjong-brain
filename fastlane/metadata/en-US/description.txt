@@ -1,0 +1,12 @@
+Mahjong Brain is a calm tile-matching game built around clarity, comfort, and satisfying play.
+
+Choose matching free tiles and keep an eye on the four-slot holder. Matching pairs clear automatically. If four unmatched tiles fill the holder, the round ends—so each move matters.
+
+• Large, readable mahjong tiles
+• Layered boards designed for phones and iPad
+• Helpful hints, shuffle, and undo controls
+• A short interactive tutorial
+• Adjustable text, motion, sound, vibration, and contrast settings
+• Progress saved on your device
+
+Mahjong Brain uses original artwork and can be played without creating an account. Optional Sign in with Apple and purchase features only appear when their secure services are configured.
