@@ -58,6 +58,7 @@ function reset() {
     boardsCompleted: 0,
     unlocked: false,
     paywallOpen: false,
+    freeReviveAvailable: true,
     hydrated: false,
   });
 }
@@ -295,6 +296,52 @@ describe('persistence', () => {
     expect(useGame.getState().holder).toEqual([]);
   });
 
+  it('preserves removed tiles and the shuffled deal across a cold restart', async () => {
+    await useGame.getState().hydrate();
+    const [a, b] = availableMoves(useGame.getState().board!)[0];
+    useGame.getState().tapTile(a.id);
+    useGame.getState().tapTile(b.id);
+    const remainingBeforeShuffle = useGame.getState().board!.remaining.size;
+
+    useGame.getState().shuffleBoard();
+    const shuffled = useGame.getState().board!;
+    const faces = shuffled.tiles.map((tile) => tile.face);
+    await Promise.resolve();
+
+    useGame.setState({ ...initial, board: null, status: 'idle', hydrated: false });
+    await useGame.getState().hydrate();
+
+    expect(useGame.getState().board!.seed).toBe(shuffled.seed);
+    expect(useGame.getState().board!.remaining.size).toBe(remainingBeforeShuffle);
+    expect(useGame.getState().board!.tiles.map((tile) => tile.face)).toEqual(faces);
+  });
+
+  it('persists a single free revive and never silently replenishes it', async () => {
+    await useGame.getState().hydrate();
+    const board = useGame.getState().board!;
+    const holder = [...board.remaining].slice(0, 4);
+    const remaining = new Set(board.remaining);
+    for (const id of holder) remaining.delete(id);
+    useGame.setState({
+      board: { ...board, remaining },
+      holder,
+      status: 'holder_full',
+      flow: { ...useGame.getState().flow, screen: 'game_over' },
+      freeReviveAvailable: true,
+    });
+
+    useGame.getState().revive();
+    expect(useGame.getState().status).toBe('playing');
+    expect(useGame.getState().holder).toEqual([]);
+    expect(useGame.getState().freeReviveAvailable).toBe(false);
+    for (const id of holder) expect(useGame.getState().board!.remaining.has(id)).toBe(true);
+    await Promise.resolve();
+
+    useGame.setState({ ...initial, board: null, status: 'idle', hydrated: false });
+    await useGame.getState().hydrate();
+    expect(useGame.getState().freeReviveAvailable).toBe(false);
+  });
+
   it('returns an onboarded player directly to an active saved board', async () => {
     await useGame.getState().hydrate();
     useGame.getState().dispatchFlow({ type: 'accept_tos', at: '2026-08-10T00:00:00.000Z' });
@@ -350,13 +397,14 @@ describe('persistence', () => {
 
   it('keeps settings across a restart', async () => {
     await useGame.getState().hydrate();
-    useGame.getState().updateSettings({ theme: 'high-contrast', fontScale: 1.45 });
+    useGame.getState().updateSettings({ theme: 'high-contrast', fontScale: 1.45, sounds: false });
 
     useGame.setState({ ...initial, board: null, hydrated: false, settings: DEFAULT_SETTINGS });
     await useGame.getState().hydrate();
 
     expect(useGame.getState().settings.theme).toBe('high-contrast');
     expect(useGame.getState().settings.fontScale).toBe(1.45);
+    expect(useGame.getState().settings.sounds).toBe(false);
   });
 
   it('records a win once and relaunches on the same result without double counting', async () => {

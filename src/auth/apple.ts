@@ -15,7 +15,8 @@ interface AppleSignInNative {
   signIn(): Promise<{ identityToken: string; userIdentifier: string }>;
 }
 
-const AppleSignIn = registerPlugin<AppleSignInNative>('AppleSignIn');
+const appleGlobal = globalThis as typeof globalThis & { __mahjongAppleSignIn?: AppleSignInNative };
+const AppleSignIn = appleGlobal.__mahjongAppleSignIn ??= registerPlugin<AppleSignInNative>('AppleSignIn');
 
 export interface AccountSession {
   readonly token: string;

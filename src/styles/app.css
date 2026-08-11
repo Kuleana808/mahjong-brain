@@ -387,6 +387,23 @@ a:focus-visible {
 .result-card p { color: #4e5c4c; }
 .result-card .text-button { color: var(--ink-900); }
 .result-kicker { margin: 0 0 4px; text-transform: uppercase; letter-spacing: 0.12em; font-size: 0.82rem; font-weight: 800; }
+.revive-button {
+  border-color: var(--bronze-500);
+  background: linear-gradient(var(--jade-700), var(--jade-950));
+  text-shadow: 0 2px 1px rgba(0, 31, 26, 0.62);
+}
+.revive-button span {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 3px 8px;
+  border-radius: var(--radius-round);
+  background: var(--cream-50);
+  color: var(--jade-900);
+  font: 800 0.72rem/1 var(--font-body);
+  text-shadow: none;
+  text-transform: uppercase;
+}
+.result-restart { margin-top: 14px; min-height: 58px; }
 
 .topbar {
   position: relative;

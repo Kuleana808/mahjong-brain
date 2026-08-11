@@ -37,10 +37,7 @@ export interface Purchases {
   restore(): Promise<PurchaseResult>;
 }
 
-/**
- * Stand-in until the StoreKit bridge is chosen. Persists to the same store the
- * real one will, so the unlocked-state plumbing is exercised for real.
- */
+/** Test-only provider. Production starts unavailable and configures StoreKit explicitly. */
 export class MockPurchases implements Purchases {
   private unlocked = false;
 
@@ -88,7 +85,8 @@ interface NativeStoreKit {
   finish(options: { transactionId: string }): Promise<void>;
 }
 
-const NativeStoreKit = registerPlugin<NativeStoreKit>('MahjongStoreKit');
+const storeKitGlobal = globalThis as typeof globalThis & { __mahjongStoreKit?: NativeStoreKit };
+const NativeStoreKit = storeKitGlobal.__mahjongStoreKit ??= registerPlugin<NativeStoreKit>('MahjongStoreKit');
 
 class VerifiedStoreKitPurchases implements Purchases {
   private readonly productId: string;

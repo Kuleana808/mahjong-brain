@@ -24,7 +24,7 @@ import {
   recordOutcome,
   type SkillProfile,
 } from '../../packages/core/src/game/difficulty';
-import type { LayoutId } from '../../packages/core/src/game/layouts';
+import { LAYOUTS, type LayoutId } from '../../packages/core/src/game/layouts';
 import { randomSeed } from '../../packages/core/src/game/rng';
 import {
   eventsFor,
@@ -37,6 +37,7 @@ import {
 import {
   replaySession,
   shuffle as shufflePlaySession,
+  revive as revivePlaySession,
   startSession,
   tapTile as tapPlayTile,
   type PlaySession,
@@ -104,6 +105,7 @@ interface GameStore {
   unlocked: boolean;
   paywallOpen: boolean;
   settingsOpen: boolean;
+  freeReviveAvailable: boolean;
   hydrated: boolean;
   accountStatus: 'unavailable' | 'signed_out' | 'signing_in' | 'signed_in';
   accountId: string | null;
@@ -120,6 +122,7 @@ interface GameStore {
   dismissHint(): void;
   undo(): void;
   shuffleBoard(): void;
+  revive(): void;
   updateSettings(patch: Partial<Settings>): void;
   openSettings(open: boolean): void;
   closePaywall(): void;
@@ -168,6 +171,33 @@ const syncedSettings = (settings: Settings) => ({
   difficultyPreference: 'auto' as const,
 });
 
+function isPersistedBoard(
+  board: Omit<BoardState, 'remaining'> & { remaining: number[] },
+  holder: readonly number[],
+): boolean {
+  if (!Object.hasOwn(LAYOUTS, board.layoutId) || !Number.isSafeInteger(board.seed)) return false;
+  if (!Array.isArray(board.tiles) || board.tiles.length !== LAYOUTS[board.layoutId].cells.length) return false;
+  const maxRank: Record<string, number> = { bamboo: 9, character: 9, circle: 9, wind: 4, dragon: 3, flower: 4, season: 4 };
+  const ids = new Set<number>();
+  for (const tile of board.tiles) {
+    if (!Number.isSafeInteger(tile.id) || ids.has(tile.id)) return false;
+    if (![tile.x, tile.y, tile.z, tile.face?.rank].every(Number.isFinite)) return false;
+    if (!maxRank[tile.face.suit] || tile.face.rank < 1 || tile.face.rank > maxRank[tile.face.suit]) return false;
+    ids.add(tile.id);
+  }
+  if (!Array.isArray(board.remaining) || !board.remaining.every((id) => ids.has(id))) return false;
+  const remaining = new Set(board.remaining);
+  if (remaining.size !== board.remaining.length) return false;
+  if (!Array.isArray(holder) || !holder.every((id) => ids.has(id) && !remaining.has(id))) return false;
+  return holder.length <= 4;
+}
+
+function persistedStatus(board: BoardState, holder: readonly number[]): Status {
+  if (board.remaining.size === 0 && holder.length === 0) return 'complete';
+  if (holder.length >= 4) return 'holder_full';
+  return 'playing';
+}
+
 export const useGame = create<GameStore>((set, get) => {
   const persist = () => {
     const s = get();
@@ -182,10 +212,14 @@ export const useGame = create<GameStore>((set, get) => {
       },
       resume: s.board
         ? {
-            layoutId: s.board.layoutId,
-            seed: s.board.seed,
-            removed: s.board.removed,
-            taps: s.tapHistory,
+            board: {
+              ...s.board,
+              remaining: [...s.board.remaining],
+            },
+            holder: s.holder,
+            tapHistory: s.tapHistory,
+            status: s.status,
+            freeReviveAvailable: s.freeReviveAvailable,
             session: s.session,
           }
         : null,
@@ -209,6 +243,7 @@ export const useGame = create<GameStore>((set, get) => {
     unlocked: false,
     paywallOpen: false,
     settingsOpen: false,
+    freeReviveAvailable: true,
     hydrated: false,
     accountStatus: appleSignInAvailable() ? 'signed_out' : 'unavailable',
     accountId: null,
@@ -280,6 +315,11 @@ export const useGame = create<GameStore>((set, get) => {
       // being shown or interacted with before the legal/tutorial gates.
       const resume = saved?.resume as
         | {
+            board?: Omit<BoardState, 'remaining'> & { remaining: number[] };
+            holder?: number[];
+            tapHistory?: number[];
+            status?: Status;
+            freeReviveAvailable?: boolean;
             layoutId: LayoutId;
             seed: number;
             removed: [number, number][];
@@ -289,7 +329,23 @@ export const useGame = create<GameStore>((set, get) => {
         | null
         | undefined;
 
-      if (resume?.layoutId) {
+      if (resume?.board && isPersistedBoard(resume.board, resume.holder ?? [])) {
+        const board: BoardState = { ...resume.board, remaining: new Set(resume.board.remaining) };
+        const restoredStatus = persistedStatus(board, resume.holder ?? []);
+        const currentFlow = get().flow;
+        const canResumeBoard = currentFlow.screen === 'home';
+        set({
+          flow: canResumeBoard
+            ? { ...currentFlow, screen: restoredStatus === 'playing' ? 'gameplay' : 'game_over' }
+            : currentFlow,
+          board,
+          holder: resume.holder ?? [],
+          tapHistory: resume.tapHistory ?? [],
+          status: restoredStatus,
+          freeReviveAvailable: resume.freeReviveAvailable ?? true,
+          session: resume.session ?? freshSession(),
+        });
+      } else if (resume?.layoutId) {
         const restored = resume.taps
           ? replaySession(resume.layoutId, resume.seed, resume.taps)
           : null;
@@ -338,6 +394,7 @@ export const useGame = create<GameStore>((set, get) => {
         status: 'playing',
         selectedId: null,
         hint: null,
+        freeReviveAvailable: true,
         session: freshSession(),
         announcement: `New board. ${play.board.remaining.size} tiles.`,
       });
@@ -483,6 +540,25 @@ export const useGame = create<GameStore>((set, get) => {
         hint: null,
         announcement: 'Tiles reshuffled.',
       });
+      persist();
+    },
+
+    revive() {
+      const { board, holder, status, freeReviveAvailable, settings } = get();
+      if (!board || status !== 'holder_full' || !freeReviveAvailable) return;
+      void track('revive_tapped', { layout: board.layoutId, seed: board.seed, placement: 'revive' });
+      const next = revivePlaySession(playSessionFromState(board, holder, status));
+      if (next.status !== 'playing') return;
+      playSound('match', settings.sounds);
+      set({
+        board: next.board,
+        holder: next.holder,
+        tapHistory: [],
+        status: 'playing',
+        freeReviveAvailable: false,
+        announcement: 'Free revive used. The held tiles returned to the board.',
+      });
+      get().dispatchFlow({ type: 'revive' });
       persist();
     },
 

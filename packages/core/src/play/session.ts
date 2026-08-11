@@ -141,8 +141,8 @@ function settle(session: PlaySession): PlaySession {
  * Revive after a full holder: returns the held tiles to the board.
  *
  * They go back to the positions they came from, which is the only placement
- * that cannot make the board unsolvable. Granted by the app *after* an ad has
- * actually been watched — the server never grants a revive on a click alone.
+ * that cannot make the board unsolvable. The app calls this only after a
+ * verified ad grant or an explicit locally tracked free allowance.
  */
 export function revive(session: PlaySession): PlaySession {
   if (session.status !== 'holder_full') return session;
