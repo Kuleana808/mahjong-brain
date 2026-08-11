@@ -288,6 +288,22 @@ describe('paywall timing', () => {
     expect(useGame.getState().unlocked).toBe(false);
     expect(useGame.getState().announcement).toMatch(/no previous purchase|no purchase/i);
   });
+
+  it('does not let a cached unlock survive when StoreKit reports no entitlement', async () => {
+    const bought = new MockPurchases();
+    setPurchases(bought);
+    await useGame.getState().hydrate();
+    await useGame.getState().buy();
+    expect(useGame.getState().unlocked).toBe(true);
+    await Promise.resolve();
+
+    // A fresh configured provider represents StoreKit after a refund or
+    // revocation: no current entitlement, despite the old local cache.
+    setPurchases(new MockPurchases());
+    useGame.setState({ ...initial, board: null, status: 'idle', hydrated: false });
+    await useGame.getState().hydrate();
+    expect(useGame.getState().unlocked).toBe(false);
+  });
 });
 
 describe('difficulty adapts silently', () => {

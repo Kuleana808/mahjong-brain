@@ -320,7 +320,14 @@ export const useGame = create<GameStore>((set, get) => {
         unlocked?: boolean;
       };
 
-      const unlocked = progress.unlocked || (await purchases().isUnlocked());
+      const currentDeviceEntitlement = await purchases().isUnlocked();
+      // Once StoreKit is configured it is authoritative for this device. A
+      // cached true must not survive a refund merely because it was persisted
+      // during an earlier launch. In builds without StoreKit, preserve the
+      // cache so development/offline hydration never invents a revocation.
+      const unlocked = purchasesConfigured()
+        ? currentDeviceEntitlement
+        : progress.unlocked === true;
       const account = await restoreAccount();
       const remoteSettings = account?.settings?.settings;
 
@@ -712,11 +719,15 @@ export const useGame = create<GameStore>((set, get) => {
             },
           }));
         }
+        // Revalidate after saveSession: verifyAndFinish now sends the new bearer,
+        // associating a purchase made while signed out with this verified
+        // account. This is also the recovery path for a new device.
+        const currentDeviceEntitlement = await purchases().isUnlocked();
         set((s) => ({
           accountStatus: 'signed_in',
           accountId: account.session.accountId,
           accountError: null,
-          unlocked: s.unlocked || account.unlock?.unlocked === true,
+          unlocked: s.unlocked || currentDeviceEntitlement || account.unlock?.unlocked === true,
           announcement: 'Signed in with Apple. Settings and unlock status are protected.',
         }));
         persist();
