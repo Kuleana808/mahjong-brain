@@ -265,8 +265,6 @@ export function HomeScreen() {
         Level {level}
       </button>
       <div className="home-actions">
-        <button type="button" className="medallion" aria-label="Profile"><Icon name="profile" /></button>
-        <button type="button" className="medallion" aria-label="Daily reward"><Icon name="daily" /></button>
         <button type="button" className="medallion" aria-label="Settings" onClick={() => openSettings(true)}><Icon name="settings" /></button>
       </div>
     </ScreenFrame>
