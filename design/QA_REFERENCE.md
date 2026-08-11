@@ -10,6 +10,7 @@ The canonical gameplay reference is the four-panel board approved on 2026-08-10:
 
 - large overlapping portrait tiles dominate the middle of the screen; the board is a layered silhouette, never a uniform grid;
 - tile faces are warm ivory fired ceramic with a satin glaze, a quiet top-left highlight, deep jade sides, and short contact shadows;
+- face art uses one bold central hierarchy with no tiny corner badges; numbered suits retain large Arabic numerals, while winds and dragons use traditional glyphs with full English VoiceOver names;
 - highlights describe the tile's curved edge but never form mirror glare, hard white streaks, or a plastic/glass shine;
 - Back, remaining count, and Settings occupy one fixed top row; the four-slot holder sits immediately below it;
 - Shuffle, Hint, and Undo form one fixed three-button bottom dock; gameplay feedback floats over the board without moving any chrome;

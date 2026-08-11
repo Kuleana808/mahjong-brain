@@ -9,18 +9,13 @@
  * are ours. Do not replace any of this with imported sprite assets without
  * checking their provenance first.
  *
- * ACCESSIBILITY — three independent signals distinguish every tile:
- *   1. a colour, from a colourblind-safe muted set,
- *   2. a badge *shape* in the corner (bar, square, ring, triangle, diamond,
- *      rosette, arc) — one per suit family,
- *   3. an Arabic numeral on every numbered tile.
- * A player who sees no colour at all can still play. This is also why the
- * numbered suits show Arabic rather than Chinese numerals: the audience is 60+,
- * and legibility beats tradition.
+ * ACCESSIBILITY — the large central motif is itself the shape channel: rings,
+ * bamboo stalks, framed character marks, directional winds, dragons, flowers,
+ * and seasons cannot be confused by colour alone. Numbered suits also carry a
+ * large Arabic numeral. VoiceOver exposes the full face name through BoardView.
  */
 
 import type { TileFace } from '../../packages/core/src/game/tiles';
-import { DRAGON_NAMES, WIND_NAMES } from '../../packages/core/src/game/tiles';
 import { suitKey, type Palette } from './palette';
 
 type Ctx = CanvasRenderingContext2D;
@@ -94,71 +89,6 @@ function cellSize(points: { x: number; y: number }[], area: { w: number; h: numb
   const cols = new Set(points.map((p) => p.x.toFixed(3))).size;
   const rows = new Set(points.map((p) => p.y.toFixed(3))).size;
   return { w: area.w / cols, h: area.h / rows, cols, rows };
-}
-
-// ---------------------------------------------------------------------------
-// suit badges — the shape channel
-
-type BadgeShape = 'bar' | 'square' | 'ring' | 'triangle' | 'diamond' | 'rosette' | 'arc';
-
-const BADGE: Record<TileFace['suit'], BadgeShape> = {
-  bamboo: 'bar',
-  character: 'square',
-  circle: 'ring',
-  wind: 'triangle',
-  dragon: 'diamond',
-  flower: 'rosette',
-  season: 'arc',
-};
-
-function drawBadge(ctx: Ctx, shape: BadgeShape, cx: number, cy: number, s: number): void {
-  ctx.lineWidth = Math.max(1, s * 0.22);
-  ctx.lineJoin = 'round';
-  ctx.lineCap = 'round';
-
-  switch (shape) {
-    case 'bar':
-      roundRect(ctx, cx - s * 0.22, cy - s, s * 0.44, s * 2, s * 0.22);
-      ctx.fill();
-      break;
-    case 'square':
-      roundRect(ctx, cx - s * 0.8, cy - s * 0.8, s * 1.6, s * 1.6, s * 0.28);
-      ctx.stroke();
-      break;
-    case 'ring':
-      dot(ctx, cx, cy, s * 0.82);
-      ctx.stroke();
-      break;
-    case 'triangle':
-      ctx.beginPath();
-      ctx.moveTo(cx, cy - s);
-      ctx.lineTo(cx + s * 0.92, cy + s * 0.72);
-      ctx.lineTo(cx - s * 0.92, cy + s * 0.72);
-      ctx.closePath();
-      ctx.fill();
-      break;
-    case 'diamond':
-      ctx.beginPath();
-      ctx.moveTo(cx, cy - s);
-      ctx.lineTo(cx + s, cy);
-      ctx.lineTo(cx, cy + s);
-      ctx.lineTo(cx - s, cy);
-      ctx.closePath();
-      ctx.fill();
-      break;
-    case 'rosette':
-      for (let i = 0; i < 5; i++) {
-        const a = (i / 5) * Math.PI * 2 - Math.PI / 2;
-        dot(ctx, cx + Math.cos(a) * s * 0.62, cy + Math.sin(a) * s * 0.62, s * 0.34);
-        ctx.fill();
-      }
-      break;
-    case 'arc':
-      ctx.beginPath();
-      ctx.arc(cx, cy + s * 0.4, s * 0.95, Math.PI, 0);
-      ctx.stroke();
-      break;
-  }
 }
 
 // ---------------------------------------------------------------------------
@@ -312,78 +242,13 @@ function drawSeasonMark(ctx: Ctx, cx: number, cy: number, s: number, rank: numbe
   }
 }
 
-function drawDragonMark(ctx: Ctx, cx: number, cy: number, s: number, rank: number, colour: string): void {
-  ctx.strokeStyle = colour;
-  ctx.fillStyle = colour;
-  ctx.lineWidth = Math.max(1.4, s * 0.14);
-  ctx.lineJoin = 'round';
-
-  const diamond = (scale: number) => {
-    ctx.beginPath();
-    ctx.moveTo(cx, cy - s * scale);
-    ctx.lineTo(cx + s * scale * 0.82, cy);
-    ctx.lineTo(cx, cy + s * scale);
-    ctx.lineTo(cx - s * scale * 0.82, cy);
-    ctx.closePath();
-  };
-
-  switch (rank) {
-    case 1: // Red — solid.
-      diamond(0.95);
-      ctx.fill();
-      break;
-    case 2: // Green — outline with a spine.
-      diamond(0.95);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(cx, cy - s * 0.5);
-      ctx.lineTo(cx, cy + s * 0.5);
-      ctx.stroke();
-      break;
-    default: // White — a double frame around nothing, as tradition has it.
-      diamond(0.95);
-      ctx.stroke();
-      diamond(0.55);
-      ctx.stroke();
-      break;
-  }
-}
-
-// ---------------------------------------------------------------------------
-// the face
-
-function drawCornerIndex(
-  ctx: Ctx,
-  face: TileFace,
-  box: Box,
-  colour: string,
-  label: string | null,
-): void {
-  const s = box.w * 0.085;
-  const cx = box.w * 0.16;
-  const cy = box.h * 0.13;
-
-  ctx.save();
-  ctx.fillStyle = colour;
-  ctx.strokeStyle = colour;
-  drawBadge(ctx, BADGE[face.suit], cx, cy, s);
-
-  if (label) {
-    ctx.font = `600 ${box.w * 0.19}px ui-rounded, "SF Pro Rounded", "Segoe UI", system-ui, sans-serif`;
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(label, cx + s * 1.5, cy + box.h * 0.005);
-  }
-  ctx.restore();
-}
-
 /**
  * Draws one tile face into the box (0, 0, box.w, box.h). The caller has already
  * drawn the tile body and clipped.
  */
 export function drawFace(ctx: Ctx, face: TileFace, box: Box, palette: Palette): void {
   const colour = palette.suits[suitKey(face.suit, face.rank)];
-  const motif = { x: box.w * 0.16, y: box.h * 0.26, w: box.w * 0.68, h: box.h * 0.62 };
+  const motif = { x: box.w * 0.1, y: box.h * 0.14, w: box.w * 0.8, h: box.h * 0.76 };
 
   ctx.save();
   ctx.fillStyle = colour;
@@ -395,11 +260,10 @@ export function drawFace(ctx: Ctx, face: TileFace, box: Box, palette: Palette): 
       const cell = cellSize(points, motif);
       // 0.4 of the smaller cell dimension leaves visible air between marks at
       // every rank, which is what keeps 2-of-circles from reading as an eight.
-      const r = Math.min(cell.w, cell.h) * 0.4;
+      const r = Math.min(cell.w, cell.h) * 0.43;
       for (const p of points) {
         drawCircleMark(ctx, motif.x + p.x * motif.w, motif.y + p.y * motif.h, r, colour);
       }
-      drawCornerIndex(ctx, face, box, colour, String(face.rank));
       break;
     }
 
@@ -419,33 +283,31 @@ export function drawFace(ctx: Ctx, face: TileFace, box: Box, palette: Palette): 
       for (const p of points) {
         drawBambooMark(ctx, motif.x + p.x * motif.w, motif.y + p.y * motif.h, w, h, colour);
       }
-      drawCornerIndex(ctx, face, box, colour, String(face.rank));
       break;
     }
 
     case 'character': {
-      ctx.font = `600 ${box.h * 0.34}px ui-rounded, "SF Pro Rounded", "Segoe UI", system-ui, sans-serif`;
+      ctx.font = `700 ${box.h * 0.43}px ui-rounded, "SF Pro Rounded", "Segoe UI", system-ui, sans-serif`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText(String(face.rank), box.w / 2, box.h * 0.42);
-      drawCrakEmblem(ctx, box.w / 2, box.h * 0.72, box.w * 0.2, colour);
-      drawCornerIndex(ctx, face, box, colour, null);
+      ctx.fillText(String(face.rank), box.w / 2, box.h * 0.4);
+      drawCrakEmblem(ctx, box.w / 2, box.h * 0.75, box.w * 0.23, colour);
       break;
     }
 
     case 'wind': {
-      const initial = WIND_NAMES[face.rank - 1][0];
-      ctx.font = `600 ${box.h * 0.32}px ui-rounded, "SF Pro Rounded", "Segoe UI", system-ui, sans-serif`;
+      const initial = ['東', '南', '西', '北'][face.rank - 1];
+      ctx.font = `700 ${box.h * 0.45}px "PingFang TC", "Hiragino Sans", ui-rounded, system-ui, sans-serif`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText(initial, box.w / 2, box.h * 0.44);
+      ctx.fillText(initial, box.w / 2, box.h * 0.5);
 
       // Arrow pointing the way the wind is named — East right, South down,
       // West left, North up. Shape, not just the letter.
       const rotation = [Math.PI / 2, Math.PI, -Math.PI / 2, 0][face.rank - 1];
       const cx = box.w / 2;
-      const cy = box.h * 0.75;
-      const s = box.w * 0.15;
+      const cy = box.h * 0.8;
+      const s = box.w * 0.12;
       ctx.save();
       ctx.translate(cx, cy);
       ctx.rotate(rotation);
@@ -458,30 +320,26 @@ export function drawFace(ctx: Ctx, face: TileFace, box: Box, palette: Palette): 
       ctx.fill();
       ctx.restore();
 
-      drawCornerIndex(ctx, face, box, colour, null);
       break;
     }
 
     case 'dragon': {
-      drawDragonMark(ctx, box.w / 2, box.h * 0.52, box.w * 0.28, face.rank, colour);
-      ctx.font = `600 ${box.h * 0.115}px ui-rounded, "SF Pro Rounded", "Segoe UI", system-ui, sans-serif`;
+      const glyph = ['中', '發', '白'][face.rank - 1];
+      ctx.font = `700 ${box.h * 0.52}px "PingFang TC", "Hiragino Sans", ui-rounded, system-ui, sans-serif`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillStyle = colour;
-      ctx.fillText(DRAGON_NAMES[face.rank - 1].toUpperCase(), box.w / 2, box.h * 0.87);
-      drawCornerIndex(ctx, face, box, colour, null);
+      ctx.fillText(glyph, box.w / 2, box.h * 0.52);
       break;
     }
 
     case 'flower': {
-      drawFlowerMark(ctx, box.w / 2, box.h * 0.52, box.w * 0.28, face.rank, colour);
-      drawCornerIndex(ctx, face, box, colour, null);
+      drawFlowerMark(ctx, box.w / 2, box.h * 0.52, box.w * 0.36, face.rank, colour);
       break;
     }
 
     case 'season': {
-      drawSeasonMark(ctx, box.w / 2, box.h * 0.52, box.w * 0.28, face.rank, colour);
-      drawCornerIndex(ctx, face, box, colour, null);
+      drawSeasonMark(ctx, box.w / 2, box.h * 0.52, box.w * 0.36, face.rank, colour);
       break;
     }
   }

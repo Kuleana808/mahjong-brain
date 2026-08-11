@@ -11,7 +11,7 @@ Every asset must be original, generated from the locked design language, and tra
 | `felt-background` | Emerald botanical field | phone portrait, iPad portrait/landscape | CSS/vector preferred | draft | Pattern under 18% opacity; does not reduce text contrast. |
 | `panel-ornament` | Bronze corner/keyline motif | top, bottom, full-frame | CSS/SVG | draft | 1–2 px apparent weight; never competes with copy. |
 | `botanical-sprig` | Olive leaves | left, right, compact | code SVG | specified | Same leaf geometry across home, splash, levels, reward. |
-| `tile-faces` | Full mahjong set | all suits, winds, dragons, flowers, seasons | Canvas code | shipped code, visual approval pending | Arabic numeral visible; suit shape distinct without color; no external art. |
+| `tile-faces` | Full mahjong set | all suits, winds, dragons, flowers, seasons | Canvas code | approved code | Bold central motif; Arabic numeral visible on numbered suits; suit shape distinct without color; traditional wind/dragon glyphs; no external art. |
 | `tile-back` | Brain-and-leaf engraving | standard, compact | Canvas/SVG code | draft | Warm bone relief; same mark as app icon. |
 | `holder-frame` | Four-slot tray | empty, warning, full | CSS/code | draft | Exactly four equal slots; occupancy remains visible at 200% text. |
 | `icon-profile` | Profile medallion | normal, focused, disabled | original inline vector | draft | 24 px glyph in 48 px target; bronze ring. |

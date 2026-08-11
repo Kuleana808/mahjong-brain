@@ -7,8 +7,8 @@
  * theme clears AAA.
  *
  * Suit hues are drawn from the Okabe–Ito colourblind-safe set, muted. Colour is
- * never the only signal — every tile also carries a distinct badge *shape* and,
- * on the numbered suits, an Arabic numeral. See `tileArt.ts`.
+ * never the only signal: every family has a distinct large central motif and
+ * numbered suits carry an Arabic numeral. See `tileArt.ts`.
  */
 
 export interface Palette {
