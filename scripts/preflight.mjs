@@ -18,7 +18,7 @@
  * Exits non-zero with a list of everything still unresolved.
  */
 
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync, existsSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 
 const root = new URL('..', import.meta.url).pathname;
@@ -55,11 +55,19 @@ if (infoPlist.includes('Nihi Mahjong')) {
 
 if (!read('.github/workflows/ci.yml')) warnings.push('No CI workflow found.');
 
-const iconDir = 'ios/App/App/Assets.xcassets/AppIcon.appiconset';
-if (existsSync(join(root, iconDir))) {
+const icon = 'ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png';
+const splash = 'ios/App/App/Assets.xcassets/Splash.imageset/splash-2732x2732.png';
+const iconMaster = 'design/assets/app-icon-master.svg';
+const splashMaster = 'design/assets/splash-master.svg';
+const assetIsApproved = (path, master) =>
+  existsSync(join(root, path)) &&
+  statSync(join(root, path)).size > 100_000 &&
+  existsSync(join(root, master));
+
+if (!assetIsApproved(icon, iconMaster) || !assetIsApproved(splash, splashMaster)) {
   warnings.push(
-    'App icon and splash are still Capacitor defaults. They are placeholders,\n' +
-      '    not borrowed art, but original replacements are required before release (D-006).',
+    'Approved app icon or splash assets are missing. Both raster launch assets and\n' +
+      '    their deterministic SVG masters are required before release (D-006).',
   );
 }
 
