@@ -10,6 +10,7 @@ import { useEffect } from 'react';
 
 import { PALETTES } from '../render/palette';
 import { useGame } from '../state/store';
+import { startTelemetryLifecycle } from '../telemetry/client';
 import { BoardView } from './BoardView';
 import { BottomDock } from './BottomDock';
 import { Paywall, SettingsSheet } from './Overlays';
@@ -30,6 +31,8 @@ export function App() {
   useEffect(() => {
     void hydrate();
   }, [hydrate]);
+
+  useEffect(() => startTelemetryLifecycle(), []);
 
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' });

@@ -44,6 +44,7 @@ import {
 import { purchases, purchasesConfigured } from '../iap';
 import { clearFaceCache } from '../render/boardRenderer';
 import { PALETTES, type ThemeName } from '../render/palette';
+import { track } from '../telemetry/client';
 import { loadPersisted, savePersisted } from './persist';
 
 /** The paywall appears once, after the third completed board. Never before. */
@@ -197,11 +198,11 @@ export const useGame = create<GameStore>((set, get) => {
       const after = reduceFlow(before, action);
       if (after === before) return;
 
-      // The flow machine owns sequencing. Event delivery is added at the
-      // contract seam; keeping the names here makes missing instrumentation
-      // visible during development without inventing UI-only events.
-      if (import.meta.env.DEV) {
-        for (const name of eventsFor(action, before, after)) console.debug('[flow]', name);
+      // The flow machine owns sequencing and its closed event catalogue keeps
+      // UI screens from silently shipping without instrumentation.
+      for (const name of eventsFor(action, before, after)) {
+        void track(name, { screen: after.screen });
+        if (import.meta.env.DEV) console.debug('[flow]', name);
       }
 
       set({ flow: after });
@@ -323,8 +324,38 @@ export const useGame = create<GameStore>((set, get) => {
       const play = playSessionFromState(board, holder, status);
       const next = tapPlayTile(play, id);
       if (next === play) {
+        void track('tile_tap_rejected', {
+          layout: board.layoutId,
+          seed: board.seed,
+          holderCount: holder.length,
+          tilesRemaining: board.remaining.size,
+          reason: 'blocked',
+        });
         set({ announcement: 'That tile is blocked. Try one with an open side.' });
         return;
+      }
+
+      void track('tile_tap', {
+        layout: board.layoutId,
+        seed: board.seed,
+        holderCount: next.holder.length,
+        tilesRemaining: next.board.remaining.size,
+      });
+      if (next.board.removed.length > board.removed.length) {
+        void track('pair_cleared', {
+          layout: board.layoutId,
+          seed: board.seed,
+          holderCount: next.holder.length,
+          tilesRemaining: next.board.remaining.size,
+          cleared: next.board.removed.length * 2,
+        });
+      } else {
+        void track('holder_slot_filled', {
+          layout: board.layoutId,
+          seed: board.seed,
+          holderCount: next.holder.length,
+          tilesRemaining: next.board.remaining.size,
+        });
       }
 
       const nextStatus = statusForPlaySession(next);
@@ -366,8 +397,10 @@ export const useGame = create<GameStore>((set, get) => {
       const { board, unlocked, hintPending } = get();
       if (!board || hintPending) return;
 
+      void track('hint_tapped', { layout: board.layoutId, seed: board.seed });
       set({ hintPending: true });
       const hint = await getHint(board, { allowModelPhrasing: unlocked });
+      if (hint) void track('hint_shown', { layout: board.layoutId, seed: board.seed });
       set((s) => ({
         hint,
         hintPending: false,
@@ -401,9 +434,11 @@ export const useGame = create<GameStore>((set, get) => {
     shuffleBoard() {
       const { board, holder, status } = get();
       if (!board) return;
+      void track('shuffle_tapped', { layout: board.layoutId, seed: board.seed });
       const play = playSessionFromState(board, holder, status);
       const next = shufflePlaySession(play, randomSeed());
       if (next === play) return;
+      void track('shuffle_granted', { layout: board.layoutId, seed: board.seed });
       set({
         board: next.board,
         holder: next.holder,
@@ -418,11 +453,13 @@ export const useGame = create<GameStore>((set, get) => {
 
     updateSettings(patch) {
       if (patch.theme) clearFaceCache();
+      for (const key of Object.keys(patch)) void track('setting_changed', { settingKey: key });
       set((s) => ({ settings: { ...s.settings, ...patch } }));
       persist();
     },
 
     openSettings(open) {
+      if (open) void track('settings_opened');
       set({ settingsOpen: open });
     },
 

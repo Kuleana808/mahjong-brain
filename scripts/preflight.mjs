@@ -86,6 +86,13 @@ if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
   );
 }
 
+if (!process.env.VITE_API_BASE_URL) {
+  warnings.push(
+    'VITE_API_BASE_URL is not configured. Anonymous gameplay events remain safely\n' +
+      '    queued on-device, but production telemetry and account sync cannot reach the API.',
+  );
+}
+
 // --- report -----------------------------------------------------------------
 
 if (warnings.length > 0) {
