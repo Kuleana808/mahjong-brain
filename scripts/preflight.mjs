@@ -144,6 +144,12 @@ const privacyManifest = read('ios/App/App/PrivacyInfo.xcprivacy');
 if (!privacyManifest.includes('NSPrivacyAccessedAPICategoryUserDefaults') || !privacyManifest.includes('CA92.1')) {
   blockers.push('PrivacyInfo.xcprivacy is missing the required UserDefaults declaration and CA92.1 reason.');
 }
+if (
+  !privacyManifest.includes('NSPrivacyCollectedDataTypeUserID') ||
+  !privacyManifest.includes('NSPrivacyCollectedDataTypePurchaseHistory')
+) {
+  blockers.push('PrivacyInfo.xcprivacy does not disclose optional linked account and purchase data.');
+}
 if (!project.includes('PrivacyInfo.xcprivacy in Resources')) {
   blockers.push('PrivacyInfo.xcprivacy is not included in the iOS app target resources.');
 }
