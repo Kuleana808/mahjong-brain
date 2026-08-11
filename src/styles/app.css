@@ -422,8 +422,8 @@ a:focus-visible {
   .card { padding-inline: 18px; }
   .setting { align-items: stretch; flex-direction: column; }
   .setting .switch { align-self: flex-end; }
-  .segmented { display: grid; grid-template-columns: 1fr; width: 100%; }
-  .segmented button { min-width: 0; padding-inline: 12px; white-space: normal; }
+  .card .segmented { display: grid; grid-template-columns: 1fr; width: 100%; }
+  .card .segmented button { min-width: 0; padding-inline: 12px; white-space: normal; }
 }
 .iconbutton:disabled { opacity: 0.42; cursor: default; }
 .iconbutton--round { width: var(--size-control-min); padding: 0; }
