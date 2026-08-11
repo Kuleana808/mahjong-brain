@@ -51,6 +51,7 @@ function reset() {
     board: null,
     holder: [],
     tapHistory: [],
+    undoBaseline: null,
     status: 'idle',
     selectedId: null,
     hint: null,
@@ -175,6 +176,60 @@ describe('session flow', () => {
     useGame.getState().undo();
     expect(useGame.getState().board!.remaining.size).toBe(before);
     expect(useGame.getState().holder).toEqual([]);
+  });
+
+  it('undoes from the shuffled board without resurrecting cleared tiles', async () => {
+    await useGame.getState().hydrate();
+    const [a, b] = availableMoves(useGame.getState().board!)[0];
+    useGame.getState().tapTile(a.id);
+    useGame.getState().tapTile(b.id);
+    useGame.getState().shuffleBoard();
+
+    const baseline = useGame.getState().board!;
+    const baselineIds = [...baseline.remaining].sort((x, y) => x - y);
+    const tile = freeTiles(baseline)[0];
+    useGame.getState().tapTile(tile.id);
+    useGame.getState().undo();
+
+    expect([...useGame.getState().board!.remaining].sort((x, y) => x - y)).toEqual(baselineIds);
+    expect(useGame.getState().board!.tiles.map((entry) => entry.face)).toEqual(
+      baseline.tiles.map((entry) => entry.face),
+    );
+    expect(useGame.getState().holder).toEqual([]);
+  });
+
+  it('only offers holder-aware hints that are safe with three occupied slots', async () => {
+    const { startSession, tapTile, tappableTiles } = await import(
+      '../../../packages/core/src/play/session'
+    );
+    const { matchGroup } = await import('../../../packages/core/src/game/tiles');
+    let play = startSession('turtle', 0xc0ffee);
+    while (play.holder.length < 3) {
+      const heldGroups = new Set(
+        play.holder.map((id) => matchGroup(play.board.tiles.find((tile) => tile.id === id)!.face)),
+      );
+      const candidate = tappableTiles(play).find((tile) => !heldGroups.has(matchGroup(tile.face)));
+      expect(candidate).toBeDefined();
+      play = tapTile(play, candidate!.id);
+    }
+
+    useGame.setState({
+      board: play.board,
+      holder: play.holder,
+      status: 'playing',
+      tapHistory: [],
+      undoBaseline: { board: play.board, holder: play.holder, status: 'playing' },
+    });
+    await useGame.getState().requestHint();
+
+    const hint = useGame.getState().hint;
+    expect(hint).not.toBeNull();
+    expect(hint!.pair.some((tile) => play.holder.includes(tile.id))).toBe(true);
+    const suggestedBoardTile = hint!.pair.find((tile) => play.board.remaining.has(tile.id));
+    expect(suggestedBoardTile).toBeDefined();
+    useGame.getState().tapTile(suggestedBoardTile!.id);
+    expect(useGame.getState().status).toBe('playing');
+    expect(useGame.getState().holder).toHaveLength(2);
   });
 });
 

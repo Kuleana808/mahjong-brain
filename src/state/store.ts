@@ -35,6 +35,7 @@ import {
   type FlowState,
 } from '../../packages/core/src/flow/screens';
 import {
+  hintPair as holderHintPair,
   replaySession,
   shuffle as shufflePlaySession,
   revive as revivePlaySession,
@@ -42,6 +43,7 @@ import {
   tapTile as tapPlayTile,
   type PlaySession,
 } from '../../packages/core/src/play/session';
+import { faceName } from '../../packages/core/src/game/tiles';
 import { purchases, purchasesConfigured } from '../iap';
 import { playSound } from '../audio/sounds';
 import {
@@ -87,11 +89,18 @@ interface SessionStats {
 
 export type Status = 'idle' | 'playing' | 'stuck' | 'complete' | 'holder_full';
 
+interface UndoBaseline {
+  readonly board: BoardState;
+  readonly holder: readonly number[];
+  readonly status: Status;
+}
+
 interface GameStore {
   flow: FlowState;
   board: BoardState | null;
   holder: readonly number[];
   tapHistory: readonly number[];
+  undoBaseline: UndoBaseline | null;
   status: Status;
   selectedId: number | null;
   hint: Hint | null;
@@ -166,6 +175,16 @@ function playSessionFromState(
   };
 }
 
+function replayFromBaseline(baseline: UndoBaseline, taps: readonly number[]): PlaySession | null {
+  let session = playSessionFromState(baseline.board, baseline.holder, baseline.status);
+  for (const id of taps) {
+    const next = tapPlayTile(session, id);
+    if (next === session) return null;
+    session = next;
+  }
+  return session;
+}
+
 const syncedSettings = (settings: Settings) => ({
   ...settings,
   difficultyPreference: 'auto' as const,
@@ -218,6 +237,16 @@ export const useGame = create<GameStore>((set, get) => {
             },
             holder: s.holder,
             tapHistory: s.tapHistory,
+            undoBaseline: s.undoBaseline
+              ? {
+                  board: {
+                    ...s.undoBaseline.board,
+                    remaining: [...s.undoBaseline.board.remaining],
+                  },
+                  holder: s.undoBaseline.holder,
+                  status: s.undoBaseline.status,
+                }
+              : null,
             status: s.status,
             freeReviveAvailable: s.freeReviveAvailable,
             session: s.session,
@@ -231,6 +260,7 @@ export const useGame = create<GameStore>((set, get) => {
     board: null,
     holder: [],
     tapHistory: [],
+    undoBaseline: null,
     status: 'idle',
     selectedId: null,
     hint: null,
@@ -318,6 +348,11 @@ export const useGame = create<GameStore>((set, get) => {
             board?: Omit<BoardState, 'remaining'> & { remaining: number[] };
             holder?: number[];
             tapHistory?: number[];
+            undoBaseline?: {
+              board?: Omit<BoardState, 'remaining'> & { remaining: number[] };
+              holder?: number[];
+              status?: Status;
+            } | null;
             status?: Status;
             freeReviveAvailable?: boolean;
             layoutId: LayoutId;
@@ -332,6 +367,26 @@ export const useGame = create<GameStore>((set, get) => {
       if (resume?.board && isPersistedBoard(resume.board, resume.holder ?? [])) {
         const board: BoardState = { ...resume.board, remaining: new Set(resume.board.remaining) };
         const restoredStatus = persistedStatus(board, resume.holder ?? []);
+        const persistedBaseline = resume.undoBaseline;
+        const baselineValid =
+          persistedBaseline?.board &&
+          isPersistedBoard(persistedBaseline.board, persistedBaseline.holder ?? []);
+        const undoBaseline: UndoBaseline = baselineValid
+          ? {
+              board: {
+                ...persistedBaseline.board!,
+                remaining: new Set(persistedBaseline.board!.remaining),
+              },
+              holder: persistedBaseline.holder ?? [],
+              status: persistedStatus(
+                {
+                  ...persistedBaseline.board!,
+                  remaining: new Set(persistedBaseline.board!.remaining),
+                },
+                persistedBaseline.holder ?? [],
+              ),
+            }
+          : { board, holder: resume.holder ?? [], status: restoredStatus };
         const currentFlow = get().flow;
         const canResumeBoard = currentFlow.screen === 'home';
         set({
@@ -340,7 +395,11 @@ export const useGame = create<GameStore>((set, get) => {
             : currentFlow,
           board,
           holder: resume.holder ?? [],
-          tapHistory: resume.tapHistory ?? [],
+          // Older snapshots did not store an undo baseline. Their current board
+          // is safe to resume, but replaying their old taps could resurrect
+          // pre-shuffle tiles, so start a new undo segment at the saved state.
+          tapHistory: baselineValid ? resume.tapHistory ?? [] : [],
+          undoBaseline,
           status: restoredStatus,
           freeReviveAvailable: resume.freeReviveAvailable ?? true,
           session: resume.session ?? freshSession(),
@@ -362,6 +421,11 @@ export const useGame = create<GameStore>((set, get) => {
             board: restored.board,
             holder: restored.holder,
             tapHistory: resume.taps ?? [],
+            undoBaseline: {
+              board: startSession(resume.layoutId, resume.seed).board,
+              holder: [],
+              status: 'playing',
+            },
             status: statusForPlaySession(restored),
             session: resume.session ?? freshSession(),
           });
@@ -374,6 +438,7 @@ export const useGame = create<GameStore>((set, get) => {
             board,
             holder: [],
             tapHistory: [],
+            undoBaseline: { board, holder: [], status: statusFor(board) },
             status: statusFor(board),
             session: resume.session ?? freshSession(),
           });
@@ -391,6 +456,7 @@ export const useGame = create<GameStore>((set, get) => {
         board: play.board,
         holder: play.holder,
         tapHistory: [],
+        undoBaseline: { board: play.board, holder: play.holder, status: 'playing' },
         status: 'playing',
         selectedId: null,
         hint: null,
@@ -483,12 +549,34 @@ export const useGame = create<GameStore>((set, get) => {
     },
 
     async requestHint() {
-      const { board, unlocked, hintPending, settings } = get();
+      const { board, holder, status, unlocked, hintPending, settings } = get();
       if (!board || hintPending) return;
 
       void track('hint_tapped', { layout: board.layoutId, seed: board.seed });
       set({ hintPending: true });
-      const hint = await getHint(board, { allowModelPhrasing: unlocked });
+      const safePair = holderHintPair(playSessionFromState(board, holder, status));
+      if (!safePair) {
+        set({ hint: null, hintPending: false, announcement: 'No safe pair is available. Try Shuffle.' });
+        return;
+      }
+
+      const coached = await getHint(board, { allowModelPhrasing: unlocked });
+      const safeIds = new Set(safePair.map((tile) => tile.id));
+      const coachedIsSafe = coached?.pair.every((tile) => safeIds.has(tile.id)) === true;
+      const heldTile = safePair.find((tile) => holder.includes(tile.id));
+      const boardTile = safePair.find((tile) => board.remaining.has(tile.id));
+      const hint: Hint = coachedIsSafe
+        ? coached!
+        : {
+            pair: safePair,
+            text: heldTile
+              ? `Take ${faceName(boardTile!.face)}. It matches the tile already in your holder.`
+              : `These two ${faceName(safePair[0].face)} tiles are both free and safe to take.`,
+            summary: heldTile
+              ? `Take ${faceName(boardTile!.face)}. It matches the tile already in your holder.`
+              : `Take the two ${faceName(safePair[0].face)} tiles.`,
+            tier: 'offline',
+          };
       if (hint) playSound('hint', settings.sounds);
       if (hint) void track('hint_shown', { layout: board.layoutId, seed: board.seed });
       set((s) => ({
@@ -504,10 +592,10 @@ export const useGame = create<GameStore>((set, get) => {
     },
 
     undo() {
-      const { board, tapHistory, settings } = get();
-      if (!board || tapHistory.length === 0) return;
+      const { board, tapHistory, undoBaseline, settings } = get();
+      if (!board || !undoBaseline || tapHistory.length === 0) return;
       const taps = tapHistory.slice(0, -1);
-      const next = replaySession(board.layoutId, board.seed, taps);
+      const next = replayFromBaseline(undoBaseline, taps);
       if (!next) return;
       playSound('undo', settings.sounds);
       set({
@@ -535,6 +623,7 @@ export const useGame = create<GameStore>((set, get) => {
         board: next.board,
         holder: next.holder,
         tapHistory: [],
+        undoBaseline: { board: next.board, holder: next.holder, status: statusForPlaySession(next) },
         status: statusForPlaySession(next),
         selectedId: null,
         hint: null,
@@ -554,6 +643,7 @@ export const useGame = create<GameStore>((set, get) => {
         board: next.board,
         holder: next.holder,
         tapHistory: [],
+        undoBaseline: { board: next.board, holder: next.holder, status: 'playing' },
         status: 'playing',
         freeReviveAvailable: false,
         announcement: 'Free revive used. The held tiles returned to the board.',
