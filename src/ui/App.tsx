@@ -31,6 +31,10 @@ export function App() {
     void hydrate();
   }, [hydrate]);
 
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+  }, [screen]);
+
   // Push the palette into CSS so the chrome and the canvas cannot drift apart.
   useEffect(() => {
     const palette = PALETTES[settings.theme];
