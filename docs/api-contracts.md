@@ -45,7 +45,7 @@ mahjong-brain contracts API on http://localhost:5185
   store       in-memory (dev)
   session     hs256
   apple       verifying aud=com.mahjongbrain.game
-  storekit    none — set APPLE_ROOT_CA_G3_BASE64, IAP_PRODUCT_ID (blocked on D-005)
+  storekit    none — set IAP_PRODUCT_ID, APPLE_BUNDLE_ID
   contracts 1, 2, 5, 6, 7 need none of the above and are always live
 ```
 
@@ -128,7 +128,7 @@ All ten are implemented. What varies is whether the credentials exist.
 | 5 | `POST /api/hints/generate` | `live_verified` | `live_verified` | nothing |
 | 6 | `POST /api/play-pattern/log` | `live_verified` | `live_verified` | nothing |
 | 7 | `GET /api/difficulty/next-board` | `live_verified` | `live_verified` | nothing |
-| 8 | `POST /api/receipts/validate` | `source_available` | `source_available` | Apple root CA + product id (D-005) |
+| 8 | `POST /api/receipts/validate` | `source_available` | `configured` with product id | product id + bundle id; Apple Root CA G3 is pinned |
 | 9 | `GET /api/unlock-status` | `source_available` | **`configured`** | Supabase |
 | 10 | `POST /api/analytics/session` | `source_available` | **`configured`** | Supabase |
 | 11 | `POST /api/events/batch` | `source_available` | **`configured`** | Supabase |

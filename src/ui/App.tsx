@@ -9,6 +9,7 @@
 import { useEffect } from 'react';
 
 import { PALETTES } from '../render/palette';
+import { configureNativePurchases } from '../iap';
 import { useGame } from '../state/store';
 import { startTelemetryLifecycle } from '../telemetry/client';
 import { BoardView } from './BoardView';
@@ -29,6 +30,7 @@ export function App() {
   const announcement = useGame((s) => s.announcement);
 
   useEffect(() => {
+    configureNativePurchases();
     void hydrate();
   }, [hydrate]);
 

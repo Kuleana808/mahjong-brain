@@ -67,17 +67,18 @@ Blocked on: **D-001** (bundle id) and a Supabase project existing.
 ### C2 — Turn on StoreKit verification
 
 The verifier is written and tested against generated chains, including the
-attack cases. What is missing is the pinned root and the product id.
+attack cases. Apple Root CA G3 is pinned from Apple's PKI distribution and the
+in-house StoreKit 2 bridge compiles in the iOS target. What remains is the
+permanent product id and a real sandbox transaction.
 
-- Download Apple Root CA G3, base64 it into `APPLE_ROOT_CA_G3_BASE64`.
 - Set `IAP_PRODUCT_ID`.
 - App Store Server Notifications V2 endpoint, so refunds and family-sharing
   removal revoke the unlock without the app having to ask. Same verifier.
 - Verify against a real sandbox purchase — that is what moves contract 8 from
   `configured` to `live_verified`.
 
-Blocked on: **D-005** (which StoreKit bridge Codex ships against) and an App
-Store Connect record.
+Blocked on: **D-001** (permanent bundle/product ids) and an App Store Connect
+record. D-005 is settled.
 
 ### C3 — Ad reward verification (contract 13)
 

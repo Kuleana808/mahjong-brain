@@ -71,11 +71,10 @@ if (!assetIsApproved(icon, iconMaster) || !assetIsApproved(splash, splashMaster)
   );
 }
 
-const storekitConfigured = process.env.APPLE_ROOT_CA_G3_BASE64 && process.env.IAP_PRODUCT_ID;
-if (!storekitConfigured) {
+if (!process.env.IAP_PRODUCT_ID || !process.env.VITE_IAP_PRODUCT_ID) {
   warnings.push(
-    'StoreKit verification is not configured, so contract 8 fails closed and no\n' +
-      '    purchase can be granted. Blocked on D-005.',
+    'The StoreKit 2 bridge and Apple Root CA G3 pin are installed, but server and\n' +
+      '    client product ids are not configured. Purchases therefore remain hidden.',
   );
 }
 

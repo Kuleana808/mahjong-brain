@@ -27,7 +27,7 @@ Twelve, not eleven — 11 and 12 arrived with the parity doctrine.
 | 5 | `hints/generate` | **live_verified** | — |
 | 6 | `play-pattern/log` | **live_verified** | — |
 | 7 | `difficulty/next-board` | **live_verified** | — |
-| 8 | `receipts/validate` | `source_available` | **D-005** — fails closed by design |
+| 8 | `receipts/validate` | `source_available` | permanent product id + sandbox purchase |
 | 9 | `unlock-status` | `configured` | a Supabase project |
 | 10 | `analytics/session` | `configured` | a Supabase project |
 | 11 | `events/batch` | `configured` | a Supabase project |
@@ -44,7 +44,8 @@ so it should not be claimed loosely.
   checks in the path. They are one environment variable pair away from
   `live_verified`, and **that pair does not exist yet** — there is no Supabase
   project, and creating one needs an account this session cannot reach.
-- 8 stays `source_available` and fails closed until D-005.
+- 8 stays `source_available` and fails closed until D-001 supplies the product
+  id and a real sandbox transaction proves the installed bridge and pin.
 
 Calling 3/4/9/10/11/12 "live-verified" today would be the exact thing the state
 ladder exists to prevent.
@@ -80,8 +81,7 @@ The old `site/index.html` is superseded and can go once Codex has moved in.
 
 | | Blocks | Note |
 |---|---|---|
-| **Original tile art** — commission or generate | public release | Day 1 blocker. Tile faces are drawn in code and are original; the **app icon and splash are still Capacitor defaults** |
-| **D-005** StoreKit bridge + Apple Root CA G3 | contract 8, all purchases | Fails closed until then, deliberately |
+| **D-001** permanent product id | contract 8, all purchases | Bridge and Apple Root CA G3 pin are installed; verification still fails closed without the final id |
 | **Bundle id** confirmation | first upload, permanently | See below |
 | **Supabase project** | six contracts to `live_verified`, and instrumentation | Free tier |
 | **Ad network** | Revive and Hint revenue | Vendor decision |

@@ -12,6 +12,12 @@
  * inject a signed/test provider; release code never grants a mock entitlement.
  */
 
+import { Capacitor, registerPlugin } from '@capacitor/core';
+
+import type { ReceiptValidateResponse } from '../../packages/core/src/contracts/types';
+import { loadAccountSession } from '../auth/apple';
+import { apiConfigured, apiRequest } from '../services/api';
+
 // PLACEHOLDER — derived from the bundle id, which is still Brent's call (D-001).
 // Superseded in spirit by PRODUCT_CATALOGUE in @mahjong-brain/core; both change
 // together once the bundle id is locked.
@@ -68,6 +74,90 @@ class UnavailablePurchases implements Purchases {
   }
 }
 
+interface NativeStoreKitResult {
+  readonly status: 'purchased' | 'entitled' | 'restored' | 'pending' | 'cancelled' | 'not_found';
+  readonly productId?: string;
+  readonly transactionId?: string;
+  readonly signedTransaction?: string;
+}
+
+interface NativeStoreKit {
+  purchase(options: { productId: string }): Promise<NativeStoreKitResult>;
+  currentEntitlement(options: { productId: string }): Promise<NativeStoreKitResult>;
+  restore(options: { productId: string }): Promise<NativeStoreKitResult>;
+  finish(options: { transactionId: string }): Promise<void>;
+}
+
+const NativeStoreKit = registerPlugin<NativeStoreKit>('MahjongStoreKit');
+
+class VerifiedStoreKitPurchases implements Purchases {
+  private readonly productId: string;
+
+  constructor(productId: string) {
+    this.productId = productId;
+  }
+
+  async isUnlocked(): Promise<boolean> {
+    try {
+      const result = await NativeStoreKit.currentEntitlement({ productId: this.productId });
+      if (result.status === 'not_found') return false;
+      return await this.verifyAndFinish(result);
+    } catch {
+      return false;
+    }
+  }
+
+  async purchase(): Promise<PurchaseResult> {
+    try {
+      const result = await NativeStoreKit.purchase({ productId: this.productId });
+      if (result.status === 'cancelled') return { status: 'cancelled' };
+      if (result.status === 'pending') {
+        return { status: 'unavailable', message: 'The purchase is waiting for approval.' };
+      }
+      return (await this.verifyAndFinish(result))
+        ? { status: 'purchased' }
+        : { status: 'error', message: 'Apple confirmed the purchase, but secure verification is unavailable.' };
+    } catch {
+      return { status: 'error', message: 'The purchase could not be completed.' };
+    }
+  }
+
+  async restore(): Promise<PurchaseResult> {
+    try {
+      const result = await NativeStoreKit.restore({ productId: this.productId });
+      if (result.status === 'not_found') {
+        return { status: 'unavailable', message: 'No previous purchase was found for this Apple ID.' };
+      }
+      return (await this.verifyAndFinish(result))
+        ? { status: 'restored' }
+        : { status: 'error', message: 'The purchase was found, but secure verification is unavailable.' };
+    } catch {
+      return { status: 'error', message: 'Purchases could not be restored.' };
+    }
+  }
+
+  private async verifyAndFinish(result: NativeStoreKitResult): Promise<boolean> {
+    if (
+      !result.signedTransaction ||
+      !result.transactionId ||
+      result.productId !== this.productId
+    ) {
+      return false;
+    }
+    const session = await loadAccountSession();
+    const envelope = await apiRequest<ReceiptValidateResponse>('/api/receipts/validate', {
+      method: 'POST',
+      body: {
+        signedTransaction: result.signedTransaction,
+        ...(session ? { accountId: session.accountId } : {}),
+      },
+    });
+    if (!envelope.data?.unlocked || envelope.data.productId !== this.productId) return false;
+    await NativeStoreKit.finish({ transactionId: result.transactionId });
+    return true;
+  }
+}
+
 let active: Purchases = new UnavailablePurchases();
 let configured = false;
 
@@ -82,4 +172,20 @@ export function purchasesConfigured(): boolean {
 export function setPurchases(implementation: Purchases): void {
   active = implementation;
   configured = true;
+}
+
+/** Configures the native bridge only when every security boundary is present. */
+export function configureNativePurchases(): void {
+  const productId = import.meta.env.VITE_IAP_PRODUCT_ID?.trim();
+  if (
+    configured ||
+    !productId ||
+    productId.includes('com.mahjongbrain.game') ||
+    !apiConfigured() ||
+    !Capacitor.isNativePlatform() ||
+    Capacitor.getPlatform() !== 'ios'
+  ) {
+    return;
+  }
+  setPurchases(new VerifiedStoreKitPurchases(productId));
 }

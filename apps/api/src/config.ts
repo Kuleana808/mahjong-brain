@@ -18,6 +18,7 @@ import { createMemoryStore } from './adapters/memoryStore';
 import { createSessionPort } from './adapters/session';
 import { createStoreKitPort } from './adapters/storekit';
 import { createSupabaseStore } from './adapters/supabaseStore';
+import { APPLE_ROOT_CA_G3_BASE64 } from './certs/appleRootCaG3';
 
 export interface ConfigReport {
   readonly ports: Ports;
@@ -78,7 +79,7 @@ export function createPorts(): ConfigReport {
   }
 
   // --- storekit ------------------------------------------------------------
-  const appleRoot = env('APPLE_ROOT_CA_G3_BASE64');
+  const appleRoot = env('APPLE_ROOT_CA_G3_BASE64') ?? APPLE_ROOT_CA_G3_BASE64;
   const productId = env('IAP_PRODUCT_ID');
   if (appleRoot && productId && bundleId) {
     try {
@@ -93,11 +94,10 @@ export function createPorts(): ConfigReport {
     }
   } else {
     const missing = [
-      !appleRoot && 'APPLE_ROOT_CA_G3_BASE64',
       !productId && 'IAP_PRODUCT_ID',
       !bundleId && 'APPLE_BUNDLE_ID',
     ].filter(Boolean);
-    lines.push(`storekit    none — set ${missing.join(', ')} (blocked on D-005)`);
+    lines.push(`storekit    none — set ${missing.join(', ')}`);
   }
 
   return { ports, lines };

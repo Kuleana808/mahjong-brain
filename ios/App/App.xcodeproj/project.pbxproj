@@ -19,6 +19,7 @@
 		A17F2D012FEA100100A11C01 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = A17F2D002FEA100100A11C01 /* PrivacyInfo.xcprivacy */; };
 		A17F2D032FEA100100A11C01 /* AppleSignInPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = A17F2D022FEA100100A11C01 /* AppleSignInPlugin.swift */; };
 		A17F2D052FEA100100A11C01 /* MahjongBridgeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A17F2D042FEA100100A11C01 /* MahjongBridgeViewController.swift */; };
+		A17F2D082FEA100100A11C01 /* StoreKitPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = A17F2D072FEA100100A11C01 /* StoreKitPlugin.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -37,6 +38,7 @@
 		A17F2D022FEA100100A11C01 /* AppleSignInPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleSignInPlugin.swift; sourceTree = "<group>"; };
 		A17F2D042FEA100100A11C01 /* MahjongBridgeViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MahjongBridgeViewController.swift; sourceTree = "<group>"; };
 		A17F2D062FEA100100A11C01 /* App.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = App.entitlements; sourceTree = "<group>"; };
+		A17F2D072FEA100100A11C01 /* StoreKitPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreKitPlugin.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -74,6 +76,7 @@
 				A17F2D062FEA100100A11C01 /* App.entitlements */,
 				A17F2D022FEA100100A11C01 /* AppleSignInPlugin.swift */,
 				A17F2D042FEA100100A11C01 /* MahjongBridgeViewController.swift */,
+				A17F2D072FEA100100A11C01 /* StoreKitPlugin.swift */,
 				9582B6822FE993A50072D4E8 /* SceneDelegate.swift */,
 				50379B222058CBB4000EE86E /* capacitor.config.json */,
 				504EC3071FED79650016851F /* AppDelegate.swift */,
@@ -172,6 +175,7 @@
 			files = (
 				A17F2D032FEA100100A11C01 /* AppleSignInPlugin.swift in Sources */,
 				A17F2D052FEA100100A11C01 /* MahjongBridgeViewController.swift in Sources */,
+				A17F2D082FEA100100A11C01 /* StoreKitPlugin.swift in Sources */,
 				504EC3081FED79650016851F /* AppDelegate.swift in Sources */,
 				9582B6832FE993A70072D4E8 /* SceneDelegate.swift in Sources */,
 			);
