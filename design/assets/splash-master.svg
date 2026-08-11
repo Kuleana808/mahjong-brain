@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2732 2732">
+  <defs>
+    <radialGradient id="felt" cx="50%" cy="38%" r="72%">
+      <stop offset="0" stop-color="#075a49"/>
+      <stop offset="0.66" stop-color="#00483c"/>
+      <stop offset="1" stop-color="#003b32"/>
+    </radialGradient>
+    <linearGradient id="bone" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fff9e9"/>
+      <stop offset="1" stop-color="#e8d8b7"/>
+    </linearGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="180%">
+      <feDropShadow dx="0" dy="44" stdDeviation="42" flood-color="#001b16" flood-opacity="0.72"/>
+    </filter>
+  </defs>
+  <rect width="2732" height="2732" fill="url(#felt)"/>
+  <circle cx="1366" cy="1310" r="850" fill="none" stroke="#b98a3e" stroke-width="8" opacity="0.22"/>
+  <circle cx="1366" cy="1310" r="730" fill="none" stroke="#607b25" stroke-width="7" opacity="0.28"/>
+
+  <text x="1366" y="775" fill="#fff7e5" font-family="Georgia, Times New Roman, serif" font-size="220" font-weight="700" text-anchor="middle" letter-spacing="-6">Mahjong</text>
+  <text x="1366" y="976" fill="#fff7e5" font-family="Georgia, Times New Roman, serif" font-size="220" font-weight="700" text-anchor="middle" letter-spacing="-6">Brain</text>
+  <path d="M1090 1044h552" stroke="#b98a3e" stroke-width="12" stroke-linecap="round"/>
+  <path d="M1366 1025l22 19-22 19-22-19 22-19Z" fill="#b98a3e"/>
+
+  <g filter="url(#shadow)">
+    <rect x="1072" y="1162" width="588" height="718" rx="112" fill="#745022" transform="translate(0 38)"/>
+    <rect x="1052" y="1136" width="628" height="726" rx="116" fill="url(#bone)" stroke="#fff9e9" stroke-width="22"/>
+    <rect x="1081" y="1165" width="570" height="668" rx="86" fill="none" stroke="#b69c6c" stroke-width="12"/>
+    <path d="M1124 1209h484" stroke="#fff" stroke-width="20" stroke-linecap="round" opacity="0.56"/>
+    <g fill="none" stroke="#ad9467" stroke-width="30" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M1362 1350c-31-61-124-48-124 32-68 6-84 101-26 131-40 58 10 131 72 113 13 43 56 58 78 22v-298Z"/>
+      <path d="M1370 1350c31-61 124-48 124 32 68 6 84 101 26 131 40 58-10 131-72 113-13 43-56 58-78 22v-298Z"/>
+      <path d="M1366 1649v132m0-47c-75-10-133-47-172-111m172 111c75-10 133-47 172-111"/>
+      <path d="M1299 1419c-39 17-52 49-39 86m65-20c-36 26-40 63-12 94m120-160c39 17 52 49 39 86m-65-20c36 26 40 63 12 94"/>
+    </g>
+  </g>
+
+  <g fill="#607b25" stroke="#314a25" stroke-width="10">
+    <path d="M907 1797c-153-70-187-216-148-349 138 51 209 183 148 349Z"/>
+    <path d="M1825 1797c153-70 187-216 148-349-138 51-209 183-148 349Z"/>
+  </g>
+  <path d="M738 1900c160-187 310-275 474-300m782 300c-160-187-310-275-474-300" fill="none" stroke="#b98a3e" stroke-width="15" stroke-linecap="round"/>
+</svg>

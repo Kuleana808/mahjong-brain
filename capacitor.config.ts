@@ -18,7 +18,7 @@ const config: CapacitorConfig = {
   ios: {
     // The felt colour, so there is no white flash behind the board while the
     // web view paints, and none when the board is over-scrolled.
-    backgroundColor: '#EDE8DE',
+    backgroundColor: '#003B32',
     contentInset: 'never',
     // A board is not a document. Nothing here should rubber-band.
     scrollEnabled: false,

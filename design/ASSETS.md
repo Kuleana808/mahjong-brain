@@ -6,8 +6,8 @@ Every asset must be original, generated from the locked design language, and tra
 |---|---|---|---|---|---|
 | `brand-mark` | Brain-and-leaf engraved tile | full, compact, monochrome | SVG/code path | draft | Symmetric brain, botanical stem/leaves, no face/mascot, legible at 40 px. |
 | `wordmark` | Mahjong Brain | stacked, single-line | vector/type lockup | draft | Georgia-family display shape, ivory with restrained bronze depth, no logo substitution. |
-| `app-icon` | Brand tile in emerald frame | 1024 px master plus iOS renditions | PNG asset catalog | specified | No transparency; no text; survives 29 px; emerald/ivory/bronze only. |
-| `splash` | Centered wordmark and brand tile | iPhone/iPad, lightless emerald | storyboard/vector or PNG | specified | No white flash; no progress UI; safe at all aspect ratios. |
+| `app-icon` | Brand tile in emerald frame | 1024 px master plus iOS rendition | SVG master + PNG asset catalog | approved | No transparency; no text; survives 29 px; emerald/ivory/bronze only. Source: `design/assets/app-icon-master.svg`. |
+| `splash` | Centered wordmark and brand tile | iPhone/iPad, lightless emerald | SVG master + PNG asset catalog | approved | No white flash; no progress UI; safe at all aspect ratios. Source: `design/assets/splash-master.svg`. |
 | `felt-background` | Emerald botanical field | phone portrait, iPad portrait/landscape | CSS/vector preferred | draft | Pattern under 18% opacity; does not reduce text contrast. |
 | `panel-ornament` | Bronze corner/keyline motif | top, bottom, full-frame | CSS/SVG | draft | 1–2 px apparent weight; never competes with copy. |
 | `botanical-sprig` | Olive leaves | left, right, compact | code SVG | specified | Same leaf geometry across home, splash, levels, reward. |
