@@ -2,7 +2,7 @@
  * The space under the board.
  *
  * Holds the hint when there is one, and the way out when the board is stuck.
- * Reserved at a fixed minimum height so the board never jumps when a hint
+ * Floats above the tools so the board never jumps or shrinks when guidance
  * appears — a board that moves under your finger is not calm.
  */
 
@@ -42,7 +42,7 @@ export function HintBar() {
     );
   }
 
-  if (!hint) return <div className="hintbar" />;
+  if (!hint) return null;
 
   return (
     <div className="hintbar">

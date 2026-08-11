@@ -129,7 +129,7 @@ a:focus-visible {
 .app--flow { display: block; }
 .app--gameplay {
   display: grid;
-  grid-template-rows: auto auto 1fr auto auto;
+  grid-template-rows: auto auto 1fr auto;
   height: 100%;
   padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
 }
@@ -467,8 +467,17 @@ a:focus-visible {
 .board__hit:disabled { cursor: default; }
 .board__hit:focus-visible { outline: 4px solid var(--cream-50); outline-offset: 2px; }
 
-.hintbar { min-height: 72px; display: flex; align-items: center; justify-content: center; padding: 8px 18px 16px; z-index: 2; }
-.hint { max-width: 34rem; padding: 12px 18px; border: 2px solid var(--bronze-500); border-radius: 14px; background: var(--ivory-100); color: var(--ink-900); text-align: center; }
+.hintbar {
+  position: fixed;
+  right: max(18px, env(safe-area-inset-right));
+  bottom: calc(100px + env(safe-area-inset-bottom));
+  left: max(18px, env(safe-area-inset-left));
+  z-index: 6;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+}
+.hint { width: min(34rem, 100%); padding: 12px 18px; border: 2px solid var(--bronze-500); border-radius: 14px; background: var(--ivory-100); color: var(--ink-900); text-align: center; box-shadow: 0 10px 26px rgba(0, 22, 18, 0.46); pointer-events: auto; }
 .hint__dismiss { display: block; margin: 8px auto 0; min-height: 48px; padding: 0 16px; border: 0; background: transparent; color: var(--ink-900); cursor: pointer; }
 
 .bottom-dock {
