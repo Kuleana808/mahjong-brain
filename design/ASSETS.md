@@ -20,6 +20,7 @@ Every asset must be original, generated from the locked design language, and tra
 | `icon-hint` | Hint | available, used, unavailable | original inline vector | draft | Lightbulb, never glowing neon. |
 | `icon-undo` | Undo | available, disabled | original inline vector | draft | Counter-clockwise arrow, not shuffle. |
 | `icon-shuffle` | Shuffle | available, disabled, purchase | original inline vector | draft | Crossing arrows and quantity badge where purchased. |
+| `game-sounds` | Original interaction audio | tile, blocked, match, holder warning/full, hint, shuffle, undo, win | Web Audio synthesis | approved code | Quiet ceramic/wood character, no borrowed samples, no casino fanfare; Sound toggle silences every cue. |
 | `icon-revive` | Revive | available, ad-required, unavailable | original vector | specified | Return/restore cue; no heart/life system. |
 | `tutorial-match` | Matching diagram | rest, tapped, clearing | live components | draft | Uses actual tile and holder components, not a separate illustration style. |
 | `tutorial-edge` | Free-edge diagram | free, left-right locked | live components | draft | Demonstrates blocking with opacity and arrows plus text. |

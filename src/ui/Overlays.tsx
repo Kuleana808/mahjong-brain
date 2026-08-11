@@ -186,6 +186,12 @@ export function SettingsSheet() {
         onChange={(reduceMotion) => update({ reduceMotion })}
       />
       <Switch
+        label="Sounds"
+        hint="Quiet tile and game feedback"
+        checked={settings.sounds}
+        onChange={(sounds) => update({ sounds })}
+      />
+      <Switch
         label="Vibration"
         checked={settings.haptics}
         onChange={(haptics) => update({ haptics })}

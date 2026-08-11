@@ -404,9 +404,10 @@ a:focus-visible {
   min-height: var(--size-control-min);
   padding: 0 12px;
   border: 2px solid var(--bronze-500);
-  border-radius: var(--radius-round);
-  background: rgba(0, 61, 51, 0.9);
+  border-radius: var(--radius-control);
+  background: linear-gradient(var(--jade-800), var(--jade-950));
   color: var(--cream-50);
+  box-shadow: 0 4px 0 var(--bronze-700), inset 0 1px 0 rgba(255, 247, 229, 0.16);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -488,25 +489,26 @@ a:focus-visible {
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  gap: 28px;
-  min-height: 84px;
-  padding: 4px 18px max(10px, env(safe-area-inset-bottom));
+  gap: 12px;
+  min-height: 104px;
+  padding: 5px 18px max(10px, env(safe-area-inset-bottom));
 }
 .tool-medallion {
-  width: 72px;
-  min-height: 72px;
-  padding: 8px 4px 6px;
+  width: min(106px, calc((100vw - 60px) / 3));
+  min-height: 88px;
+  padding: 10px 6px 8px;
   display: grid;
   place-items: center;
   gap: 2px;
   border: 3px solid var(--bronze-500);
-  border-radius: var(--radius-round);
+  border-radius: 16px;
   background: linear-gradient(var(--jade-800), var(--jade-950));
   color: var(--cream-50);
-  box-shadow: 0 4px 0 var(--bronze-700);
+  box-shadow: 0 5px 0 var(--bronze-700), inset 0 1px 0 rgba(255, 247, 229, 0.18);
   cursor: pointer;
 }
-.tool-medallion span { font-size: 0.72rem; font-weight: 700; line-height: 1; }
+.tool-medallion svg { width: 30px; height: 30px; }
+.tool-medallion span { font-size: 0.94rem; font-weight: 700; line-height: 1; }
 .tool-medallion:disabled { opacity: 0.42; cursor: default; }
 
 .overlay { position: fixed; inset: 0; z-index: 10; display: grid; place-items: center; padding: 20px; background: rgba(0, 28, 24, 0.76); backdrop-filter: blur(8px); }

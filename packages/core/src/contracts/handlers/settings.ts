@@ -28,6 +28,7 @@ export const DEFAULT_SYNCED_SETTINGS: SyncedSettings = {
   reduceMotion: false,
   dimBlocked: true,
   haptics: true,
+  sounds: true,
   difficultyPreference: 'auto',
 };
 
@@ -47,7 +48,7 @@ function validate(patch: SettingsPatchRequest): string | null {
       return 'fontScale';
     }
   }
-  for (const key of ['reduceMotion', 'dimBlocked', 'haptics'] as const) {
+  for (const key of ['reduceMotion', 'dimBlocked', 'haptics', 'sounds'] as const) {
     if (patch[key] !== undefined && typeof patch[key] !== 'boolean') return key;
   }
   return null;

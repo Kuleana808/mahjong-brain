@@ -78,6 +78,6 @@
     "segmentedControl": ["rest", "selected", "focused", "disabled"],
     "progress": ["empty", "partial", "complete", "indeterminate"],
     "toast": ["info", "success", "warning", "error"]
-    ,"gameplayChrome": ["top-back", "top-count", "top-settings", "bottom-shuffle", "bottom-hint", "bottom-undo"]
+    ,"gameplayChrome": ["top-back", "top-count", "top-settings", "bottom-shuffle", "bottom-hint", "bottom-undo", "jade-card-controls"]
   }
 }

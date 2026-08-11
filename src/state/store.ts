@@ -42,6 +42,7 @@ import {
   type PlaySession,
 } from '../../packages/core/src/play/session';
 import { purchases, purchasesConfigured } from '../iap';
+import { playSound } from '../audio/sounds';
 import {
   appleSignInAvailable,
   restoreAccount,
@@ -65,6 +66,7 @@ export interface Settings {
   /** Dim tiles that cannot be picked up. On by default — it removes a decision. */
   readonly dimBlocked: boolean;
   readonly haptics: boolean;
+  readonly sounds: boolean;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -73,6 +75,7 @@ export const DEFAULT_SETTINGS: Settings = {
   reduceMotion: false,
   dimBlocked: true,
   haptics: true,
+  sounds: true,
 };
 
 interface SessionStats {
@@ -348,6 +351,7 @@ export const useGame = create<GameStore>((set, get) => {
       const play = playSessionFromState(board, holder, status);
       const next = tapPlayTile(play, id);
       if (next === play) {
+        playSound('blocked', settings.sounds);
         void track('tile_tap_rejected', {
           layout: board.layoutId,
           seed: board.seed,
@@ -366,6 +370,7 @@ export const useGame = create<GameStore>((set, get) => {
         tilesRemaining: next.board.remaining.size,
       });
       if (next.board.removed.length > board.removed.length) {
+        playSound('match', settings.sounds);
         void track('pair_cleared', {
           layout: board.layoutId,
           seed: board.seed,
@@ -374,6 +379,7 @@ export const useGame = create<GameStore>((set, get) => {
           cleared: next.board.removed.length * 2,
         });
       } else {
+        playSound(next.holder.length === 3 ? 'holder-warning' : 'tile', settings.sounds);
         void track('holder_slot_filled', {
           layout: board.layoutId,
           seed: board.seed,
@@ -405,9 +411,11 @@ export const useGame = create<GameStore>((set, get) => {
       });
 
       if (nextStatus === 'complete') {
+        playSound('win', settings.sounds);
         finishBoard(true);
         get().dispatchFlow({ type: 'board_won' });
       } else if (nextStatus === 'holder_full') {
+        playSound('holder-full', settings.sounds);
         get().dispatchFlow({ type: 'holder_full' });
       }
       persist();
@@ -418,12 +426,13 @@ export const useGame = create<GameStore>((set, get) => {
     },
 
     async requestHint() {
-      const { board, unlocked, hintPending } = get();
+      const { board, unlocked, hintPending, settings } = get();
       if (!board || hintPending) return;
 
       void track('hint_tapped', { layout: board.layoutId, seed: board.seed });
       set({ hintPending: true });
       const hint = await getHint(board, { allowModelPhrasing: unlocked });
+      if (hint) playSound('hint', settings.sounds);
       if (hint) void track('hint_shown', { layout: board.layoutId, seed: board.seed });
       set((s) => ({
         hint,
@@ -438,11 +447,12 @@ export const useGame = create<GameStore>((set, get) => {
     },
 
     undo() {
-      const { board, tapHistory } = get();
+      const { board, tapHistory, settings } = get();
       if (!board || tapHistory.length === 0) return;
       const taps = tapHistory.slice(0, -1);
       const next = replaySession(board.layoutId, board.seed, taps);
       if (!next) return;
+      playSound('undo', settings.sounds);
       set({
         board: next.board,
         holder: next.holder,
@@ -456,12 +466,13 @@ export const useGame = create<GameStore>((set, get) => {
     },
 
     shuffleBoard() {
-      const { board, holder, status } = get();
+      const { board, holder, status, settings } = get();
       if (!board) return;
       void track('shuffle_tapped', { layout: board.layoutId, seed: board.seed });
       const play = playSessionFromState(board, holder, status);
       const next = shufflePlaySession(play, randomSeed());
       if (next === play) return;
+      playSound('shuffle', settings.sounds);
       void track('shuffle_granted', { layout: board.layoutId, seed: board.seed });
       set({
         board: next.board,

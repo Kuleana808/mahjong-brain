@@ -103,6 +103,7 @@ export interface SyncedSettings {
   readonly reduceMotion: boolean;
   readonly dimBlocked: boolean;
   readonly haptics: boolean;
+  readonly sounds: boolean;
   /**
    * Player override for the silent difficulty model. 'auto' is the default and
    * the only value the game itself ever sets.
