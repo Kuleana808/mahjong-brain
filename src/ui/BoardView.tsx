@@ -38,6 +38,8 @@ export function BoardView() {
   useLayoutEffect(() => {
     const element = wrapRef.current;
     if (!element) return;
+    const initial = element.getBoundingClientRect();
+    setBox({ w: initial.width, h: initial.height });
     const observer = new ResizeObserver(([entry]) => {
       setBox({ w: entry.contentRect.width, h: entry.contentRect.height });
     });
@@ -86,7 +88,10 @@ export function BoardView() {
       else animationRef.current = null;
     };
 
-    animationRef.current = requestAnimationFrame(paint);
+    // Paint the initial frame immediately. WKWebView can defer the first rAF
+    // while the native app is moving from hidden to visible, which otherwise
+    // leaves a live board with an empty canvas until the next interaction.
+    paint(startedAt);
     previousBoardRef.current = board;
 
     return () => {
