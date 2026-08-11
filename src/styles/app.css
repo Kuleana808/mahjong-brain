@@ -326,7 +326,7 @@ a:focus-visible {
 .holder-demo span { display: grid; place-items: center; background: var(--ivory-100); color: var(--ink-900); font-family: var(--font-display); font-size: 1.9rem; }
 .holder-demo--warning i { animation: warn 1.2s ease-in-out infinite; }
 .holder-demo--matching { border-color: var(--color-success); }
-.tutorial-note { color: var(--ink-soft); }
+.tutorial-note { color: var(--ivory-200); }
 .mini-board { display: grid; grid-template-columns: repeat(3, 76px); align-items: end; justify-content: center; }
 .mini-board .demo-tile { margin: -8px; }
 .mini-board .is-free { outline: 4px solid var(--amber-500); outline-offset: 4px; }
