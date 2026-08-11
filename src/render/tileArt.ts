@@ -126,30 +126,6 @@ function drawBambooMark(ctx: Ctx, cx: number, cy: number, w: number, h: number, 
   ctx.restore();
 }
 
-/**
- * The character-suit emblem. Traditional craks carry 萬; ours is an original
- * geometric mark — a rounded frame over three tapering bars — so the tile is
- * unmistakably from this set and still legible at thumbnail size.
- */
-function drawCrakEmblem(ctx: Ctx, cx: number, cy: number, s: number, colour: string): void {
-  ctx.strokeStyle = colour;
-  ctx.fillStyle = colour;
-  ctx.lineWidth = Math.max(1.2, s * 0.11);
-  ctx.lineCap = 'round';
-
-  roundRect(ctx, cx - s * 0.72, cy - s * 0.8, s * 1.44, s * 1.6, s * 0.3);
-  ctx.stroke();
-
-  const widths = [0.94, 0.7, 0.46];
-  widths.forEach((wf, i) => {
-    const y = cy - s * 0.36 + i * s * 0.38;
-    ctx.beginPath();
-    ctx.moveTo(cx - s * 0.5 * wf, y);
-    ctx.lineTo(cx + s * 0.5 * wf, y);
-    ctx.stroke();
-  });
-}
-
 function drawFlowerMark(ctx: Ctx, cx: number, cy: number, s: number, rank: number, colour: string): void {
   ctx.strokeStyle = colour;
   ctx.fillStyle = colour;
@@ -287,11 +263,13 @@ export function drawFace(ctx: Ctx, face: TileFace, box: Box, palette: Palette): 
     }
 
     case 'character': {
-      ctx.font = `700 ${box.h * 0.43}px ui-rounded, "SF Pro Rounded", "Segoe UI", system-ui, sans-serif`;
+      const numeral = ['一', '二', '三', '四', '五', '六', '七', '八', '九'][face.rank - 1];
+      ctx.font = `700 ${box.h * 0.31}px "PingFang TC", "Hiragino Sans", serif`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText(String(face.rank), box.w / 2, box.h * 0.4);
-      drawCrakEmblem(ctx, box.w / 2, box.h * 0.75, box.w * 0.23, colour);
+      ctx.fillText(numeral, box.w / 2, box.h * 0.34);
+      ctx.font = `700 ${box.h * 0.3}px "PingFang TC", "Hiragino Sans", serif`;
+      ctx.fillText('萬', box.w / 2, box.h * 0.69);
       break;
     }
 
@@ -301,24 +279,6 @@ export function drawFace(ctx: Ctx, face: TileFace, box: Box, palette: Palette): 
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillText(initial, box.w / 2, box.h * 0.5);
-
-      // Arrow pointing the way the wind is named — East right, South down,
-      // West left, North up. Shape, not just the letter.
-      const rotation = [Math.PI / 2, Math.PI, -Math.PI / 2, 0][face.rank - 1];
-      const cx = box.w / 2;
-      const cy = box.h * 0.8;
-      const s = box.w * 0.12;
-      ctx.save();
-      ctx.translate(cx, cy);
-      ctx.rotate(rotation);
-      ctx.beginPath();
-      ctx.moveTo(0, -s);
-      ctx.lineTo(s * 0.8, s * 0.6);
-      ctx.lineTo(0, s * 0.24);
-      ctx.lineTo(-s * 0.8, s * 0.6);
-      ctx.closePath();
-      ctx.fill();
-      ctx.restore();
 
       break;
     }

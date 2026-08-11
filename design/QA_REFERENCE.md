@@ -98,7 +98,7 @@ Maintain one Storybook-like internal specimen route or deterministic test harnes
 | Segmented control | `rest`, `selected`, `focused`, `disabled` |
 | Progress | `empty`, `partial`, `complete`, `indeterminate` |
 | Toast/banner | `info`, `success`, `warning`, `error` |
-| Gameplay chrome | `top-back`, `top-count`, `top-settings`, `bottom-shuffle`, `bottom-hint`, `bottom-undo`, `jade-card-controls` |
+| Gameplay chrome | `top-back`, `top-count`, `top-menu`, `bottom-shuffle`, `bottom-hint`, `bottom-undo`, `carved-walnut-controls` |
 
 ## Asset checks
 

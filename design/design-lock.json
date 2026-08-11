@@ -1,11 +1,11 @@
 {
-  "version": 2,
-  "approvedReference": "Canonical four-state gameplay board approved 2026-08-10",
+  "version": 3,
+  "approvedReference": "Dark felt, fired-ivory tiles, and carved-walnut gameplay controls approved 2026-08-11",
   "cssTokens": {
-    "--jade-950": "#003b32",
-    "--jade-900": "#00483c",
-    "--jade-800": "#075a49",
-    "--jade-700": "#146b50",
+    "--jade-950": "#001b18",
+    "--jade-900": "#002b26",
+    "--jade-800": "#073b34",
+    "--jade-700": "#0d4b40",
     "--ivory-100": "#f5ecd5",
     "--ivory-200": "#e8d8b7",
     "--cream-50": "#fff7e5",
@@ -13,15 +13,21 @@
     "--amber-500": "#e07a0b",
     "--bronze-500": "#b98a3e",
     "--bronze-700": "#745022",
-    "--leaf-500": "#607b25"
+    "--leaf-500": "#607b25",
+    "--wood-face-top": "#6f3214",
+    "--wood-face-bottom": "#321205",
+    "--wood-ring": "#c66925",
+    "--wood-ring-light": "#e1a052",
+    "--wood-depth": "#541f0b",
+    "--wood-icon": "#ffd991"
   },
   "calmPalette": {
-    "felt": "#00483C",
-    "feltEdge": "#003B32",
-    "tileFace": "#F5ECD5",
-    "tileFaceTop": "#FFF9E9",
-    "tileSide": "#236B4B",
-    "tileEdge": "#0F513A",
+    "felt": "#002B26",
+    "feltEdge": "#001B18",
+    "tileFace": "#EEDDB7",
+    "tileFaceTop": "#FFF4D6",
+    "tileSide": "#AF8650",
+    "tileEdge": "#79562E",
     "selected": "#E07A0B",
     "hinted": "#607B25"
   },
@@ -35,7 +41,7 @@
     "controlMinHeight": 48,
     "primaryControlHeight": 64,
     "cellStepX": 0.44,
-    "cellStepY": 0.56,
+    "cellStepY": 0.5,
     "holderSlots": 4,
     "tileMinimumPhoneWidth": 66,
     "tileMinimumTabletWidth": 80,
@@ -44,15 +50,15 @@
   },
   "tileMaterial": {
     "face": "warm ivory fired ceramic",
-    "finish": "satin glaze",
-    "highlight": "quiet top-left edge and face bloom",
-    "side": "deep botanical jade extrusion",
+    "finish": "polished satin glaze",
+    "highlight": "visible top-left ceramic sheen with a restrained face bloom",
+    "side": "warm honey-bone extrusion with a dark fired edge",
     "shadow": "short warm contact shadow plus soft stack shadow",
     "forbidden": ["mirror glare", "white plastic", "glass", "neon green edge"]
   },
   "semantic": {
-    "backgroundApp": "#003B32",
-    "backgroundRaised": "#00483C",
+    "backgroundApp": "#001B18",
+    "backgroundRaised": "#002B26",
     "surfacePrimary": "#F5ECD5",
     "surfaceElevated": "#FFF9E9",
     "textOnDark": "#FFF7E5",
@@ -78,6 +84,6 @@
     "segmentedControl": ["rest", "selected", "focused", "disabled"],
     "progress": ["empty", "partial", "complete", "indeterminate"],
     "toast": ["info", "success", "warning", "error"]
-    ,"gameplayChrome": ["top-back", "top-count", "top-settings", "bottom-shuffle", "bottom-hint", "bottom-undo", "jade-card-controls"]
+    ,"gameplayChrome": ["top-back", "top-count", "top-menu", "bottom-shuffle", "bottom-hint", "bottom-undo", "carved-walnut-controls"]
   }
 }

@@ -13,15 +13,15 @@ export function BottomDock() {
   return (
     <nav className="bottom-dock" aria-label="Game tools">
       <button type="button" className="tool-medallion" aria-label="Shuffle" onClick={shuffleBoard} disabled={!playing}>
-        <Icon name="shuffle" />
+        <span className="tool-medallion__face"><Icon name="shuffle" /></span>
         <span>Shuffle</span>
       </button>
       <button type="button" className="tool-medallion" aria-label={hintPending ? 'Looking for a hint' : 'Hint'} onClick={() => void requestHint()} disabled={!playing || hintPending}>
-        <Icon name="hint" />
+        <span className="tool-medallion__face"><Icon name="hint" /></span>
         <span>{hintPending ? 'Looking…' : 'Hint'}</span>
       </button>
       <button type="button" className="tool-medallion" aria-label="Undo" onClick={undo} disabled={tapHistory.length === 0}>
-        <Icon name="undo" />
+        <span className="tool-medallion__face"><Icon name="undo" /></span>
         <span>Undo</span>
       </button>
     </nav>

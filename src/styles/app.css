@@ -1,9 +1,9 @@
 :root {
   --font-scale: 1;
-  --jade-950: #003b32;
-  --jade-900: #00483c;
-  --jade-800: #075a49;
-  --jade-700: #146b50;
+  --jade-950: #001b18;
+  --jade-900: #002b26;
+  --jade-800: #073b34;
+  --jade-700: #0d4b40;
   --ivory-100: #f5ecd5;
   --ivory-200: #e8d8b7;
   --ink-900: #143e34;
@@ -15,9 +15,15 @@
   --leaf-500: #607b25;
   --tile-red: #a73a29;
   --tile-green: #2d673b;
+  --wood-face-top: #6f3214;
+  --wood-face-bottom: #321205;
+  --wood-ring: #c66925;
+  --wood-ring-light: #e1a052;
+  --wood-depth: #541f0b;
+  --wood-icon: #ffd991;
 
-  --color-bg-app: #003b32;
-  --color-bg-raised: #00483c;
+  --color-bg-app: #001b18;
+  --color-bg-raised: #002b26;
   --color-surface: #f5ecd5;
   --color-surface-elevated: #fff9e9;
   --color-text-dark: #fff7e5;
@@ -96,8 +102,8 @@ a:focus-visible {
   min-height: 100%;
   overflow: hidden;
   background:
-    radial-gradient(circle at 50% 18%, rgba(17, 108, 83, 0.56), transparent 42%),
-    radial-gradient(circle at 50% 115%, rgba(0, 27, 23, 0.82), transparent 52%),
+    radial-gradient(circle at 50% 16%, rgba(22, 89, 72, 0.3), transparent 44%),
+    radial-gradient(circle at 50% 115%, rgba(0, 12, 10, 0.9), transparent 54%),
     linear-gradient(145deg, var(--jade-900), var(--jade-950));
 }
 
@@ -106,7 +112,7 @@ a:focus-visible {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  opacity: 0.16;
+  opacity: 0.07;
   background-image:
     radial-gradient(circle at 25% 25%, transparent 0 28px, rgba(208, 170, 91, 0.25) 29px 30px, transparent 31px),
     radial-gradient(circle at 75% 75%, transparent 0 42px, rgba(208, 170, 91, 0.18) 43px 44px, transparent 45px);
@@ -421,17 +427,14 @@ a:focus-visible {
   min-width: var(--size-control-min);
   min-height: var(--size-control-min);
   padding: 0 12px;
-  border: 2px solid var(--bronze-500);
-  border-radius: 14px;
-  background:
-    radial-gradient(circle at 50% 0%, rgba(255, 247, 229, 0.15), transparent 52%),
-    linear-gradient(160deg, var(--jade-700), var(--jade-950));
+  border: 1.5px solid #b58a42;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #174f42, #0b3b33);
   color: var(--cream-50);
   box-shadow:
-    0 3px 0 var(--bronze-700),
-    0 6px 14px rgba(0, 28, 24, 0.24),
-    inset 0 0 0 1px rgba(255, 247, 229, 0.14),
-    inset 0 1px 0 rgba(255, 247, 229, 0.24);
+    0 3px 0 #513a1d,
+    0 5px 10px rgba(0, 18, 15, 0.22),
+    inset 0 1px 0 rgba(255, 247, 229, 0.08);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -456,7 +459,29 @@ a:focus-visible {
   .settings-screen .segmented button { min-width: 0; padding-inline: 12px; white-space: normal; }
 }
 .iconbutton:disabled { opacity: 0.42; cursor: default; }
-.iconbutton--round { width: var(--size-control-min); padding: 0; }
+.iconbutton--round {
+  width: 56px;
+  min-width: 56px;
+  height: 56px;
+  min-height: 56px;
+  padding: 0;
+  border: 3px solid var(--wood-ring);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 36% 24%, rgba(255, 207, 123, 0.15), transparent 28%),
+    linear-gradient(165deg, var(--wood-face-top), var(--wood-face-bottom));
+  color: var(--wood-icon);
+  box-shadow:
+    0 4px 0 var(--wood-depth),
+    0 7px 14px rgba(0, 10, 8, 0.42),
+    inset 0 0 0 1px rgba(255, 218, 145, 0.2),
+    inset 0 -5px 8px rgba(25, 5, 0, 0.28);
+}
+.iconbutton--round svg { filter: drop-shadow(0 2px 0 rgba(52, 16, 2, 0.72)); }
+.iconbutton--round:not(:disabled):active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 var(--wood-depth), inset 0 3px 7px rgba(20, 4, 0, 0.42);
+}
 
 .holder {
   position: relative;
@@ -514,57 +539,59 @@ a:focus-visible {
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  gap: 10px;
-  min-height: 98px;
-  padding: 6px 18px max(12px, env(safe-area-inset-bottom));
+  gap: clamp(10px, 4vw, 20px);
+  min-height: 112px;
+  padding: 4px 14px max(12px, env(safe-area-inset-bottom));
 }
 .tool-medallion {
   position: relative;
-  width: min(100px, calc((100vw - 56px) / 3));
-  min-height: 80px;
-  padding: 9px 6px 7px;
+  width: min(100px, calc((100vw - 52px) / 3));
+  min-height: 100px;
+  padding: 0 2px;
   display: grid;
+  grid-template-rows: 78px auto;
   place-items: center;
   gap: 3px;
-  border: 2px solid var(--bronze-500);
-  border-radius: 18px;
-  background:
-    radial-gradient(circle at 50% 0%, rgba(255, 247, 229, 0.16), transparent 48%),
-    linear-gradient(160deg, var(--jade-700), var(--jade-950));
+  border: 0;
+  border-radius: 0;
+  background: transparent;
   color: var(--cream-50);
-  box-shadow:
-    0 4px 0 var(--bronze-700),
-    0 8px 18px rgba(0, 28, 24, 0.26),
-    inset 0 0 0 1px rgba(255, 247, 229, 0.16),
-    inset 0 1px 0 rgba(255, 247, 229, 0.28);
+  box-shadow: none;
   cursor: pointer;
   transition:
     transform var(--duration-micro) var(--ease-move),
     box-shadow var(--duration-micro) var(--ease-move),
     filter var(--duration-micro) var(--ease-move);
 }
-.tool-medallion::after {
-  content: '';
-  position: absolute;
-  inset: 5px;
-  border: 1px solid rgba(185, 138, 62, 0.42);
-  border-radius: 13px;
-  pointer-events: none;
-}
-.tool-medallion svg { width: 28px; height: 28px; filter: drop-shadow(0 1px 0 rgba(0, 20, 17, 0.56)); }
-.tool-medallion span { font-size: 0.9rem; font-weight: 750; line-height: 1; letter-spacing: 0.01em; }
-.tool-medallion:not(:disabled):active {
-  transform: translateY(3px);
+.tool-medallion__face {
+  width: 76px;
+  height: 76px;
+  display: grid;
+  place-items: center;
+  border: 3px solid var(--wood-ring);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 36% 25%, rgba(255, 207, 123, 0.16), transparent 27%),
+    linear-gradient(165deg, var(--wood-face-top), var(--wood-face-bottom));
+  color: var(--wood-icon);
   box-shadow:
-    0 1px 0 var(--bronze-700),
-    0 4px 10px rgba(0, 28, 24, 0.22),
-    inset 0 2px 5px rgba(0, 22, 18, 0.28);
+    0 5px 0 var(--wood-depth),
+    0 9px 15px rgba(0, 10, 8, 0.4),
+    inset 0 0 0 1px rgba(255, 218, 145, 0.22),
+    inset 0 -7px 10px rgba(25, 5, 0, 0.32);
+  transition: transform var(--duration-micro) var(--ease-move), box-shadow var(--duration-micro) var(--ease-move);
+}
+.tool-medallion__face svg { width: 38px; height: 38px; filter: drop-shadow(0 2px 0 rgba(52, 16, 2, 0.72)); }
+.tool-medallion > span:last-child { font-size: 0.96rem; font-weight: 650; line-height: 1; letter-spacing: 0; text-shadow: 0 2px 3px rgba(0, 8, 7, 0.72); }
+.tool-medallion:not(:disabled):active .tool-medallion__face {
+  transform: translateY(4px);
+  box-shadow: 0 1px 0 var(--wood-depth), inset 0 3px 8px rgba(20, 4, 0, 0.44);
 }
 .tool-medallion:disabled {
-  opacity: 0.56;
-  filter: saturate(0.58);
+  opacity: 0.46;
+  filter: saturate(0.45);
   cursor: default;
-  box-shadow: 0 3px 0 rgba(116, 80, 34, 0.72), inset 0 0 0 1px rgba(255, 247, 229, 0.1);
+  box-shadow: none;
 }
 
 .overlay { position: fixed; inset: 0; z-index: 10; display: grid; place-items: center; padding: 20px; background: rgba(0, 28, 24, 0.76); backdrop-filter: blur(8px); }
@@ -618,11 +645,11 @@ a:focus-visible {
   grid-row: 1;
   width: 48px;
   height: 48px;
-  border: 2px solid var(--bronze-500);
-  border-radius: 14px;
-  background: linear-gradient(160deg, var(--jade-700), var(--jade-950));
-  color: var(--cream-50);
-  box-shadow: 0 3px 0 var(--bronze-700);
+  border: 3px solid var(--wood-ring);
+  border-radius: 50%;
+  background: linear-gradient(165deg, var(--wood-face-top), var(--wood-face-bottom));
+  color: var(--wood-icon);
+  box-shadow: 0 4px 0 var(--wood-depth), 0 7px 14px rgba(0, 10, 8, 0.32), inset 0 0 0 1px rgba(255, 218, 145, 0.2);
   cursor: pointer;
   display: grid;
   place-items: center;

@@ -25,7 +25,7 @@ export function TopBar() {
         {remaining} {remaining === 1 ? 'tile' : 'tiles'} left
       </span>
       <button type="button" className="iconbutton iconbutton--round" aria-label="Settings" onClick={() => openSettings(true)}>
-        <Icon name="settings" size={24} />
+        <Icon name="menu" size={27} />
       </button>
     </header>
   );

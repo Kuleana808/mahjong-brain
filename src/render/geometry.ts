@@ -32,7 +32,7 @@ const LAYER_SHIFT_Y = 0.16;
  * face a comfortably larger drawing and hit target.
  */
 export const CELL_STEP_X = 0.44;
-export const CELL_STEP_Y = 0.56;
+export const CELL_STEP_Y = 0.5;
 
 /** Extruded side thickness, as a fraction of tile width. */
 export const SIDE_DEPTH = 0.11;
