@@ -133,6 +133,10 @@ export function SettingsSheet() {
   const start = useGame((s) => s.start);
   const unlocked = useGame((s) => s.unlocked);
   const restore = useGame((s) => s.restore);
+  const accountStatus = useGame((s) => s.accountStatus);
+  const accountError = useGame((s) => s.accountError);
+  const signIn = useGame((s) => s.signIn);
+  const signOut = useGame((s) => s.signOut);
 
   return (
     <Overlay label="Settings">
@@ -186,6 +190,35 @@ export function SettingsSheet() {
         checked={settings.haptics}
         onChange={(haptics) => update({ haptics })}
       />
+
+      {accountStatus !== 'unavailable' ? (
+        <div className="account-setting">
+          <span className="setting__label">
+            Apple account
+            <span className="setting__hint">
+              {accountStatus === 'signed_in'
+                ? 'Signed in. Settings and a verified unlock can follow you to another device.'
+                : 'Optional. Free play and local progress never require an account.'}
+            </span>
+          </span>
+          {accountStatus === 'signed_in' ? (
+            <button type="button" className="button button--quiet" onClick={() => void signOut()}>
+              Sign out
+            </button>
+          ) : (
+            <button
+              type="button"
+              className="apple-sign-in"
+              disabled={accountStatus === 'signing_in'}
+              onClick={() => void signIn()}
+            >
+              <span aria-hidden="true"></span>{' '}
+              {accountStatus === 'signing_in' ? 'Signing in…' : 'Sign in with Apple'}
+            </button>
+          )}
+          {accountError ? <p className="account-setting__error" role="alert">{accountError}</p> : null}
+        </div>
+      ) : null}
 
       <button
         type="button"

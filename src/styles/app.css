@@ -540,6 +540,23 @@ a:focus-visible {
 .switch::after { content: ''; position: absolute; top: 4px; left: 4px; width: 26px; height: 26px; border-radius: 50%; background: white; transition: transform var(--duration-micro) var(--ease-move); }
 .switch[aria-checked='true']::after { transform: translateX(22px); }
 
+.account-setting { padding: 18px 0 4px; text-align: left; border-bottom: 1px solid rgba(116, 80, 34, 0.28); }
+.account-setting .button--quiet { margin-top: 10px; }
+.apple-sign-in {
+  width: 100%;
+  min-height: 50px;
+  margin-top: 12px;
+  border: 1px solid #000;
+  border-radius: 10px;
+  background: #000;
+  color: #fff;
+  font: 600 1rem/1 var(--font-body);
+  cursor: pointer;
+}
+.apple-sign-in span { margin-right: 6px; font-size: 1.25em; }
+.apple-sign-in:disabled { opacity: 0.58; cursor: default; }
+.account-setting__error { margin: 10px 0 0 !important; color: var(--color-danger) !important; font-size: 0.88rem; }
+
 .visually-hidden { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 
 @keyframes spin { to { transform: rotate(360deg); } }

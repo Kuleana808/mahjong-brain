@@ -42,6 +42,13 @@ import {
   type PlaySession,
 } from '../../packages/core/src/play/session';
 import { purchases, purchasesConfigured } from '../iap';
+import {
+  appleSignInAvailable,
+  restoreAccount,
+  signInWithApple,
+  signOutAccount,
+  syncAccountSettings,
+} from '../auth/apple';
 import { clearFaceCache } from '../render/boardRenderer';
 import { PALETTES, type ThemeName } from '../render/palette';
 import { track } from '../telemetry/client';
@@ -95,6 +102,9 @@ interface GameStore {
   paywallOpen: boolean;
   settingsOpen: boolean;
   hydrated: boolean;
+  accountStatus: 'unavailable' | 'signed_out' | 'signing_in' | 'signed_in';
+  accountId: string | null;
+  accountError: string | null;
 
   session: SessionStats;
 
@@ -112,6 +122,8 @@ interface GameStore {
   closePaywall(): void;
   buy(): Promise<void>;
   restore(): Promise<void>;
+  signIn(): Promise<void>;
+  signOut(): Promise<void>;
 }
 
 const freshSession = (): SessionStats => ({
@@ -147,6 +159,11 @@ function playSessionFromState(
     hintsUsed: 0,
   };
 }
+
+const syncedSettings = (settings: Settings) => ({
+  ...settings,
+  difficultyPreference: 'auto' as const,
+});
 
 export const useGame = create<GameStore>((set, get) => {
   const persist = () => {
@@ -190,6 +207,9 @@ export const useGame = create<GameStore>((set, get) => {
     paywallOpen: false,
     settingsOpen: false,
     hydrated: false,
+    accountStatus: appleSignInAvailable() ? 'signed_out' : 'unavailable',
+    accountId: null,
+    accountError: null,
 
     session: freshSession(),
 
@@ -233,6 +253,8 @@ export const useGame = create<GameStore>((set, get) => {
       };
 
       const unlocked = progress.unlocked || (await purchases().isUnlocked());
+      const account = await restoreAccount();
+      const remoteSettings = account?.settings?.settings;
 
       const storedBoardsCompleted = progress.boardsCompleted ?? progress.flow?.boardsCompleted ?? 0;
       const reconciledFlow = progress.flow
@@ -241,10 +263,12 @@ export const useGame = create<GameStore>((set, get) => {
 
       set({
         flow: initialFlowState(reconciledFlow),
-        settings,
+        settings: remoteSettings ? { ...settings, ...remoteSettings, theme: remoteSettings.theme === 'system' ? 'calm' : remoteSettings.theme } : settings,
         profile: progress.profile ?? INITIAL_PROFILE,
         boardsCompleted: storedBoardsCompleted,
-        unlocked,
+        unlocked: unlocked || account?.unlock?.unlocked === true,
+        accountStatus: account ? 'signed_in' : appleSignInAvailable() ? 'signed_out' : 'unavailable',
+        accountId: account?.session.accountId ?? null,
         hydrated: true,
       });
 
@@ -456,6 +480,10 @@ export const useGame = create<GameStore>((set, get) => {
       for (const key of Object.keys(patch)) void track('setting_changed', { settingKey: key });
       set((s) => ({ settings: { ...s.settings, ...patch } }));
       persist();
+      void syncAccountSettings(syncedSettings(get().settings)).catch(() => {
+        // Local settings remain authoritative while offline; the next change
+        // or sign-in retries without interrupting play.
+      });
     },
 
     openSettings(open) {
@@ -485,6 +513,54 @@ export const useGame = create<GameStore>((set, get) => {
       } else {
         set({ announcement: result.message ?? 'No purchase to restore.' });
       }
+    },
+
+    async signIn() {
+      if (!appleSignInAvailable()) {
+        set({ accountStatus: 'unavailable', accountError: 'Sign in is not configured in this build.' });
+        return;
+      }
+      set({ accountStatus: 'signing_in', accountError: null });
+      try {
+        const account = await signInWithApple();
+        if (account.created) {
+          await syncAccountSettings(syncedSettings(get().settings));
+        } else if (account.settings) {
+          const remote = account.settings.settings;
+          set((s) => ({
+            settings: {
+              ...s.settings,
+              ...remote,
+              theme: remote.theme === 'system' ? 'calm' : remote.theme,
+            },
+          }));
+        }
+        set((s) => ({
+          accountStatus: 'signed_in',
+          accountId: account.session.accountId,
+          accountError: null,
+          unlocked: s.unlocked || account.unlock?.unlocked === true,
+          announcement: 'Signed in with Apple. Settings and unlock status are protected.',
+        }));
+        persist();
+      } catch (cause) {
+        const message = cause instanceof Error ? cause.message : 'Sign in could not be completed.';
+        set({
+          accountStatus: 'signed_out',
+          accountError: message === 'Sign in was cancelled.' ? null : message,
+          announcement: message,
+        });
+      }
+    },
+
+    async signOut() {
+      await signOutAccount();
+      set({
+        accountStatus: appleSignInAvailable() ? 'signed_out' : 'unavailable',
+        accountId: null,
+        accountError: null,
+        announcement: 'Signed out. Your game remains on this device.',
+      });
     },
   };
 
