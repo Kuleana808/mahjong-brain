@@ -188,7 +188,17 @@ export function SettingsSheet() {
 
   return (
     <Overlay label="Settings">
-      <h2>Settings</h2>
+      <div className="settings-header">
+        <h2>Settings</h2>
+        <button
+          type="button"
+          className="settings-header__close"
+          aria-label="Close settings"
+          onClick={() => openSettings(false)}
+        >
+          ×
+        </button>
+      </div>
 
       <div className="setting">
         <span className="setting__label">Appearance</span>
