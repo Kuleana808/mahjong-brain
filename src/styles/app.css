@@ -475,11 +475,9 @@ a:focus-visible {
   font-size: clamp(1rem, 5vw, 1.45rem);
   font-weight: 700;
   box-shadow: 0 3px 0 #90744d;
+  overflow: hidden;
 }
-.holder__tile--character,
-.holder__tile--dragon { color: var(--tile-red) !important; }
-.holder__tile--bamboo,
-.holder__tile--circle { color: var(--tile-green) !important; }
+.tile-face-canvas { display: block; width: 100%; height: 100%; }
 
 .board { position: relative; min-height: 0; z-index: 1; }
 .board__canvas { display: block; width: 100%; height: 100%; }
