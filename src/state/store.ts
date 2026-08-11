@@ -111,6 +111,8 @@ interface GameStore {
   settings: Settings;
   profile: SkillProfile;
   boardsCompleted: number;
+  /** StoreKit entitlement owned by the Apple ID on this device. */
+  deviceUnlocked: boolean;
   unlocked: boolean;
   paywallOpen: boolean;
   settingsOpen: boolean;
@@ -227,6 +229,7 @@ export const useGame = create<GameStore>((set, get) => {
         flow: s.flow.progress,
         profile: s.profile,
         boardsCompleted: s.boardsCompleted,
+        deviceUnlocked: s.deviceUnlocked,
         unlocked: s.unlocked,
       },
       resume: s.board
@@ -270,6 +273,7 @@ export const useGame = create<GameStore>((set, get) => {
     settings: DEFAULT_SETTINGS,
     profile: INITIAL_PROFILE,
     boardsCompleted: 0,
+    deviceUnlocked: false,
     unlocked: false,
     paywallOpen: false,
     settingsOpen: false,
@@ -317,6 +321,7 @@ export const useGame = create<GameStore>((set, get) => {
         flow?: FlowProgress;
         profile?: SkillProfile;
         boardsCompleted?: number;
+        deviceUnlocked?: boolean;
         unlocked?: boolean;
       };
 
@@ -325,9 +330,14 @@ export const useGame = create<GameStore>((set, get) => {
       // cached true must not survive a refund merely because it was persisted
       // during an earlier launch. In builds without StoreKit, preserve the
       // cache so development/offline hydration never invents a revocation.
-      const unlocked = purchasesConfigured()
-        ? currentDeviceEntitlement ?? progress.unlocked === true
-        : progress.unlocked === true;
+      // Older snapshots did not distinguish an account unlock from a StoreKit
+      // unlock. In a configured release, never promote that ambiguous legacy
+      // bit to a device entitlement while verification is unavailable.
+      const cachedDeviceEntitlement =
+        progress.deviceUnlocked ?? (!purchasesConfigured() && progress.unlocked === true);
+      const deviceUnlocked = purchasesConfigured()
+        ? currentDeviceEntitlement ?? cachedDeviceEntitlement
+        : cachedDeviceEntitlement;
       const account = await restoreAccount();
       const remoteSettings = account?.settings?.settings;
 
@@ -341,7 +351,8 @@ export const useGame = create<GameStore>((set, get) => {
         settings: remoteSettings ? { ...settings, ...remoteSettings, theme: remoteSettings.theme === 'system' ? 'calm' : remoteSettings.theme } : settings,
         profile: progress.profile ?? INITIAL_PROFILE,
         boardsCompleted: storedBoardsCompleted,
-        unlocked: unlocked || account?.unlock?.unlocked === true,
+        deviceUnlocked,
+        unlocked: deviceUnlocked || account?.unlock?.unlocked === true,
         accountStatus: account ? 'signed_in' : appleSignInAvailable() ? 'signed_out' : 'unavailable',
         accountId: account?.session.accountId ?? null,
         hydrated: true,
@@ -682,7 +693,7 @@ export const useGame = create<GameStore>((set, get) => {
     async buy() {
       const result = await purchases().purchase();
       if (result.status === 'purchased' || result.status === 'restored') {
-        set({ unlocked: true, paywallOpen: false, announcement: 'Unlocked. Thank you.' });
+        set({ deviceUnlocked: true, unlocked: true, paywallOpen: false, announcement: 'Unlocked. Thank you.' });
         persist();
       } else if (result.status !== 'cancelled') {
         set({ announcement: result.message ?? 'Purchase could not be completed.' });
@@ -692,7 +703,7 @@ export const useGame = create<GameStore>((set, get) => {
     async restore() {
       const result = await purchases().restore();
       if (result.status === 'restored' || result.status === 'purchased') {
-        set({ unlocked: true, paywallOpen: false, announcement: 'Purchase restored.' });
+        set({ deviceUnlocked: true, unlocked: true, paywallOpen: false, announcement: 'Purchase restored.' });
         persist();
       } else {
         set({ announcement: result.message ?? 'No purchase to restore.' });
@@ -727,7 +738,8 @@ export const useGame = create<GameStore>((set, get) => {
           accountStatus: 'signed_in',
           accountId: account.session.accountId,
           accountError: null,
-          unlocked: s.unlocked || currentDeviceEntitlement === true || account.unlock?.unlocked === true,
+          deviceUnlocked: currentDeviceEntitlement ?? s.deviceUnlocked,
+          unlocked: (currentDeviceEntitlement ?? s.deviceUnlocked) || account.unlock?.unlocked === true,
           announcement: 'Signed in with Apple. Settings and unlock status are protected.',
         }));
         persist();
@@ -743,12 +755,14 @@ export const useGame = create<GameStore>((set, get) => {
 
     async signOut() {
       await signOutAccount();
-      set({
+      set((s) => ({
         accountStatus: appleSignInAvailable() ? 'signed_out' : 'unavailable',
         accountId: null,
         accountError: null,
+        unlocked: s.deviceUnlocked,
         announcement: 'Signed out. Your game remains on this device.',
-      });
+      }));
+      persist();
     },
   };
 

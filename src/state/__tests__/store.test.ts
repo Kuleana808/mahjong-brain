@@ -16,6 +16,9 @@ vi.mock('@capacitor/preferences', () => ({
     set: async ({ key, value }: { key: string; value: string }) => {
       store.set(key, value);
     },
+    remove: async ({ key }: { key: string }) => {
+      store.delete(key);
+    },
   },
 }));
 
@@ -57,6 +60,7 @@ function reset() {
     hint: null,
     settings: DEFAULT_SETTINGS,
     boardsCompleted: 0,
+    deviceUnlocked: false,
     unlocked: false,
     paywallOpen: false,
     freeReviveAvailable: true,
@@ -279,6 +283,7 @@ describe('paywall timing', () => {
     useGame.setState({ paywallOpen: true });
     await useGame.getState().buy();
     expect(useGame.getState().unlocked).toBe(true);
+    expect(useGame.getState().deviceUnlocked).toBe(true);
     expect(useGame.getState().paywallOpen).toBe(false);
   });
 
@@ -320,6 +325,36 @@ describe('paywall timing', () => {
     });
     useGame.setState({ ...initial, board: null, status: 'idle', hydrated: false });
     await useGame.getState().hydrate();
+    expect(useGame.getState().unlocked).toBe(true);
+  });
+
+  it('removes an account-only unlock when that account signs out', async () => {
+    await useGame.getState().hydrate();
+    useGame.setState({
+      accountStatus: 'signed_in',
+      accountId: 'account-a',
+      deviceUnlocked: false,
+      unlocked: true,
+    });
+
+    await useGame.getState().signOut();
+
+    expect(useGame.getState().accountId).toBeNull();
+    expect(useGame.getState().unlocked).toBe(false);
+  });
+
+  it('keeps a device StoreKit unlock when an account signs out', async () => {
+    await useGame.getState().hydrate();
+    useGame.setState({
+      accountStatus: 'signed_in',
+      accountId: 'account-a',
+      deviceUnlocked: true,
+      unlocked: true,
+    });
+
+    await useGame.getState().signOut();
+
+    expect(useGame.getState().accountId).toBeNull();
     expect(useGame.getState().unlocked).toBe(true);
   });
 });
