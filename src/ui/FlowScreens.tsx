@@ -41,14 +41,14 @@ function ScreenFrame({ children, className = '' }: { children: ReactNode; classN
 type LegalDocument = 'terms' | 'privacy';
 
 function LegalDocumentDialog({ document, onClose }: { document: LegalDocument; onClose: () => void }) {
-  const closeRef = useRef<HTMLButtonElement>(null);
-  useEffect(() => closeRef.current?.focus(), []);
+  const titleRef = useRef<HTMLHeadingElement>(null);
+  useEffect(() => titleRef.current?.focus(), []);
 
   const isPrivacy = document === 'privacy';
   return (
     <div className="overlay" role="dialog" aria-modal="true" aria-labelledby="legal-title">
       <article className="card legal-card">
-        <h2 id="legal-title">{isPrivacy ? 'Privacy Policy' : 'Terms of Service'}</h2>
+        <h2 ref={titleRef} id="legal-title" tabIndex={-1}>{isPrivacy ? 'Privacy Policy' : 'Terms of Service'}</h2>
         {isPrivacy ? (
           <>
             <p>Mahjong Brain is designed to work without advertising profiles. We do not store your email address.</p>
@@ -70,7 +70,7 @@ function LegalDocumentDialog({ document, onClose }: { document: LegalDocument; o
             <p>Do not attempt to interfere with the service, impersonate another player, or bypass purchase verification.</p>
           </>
         )}
-        <button ref={closeRef} type="button" className="button" onClick={onClose}>Done</button>
+        <button type="button" className="button" onClick={onClose}>Done</button>
       </article>
     </div>
   );
