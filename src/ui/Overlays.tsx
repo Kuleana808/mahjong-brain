@@ -56,6 +56,7 @@ export function Paywall() {
   const buy = useGame((s) => s.buy);
   const restore = useGame((s) => s.restore);
   const close = useGame((s) => s.closePaywall);
+  const pending = useGame((s) => s.purchasePending);
 
   return (
     <Overlay label="Unlock Mahjong Brain">
@@ -72,13 +73,13 @@ export function Paywall() {
         <li>No timers, no streaks, no daily check-ins</li>
       </ul>
 
-      <button type="button" className="button" onClick={() => void buy()}>
-        Unlock for {PRICE_DISPLAY}
+      <button type="button" className="button" disabled={pending !== null} onClick={() => void buy()}>
+        {pending === 'buying' ? 'Contacting Apple…' : `Unlock for ${PRICE_DISPLAY}`}
       </button>
-      <button type="button" className="button button--quiet" onClick={() => void restore()}>
-        Restore purchase
+      <button type="button" className="button button--quiet" disabled={pending !== null} onClick={() => void restore()}>
+        {pending === 'restoring' ? 'Checking with Apple…' : 'Restore purchase'}
       </button>
-      <button type="button" className="button button--quiet" onClick={close}>
+      <button type="button" className="button button--quiet" disabled={pending !== null} onClick={close}>
         Not now
       </button>
     </Overlay>
@@ -133,6 +134,7 @@ export function SettingsSheet() {
   const start = useGame((s) => s.start);
   const unlocked = useGame((s) => s.unlocked);
   const restore = useGame((s) => s.restore);
+  const purchasePending = useGame((s) => s.purchasePending);
   const accountStatus = useGame((s) => s.accountStatus);
   const accountError = useGame((s) => s.accountError);
   const signIn = useGame((s) => s.signIn);
@@ -245,8 +247,8 @@ export function SettingsSheet() {
         New board
       </button>
       {!unlocked && purchasesConfigured() ? (
-        <button type="button" className="button button--quiet" onClick={() => void restore()}>
-          Restore purchase
+        <button type="button" className="button button--quiet" disabled={purchasePending !== null} onClick={() => void restore()}>
+          {purchasePending === 'restoring' ? 'Checking with Apple…' : 'Restore purchase'}
         </button>
       ) : null}
     </Overlay>

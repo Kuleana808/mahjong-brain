@@ -39,14 +39,13 @@ This written contract is the durable QA baseline. Competitor screenshots may exp
 | `S00-boot` | Native launch/boot | Emerald from first frame, centered brand mark, no white flash. |
 | `S01-terms-rest` | Terms | Brand tile, welcome title, legal copy, one Accept CTA, working policy links. |
 | `S01-terms-focus` | Terms focused | Visible ivory focus ring and unchanged layout. |
-| `S02-age-rest` | Age gate | Three ivory range choices, close behavior only if contract permits, no preselection. |
-| `S02-age-blocked` | Failed age gate | Calm blocked explanation, no dishonest retry loop, safe exit. |
+| `S02-age-rest` | Age range | Three ivory range choices, no preselection, and no choice blocks play. |
 | `S03-loading` | First-run loading | Brand tile, quote, truthful progress treatment, no fake percentage. |
 | `S03-loading-offline` | Loading without API | Local play remains available; sync limitation stated only if relevant. |
 | `S04-tutorial-match` | Match tutorial | Real holder and matching tiles; Continue and quiet Skip. |
 | `S05-tutorial-edge` | Edge tutorial | Free and blocked tiles visually and verbally distinct. |
 | `S06-tutorial-holder` | Holder tutorial | Four slots, three-slot warning, consequence explained without alarmism. |
-| `S07-home-new` | New home | Brand hierarchy, Level 1 primary CTA, Settings medallion only; unavailable P1/P2 actions stay hidden. |
+| `S07-home-new` | New home | Brand hierarchy, Level 1 primary CTA, then Account, Appearance, and Settings medallions at the approved anchors. Unconfigured native services stay truthful inside their surfaces. |
 | `S07-home-progress` | Returning home | Accurate level progress and reward availability, no extra primary action. |
 | `S07-home-offline` | Returning offline | Play remains primary; sync state is secondary and truthful. |
 | `S08-game-empty` | Gameplay, empty holder | Board dominant, four empty slots, Hint/Undo/Settings; Undo disabled. |

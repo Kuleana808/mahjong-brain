@@ -44,8 +44,8 @@ appear on the *second* launch. All are tested.
 | Guarantee | Why it matters |
 |---|---|
 | Gameplay is unreachable until terms are accepted | Legal, and it is the one gate that cannot be skipped |
-| A returning player never sees the age gate again | Re-asking reads as not trusting the answer |
-| **A failed age gate stays failed across relaunches** | A retry loop teaches people to lie. `ageBlocked` is sticky |
+| A returning player never sees the age-range question again | Re-asking reads as not trusting the answer |
+| Every displayed age range advances | The question is demographic context, not an eligibility gate |
 | The tutorial resumes at the step you left | Restarting after a phone call is how people quit |
 | A skipped tutorial is never re-offered | |
 | Revive returns to `gameplay`, not `home` | It is the entire reason the ad is worth watching |
@@ -58,7 +58,7 @@ appear on the *second* launch. All are tested.
 ```ts
 {
   tosAcceptedAt: string | null,
-  agePassed: boolean | null,          // null = unanswered, false = blocked
+  agePassed: boolean | null,          // legacy field name; the shipped UI records true for every range
   tutorialCompleted: 'tutorial_a' | 'tutorial_b' | 'tutorial_c' | null,
   tutorialSkipped: boolean,
   boardsCompleted: number,

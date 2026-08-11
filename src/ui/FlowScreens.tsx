@@ -252,8 +252,18 @@ export function HomeScreen() {
   const dispatch = useGame((s) => s.dispatchFlow);
   const boardsCompleted = useGame((s) => s.boardsCompleted);
   const openSettings = useGame((s) => s.openSettings);
+  const settings = useGame((s) => s.settings);
+  const updateSettings = useGame((s) => s.updateSettings);
   const level = Math.floor(boardsCompleted / 3) + 1;
   const progress = (boardsCompleted % 3) / 3;
+  const cycleAppearance = () => {
+    const next = settings.theme === 'calm'
+      ? 'calm-dark'
+      : settings.theme === 'calm-dark'
+        ? 'high-contrast'
+        : 'calm';
+    updateSettings({ theme: next });
+  };
   return (
     <ScreenFrame className="flow-screen--home">
       <BrandHeader />
@@ -265,6 +275,8 @@ export function HomeScreen() {
         Level {level}
       </button>
       <div className="home-actions">
+        <button type="button" className="medallion" aria-label="Account" onClick={() => openSettings(true)}><Icon name="profile" /></button>
+        <button type="button" className="medallion" aria-label="Change appearance" onClick={cycleAppearance}><Icon name="daily" /></button>
         <button type="button" className="medallion" aria-label="Settings" onClick={() => openSettings(true)}><Icon name="settings" /></button>
       </div>
     </ScreenFrame>

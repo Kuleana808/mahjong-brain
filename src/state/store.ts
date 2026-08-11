@@ -114,6 +114,7 @@ interface GameStore {
   /** StoreKit entitlement owned by the Apple ID on this device. */
   deviceUnlocked: boolean;
   unlocked: boolean;
+  purchasePending: 'buying' | 'restoring' | null;
   paywallOpen: boolean;
   settingsOpen: boolean;
   freeReviveAvailable: boolean;
@@ -275,6 +276,7 @@ export const useGame = create<GameStore>((set, get) => {
     boardsCompleted: 0,
     deviceUnlocked: false,
     unlocked: false,
+    purchasePending: null,
     paywallOpen: false,
     settingsOpen: false,
     freeReviveAvailable: true,
@@ -709,22 +711,34 @@ export const useGame = create<GameStore>((set, get) => {
     },
 
     async buy() {
-      const result = await purchases().purchase();
-      if (result.status === 'purchased' || result.status === 'restored') {
-        set({ deviceUnlocked: true, unlocked: true, paywallOpen: false, announcement: 'Unlocked. Thank you.' });
-        persist();
-      } else if (result.status !== 'cancelled') {
-        set({ announcement: result.message ?? 'Purchase could not be completed.' });
+      if (get().purchasePending) return;
+      set({ purchasePending: 'buying', announcement: 'Contacting Apple…' });
+      try {
+        const result = await purchases().purchase();
+        if (result.status === 'purchased' || result.status === 'restored') {
+          set({ deviceUnlocked: true, unlocked: true, paywallOpen: false, announcement: 'Unlocked. Thank you.' });
+          persist();
+        } else if (result.status !== 'cancelled') {
+          set({ announcement: result.message ?? 'Purchase could not be completed.' });
+        }
+      } finally {
+        set({ purchasePending: null });
       }
     },
 
     async restore() {
-      const result = await purchases().restore();
-      if (result.status === 'restored' || result.status === 'purchased') {
-        set({ deviceUnlocked: true, unlocked: true, paywallOpen: false, announcement: 'Purchase restored.' });
-        persist();
-      } else {
-        set({ announcement: result.message ?? 'No purchase to restore.' });
+      if (get().purchasePending) return;
+      set({ purchasePending: 'restoring', announcement: 'Checking with Apple…' });
+      try {
+        const result = await purchases().restore();
+        if (result.status === 'restored' || result.status === 'purchased') {
+          set({ deviceUnlocked: true, unlocked: true, paywallOpen: false, announcement: 'Purchase restored.' });
+          persist();
+        } else {
+          set({ announcement: result.message ?? 'No purchase to restore.' });
+        }
+      } finally {
+        set({ purchasePending: null });
       }
     },
 

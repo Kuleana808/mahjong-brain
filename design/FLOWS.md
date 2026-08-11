@@ -16,9 +16,8 @@ P1 and P2 are mapped now so P0 does not paint us into a corner. They do not bloc
 flowchart TD
   A["F00 Native launch"] --> B{"Returning player?"}
   B -->|No| C["F01 Terms and privacy"]
-  C --> D["F02 Age gate"]
-  D -->|Pass| E["F03 First-run setup"]
-  D -->|Blocked| DB["F02B Age-blocked exit"]
+  C --> D["F02 Age range"]
+  D --> E["F03 First-run setup"]
   E --> F["F04 Tutorial: match"]
   F --> G["F05 Tutorial: free edges"]
   G --> H["F06 Tutorial: four-slot holder"]
@@ -44,8 +43,8 @@ flowchart TD
 |---|---|---|---|---|---|
 | `F00` | Native launch | App process starts | splash, web boot, hydrated | First usable screen appears without white flash or endless spinner | Corrupt local state falls back to legal gate or fresh home safely |
 | `F01` | Terms and privacy | First launch | rest, links-open, focused | Acceptance timestamp persists; policy links resolve | Link failure does not falsely record acceptance |
-| `F02` | Age gate | Terms accepted | unanswered, focused, blocked | Passed choice persists and advances once | Failed gate has truthful blocked state and safe exit, no retry coaching |
-| `F03` | First-run setup | Age passed | loading, offline/local fallback | Local game assets and first seed are ready | Network absence cannot block local play |
+| `F02` | Optional age range | Terms accepted | unanswered, focused, selected | Any range advances once and the prompt is not shown again | No range excludes a player or blocks local play |
+| `F03` | First-run setup | Age range answered | loading, offline/local fallback | Local game assets and first seed are ready | Network absence cannot block local play |
 | `F04` | Tutorial match | Setup done | rest, tile-picked, pair-clearing | Player sees two identical tiles clear from real holder | Skip routes to home and persists |
 | `F05` | Tutorial free edges | Match lesson done | free, blocked, attempted-blocked | Player understands only open-edge tiles move | Blocked attempt gives visible/spoken explanation |
 | `F06` | Tutorial holder | Edge lesson done | empty, three-warning, full-demo | Four-slot risk and auto-match are understood | Skip routes to home and persists |

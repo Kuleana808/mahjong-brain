@@ -316,6 +316,33 @@ describe('paywall timing', () => {
     expect(useGame.getState().announcement).toMatch(/no previous purchase|no purchase/i);
   });
 
+  it('prevents duplicate StoreKit requests while a purchase is pending', async () => {
+    let finishPurchase!: () => void;
+    const waiting = new Promise<void>((resolve) => {
+      finishPurchase = resolve;
+    });
+    const purchase = vi.fn(async () => {
+      await waiting;
+      return { status: 'purchased' as const };
+    });
+    setPurchases({
+      isUnlocked: async () => false,
+      purchase,
+      restore: async () => ({ status: 'unavailable' as const }),
+    });
+    await useGame.getState().hydrate();
+
+    const first = useGame.getState().buy();
+    const duplicate = useGame.getState().buy();
+    expect(useGame.getState().purchasePending).toBe('buying');
+    expect(purchase).toHaveBeenCalledTimes(1);
+
+    finishPurchase();
+    await Promise.all([first, duplicate]);
+    expect(useGame.getState().purchasePending).toBeNull();
+    expect(useGame.getState().unlocked).toBe(true);
+  });
+
   it('does not let a cached unlock survive when StoreKit reports no entitlement', async () => {
     const bought = new MockPurchases();
     setPurchases(bought);
