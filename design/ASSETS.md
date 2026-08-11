@@ -15,6 +15,7 @@ Every asset must be original, generated from the locked design language, and tra
 | `tile-back` | Brain-and-leaf engraving | standard, compact | Canvas/SVG code | approved code | Warm bone relief; same mark as app icon. Source: `src/ui/FlowScreens.tsx`. |
 | `holder-frame` | Four-slot tray | empty, warning, full | CSS/code | approved code | Exactly four equal slots; occupancy remains visible at 200% text. Source: `src/ui/Holder.tsx`. |
 | `icon-profile` | Profile medallion | normal, focused, disabled | original inline vector | approved code | 24 px glyph in 48 px target; bronze ring. Source: `src/ui/Icon.tsx`. |
+| `icon-appearance` | Appearance medallion | normal, focused, selected | original inline vector | approved code | Sun cue cycles the three approved palettes and retains the bronze ring. Source: `src/ui/Icon.tsx`. |
 | `icon-daily` | Daily reward medallion | available, claimed, focused | original inline vector | draft | Sun cue, not casino currency. |
 | `icon-settings` | Settings medallion | normal, focused | original inline vector | approved code | Matches profile/reward stroke and optical size. Source: `src/ui/Icon.tsx`. |
 | `icon-hint` | Hint | available, used, unavailable | original inline vector | approved code | Lightbulb, never glowing neon. Source: `src/ui/Icon.tsx`. |

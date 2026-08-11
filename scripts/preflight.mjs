@@ -29,6 +29,36 @@ const PLACEHOLDER_BUNDLE_ID = 'com.mahjongbrain.game';
 const blockers = [];
 const warnings = [];
 
+const requiredAssetIds = [
+  'brand-mark',
+  'wordmark',
+  'app-icon',
+  'splash',
+  'felt-background',
+  'panel-ornament',
+  'botanical-sprig',
+  'tile-faces',
+  'tile-back',
+  'holder-frame',
+  'icon-profile',
+  'icon-appearance',
+  'icon-settings',
+  'icon-hint',
+  'icon-undo',
+  'icon-shuffle',
+  'game-sounds',
+  'tutorial-match',
+  'tutorial-edge',
+  'tutorial-holder',
+];
+const assetInventory = read('design/ASSETS.md');
+for (const id of requiredAssetIds) {
+  const row = assetInventory.split('\n').find((line) => line.startsWith(`| \`${id}\``));
+  if (!row || !/\| approved(?: code)? \|/.test(row)) {
+    blockers.push(`Required release asset is not approved in design/ASSETS.md: ${id}.`);
+  }
+}
+
 const metadataFiles = [
   'fastlane/metadata/en-US/name.txt',
   'fastlane/metadata/en-US/subtitle.txt',
@@ -94,6 +124,16 @@ if (configuredProductId && capacitorBundleId && !configuredProductId.startsWith(
 const infoPlist = read('ios/App/App/Info.plist');
 if (infoPlist.includes('Nihi Mahjong')) {
   blockers.push('ios/App/App/Info.plist still says "Nihi Mahjong" (Codex owns iOS — D-001).');
+}
+
+const purchaseClient = read('src/iap/index.ts');
+const purchaseUi = read('src/ui/Overlays.tsx');
+const storeKitBridge = read('ios/App/App/StoreKitPlugin.swift');
+if (/PRICE_DISPLAY|\$4\.99/.test(purchaseUi)) {
+  blockers.push('The purchase UI contains a hard-coded price instead of StoreKit displayPrice.');
+}
+if (!purchaseClient.includes('displayPrice') || !storeKitBridge.includes('product.displayPrice')) {
+  blockers.push('The purchase UI is not wired to StoreKit localized product pricing.');
 }
 
 // --- things that make a submission fail review or launch broken -------------
