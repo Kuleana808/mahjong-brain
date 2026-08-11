@@ -131,6 +131,28 @@ describe('session flow', () => {
     expect(availableMoves(board!).length).toBeGreaterThan(0);
   });
 
+  it('reveals the local game before entitlement verification finishes', async () => {
+    let finishEntitlementCheck!: (value: boolean | null) => void;
+    const entitlementCheck = new Promise<boolean | null>((resolve) => {
+      finishEntitlementCheck = resolve;
+    });
+    setPurchases({
+      isUnlocked: () => entitlementCheck,
+      purchase: async () => ({ status: 'unavailable' as const }),
+      restore: async () => ({ status: 'unavailable' as const }),
+    });
+
+    const hydration = useGame.getState().hydrate();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(useGame.getState().hydrated).toBe(true);
+    expect(useGame.getState().board).not.toBeNull();
+
+    finishEntitlementCheck(false);
+    await hydration;
+  });
+
   it('opens the first board on the gentlest layout', async () => {
     await useGame.getState().hydrate();
     expect(useGame.getState().board!.layoutId).toBe('pyramid');

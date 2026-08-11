@@ -325,22 +325,11 @@ export const useGame = create<GameStore>((set, get) => {
         unlocked?: boolean;
       };
 
-      const currentDeviceEntitlement = await purchases().isUnlocked();
-      // Once StoreKit is configured it is authoritative for this device. A
-      // cached true must not survive a refund merely because it was persisted
-      // during an earlier launch. In builds without StoreKit, preserve the
-      // cache so development/offline hydration never invents a revocation.
       // Older snapshots did not distinguish an account unlock from a StoreKit
       // unlock. In a configured release, never promote that ambiguous legacy
       // bit to a device entitlement while verification is unavailable.
       const cachedDeviceEntitlement =
         progress.deviceUnlocked ?? (!purchasesConfigured() && progress.unlocked === true);
-      const deviceUnlocked = purchasesConfigured()
-        ? currentDeviceEntitlement ?? cachedDeviceEntitlement
-        : cachedDeviceEntitlement;
-      const account = await restoreAccount();
-      const remoteSettings = account?.settings?.settings;
-
       const storedBoardsCompleted = progress.boardsCompleted ?? progress.flow?.boardsCompleted ?? 0;
       const reconciledFlow = progress.flow
         ? { ...progress.flow, boardsCompleted: storedBoardsCompleted }
@@ -348,14 +337,13 @@ export const useGame = create<GameStore>((set, get) => {
 
       set({
         flow: initialFlowState(reconciledFlow),
-        settings: remoteSettings ? { ...settings, ...remoteSettings, theme: remoteSettings.theme === 'system' ? 'calm' : remoteSettings.theme } : settings,
+        settings,
         profile: progress.profile ?? INITIAL_PROFILE,
         boardsCompleted: storedBoardsCompleted,
-        deviceUnlocked,
-        unlocked: deviceUnlocked || account?.unlock?.unlocked === true,
-        accountStatus: account ? 'signed_in' : appleSignInAvailable() ? 'signed_out' : 'unavailable',
-        accountId: account?.session.accountId ?? null,
-        hydrated: true,
+        deviceUnlocked: cachedDeviceEntitlement,
+        unlocked: cachedDeviceEntitlement,
+        accountStatus: appleSignInAvailable() ? 'signed_out' : 'unavailable',
+        accountId: null,
       });
 
       // Restore a board if one exists. Otherwise pre-deal the first board so
@@ -464,6 +452,36 @@ export const useGame = create<GameStore>((set, get) => {
       } else {
         get().start();
       }
+
+      // Local play is now fully restored. Reveal it before any network-backed
+      // entitlement or account request, so an offline launch never becomes an
+      // eight-second blank screen.
+      set({ hydrated: true });
+
+      const [currentDeviceEntitlement, account] = await Promise.all([
+        purchases().isUnlocked(),
+        restoreAccount(),
+      ]);
+      // StoreKit is authoritative when it returns a result. A verifier outage
+      // returns null and preserves the last verified device entitlement.
+      const deviceUnlocked = purchasesConfigured()
+        ? currentDeviceEntitlement ?? get().deviceUnlocked
+        : get().deviceUnlocked;
+      const remoteSettings = account?.settings?.settings;
+      set((s) => ({
+        settings: remoteSettings
+          ? {
+              ...s.settings,
+              ...remoteSettings,
+              theme: remoteSettings.theme === 'system' ? 'calm' : remoteSettings.theme,
+            }
+          : s.settings,
+        deviceUnlocked,
+        unlocked: deviceUnlocked || account?.unlock?.unlocked === true,
+        accountStatus: account ? 'signed_in' : appleSignInAvailable() ? 'signed_out' : 'unavailable',
+        accountId: account?.session.accountId ?? null,
+      }));
+      persist();
     },
 
     start(layoutId) {
