@@ -136,6 +136,7 @@ export function TutorialMatchScreen() {
   const [picked, setPicked] = useState<number[]>([]);
   const [matched, setMatched] = useState(false);
   const [removed, setRemoved] = useState(false);
+  const heldTiles = removed ? [] : picked;
 
   const pick = (id: number) => {
     if (picked.includes(id) || matched || removed) return;
@@ -149,9 +150,9 @@ export function TutorialMatchScreen() {
 
   return (
     <TutorialFrame step="tutorial_a" title="Match identical tiles to clear them from the board." continueDisabled={!removed}>
-      <div className={`holder-demo ${matched ? 'holder-demo--matching' : ''}`} aria-label={`${picked.length} of 4 holder slots filled`}>
-        {picked.map((id) => <span key={id}>中</span>)}
-        {Array.from({ length: 4 - picked.length }, (_, index) => <i key={`empty-${index}`} />)}
+      <div className={`holder-demo ${matched && !removed ? 'holder-demo--matching' : ''}`} aria-label={`${heldTiles.length} of 4 holder slots filled`}>
+        {heldTiles.map((id) => <span key={id}>中</span>)}
+        {Array.from({ length: 4 - heldTiles.length }, (_, index) => <i key={`empty-${index}`} />)}
       </div>
       <div className={`tutorial-pair ${matched ? 'is-matching' : ''} ${removed ? 'is-removed' : ''}`}>
         {[1, 2].map((id) => (
