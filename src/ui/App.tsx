@@ -6,9 +6,13 @@
  * on a tile.
  */
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 import { PALETTES } from '../render/palette';
+import {
+  startNativeAccessibilityPreferences,
+  type NativeAccessibilityPreferences,
+} from '../accessibility/native';
 import { configureNativePurchases } from '../iap';
 import { useGame } from '../state/store';
 import { startTelemetryLifecycle } from '../telemetry/client';
@@ -21,6 +25,11 @@ import { Holder } from './Holder';
 import { TopBar } from './TopBar';
 
 export function App() {
+  const [nativeAccessibility, setNativeAccessibility] = useState<NativeAccessibilityPreferences>({
+    textScale: 1,
+    reduceMotion: false,
+    increaseContrast: false,
+  });
   const hydrate = useGame((s) => s.hydrate);
   const hydrated = useGame((s) => s.hydrated);
   const settings = useGame((s) => s.settings);
@@ -35,6 +44,10 @@ export function App() {
   }, [hydrate]);
 
   useEffect(() => startTelemetryLifecycle(), []);
+  useEffect(
+    () => startNativeAccessibilityPreferences(setNativeAccessibility),
+    [],
+  );
 
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
@@ -52,9 +65,9 @@ export function App() {
     root.style.setProperty('--edge', palette.tileEdge);
     root.style.setProperty('--accent', palette.selected);
     root.style.setProperty('--hint', palette.hinted);
-    root.style.setProperty('--font-scale', String(settings.fontScale));
+    root.style.setProperty('--font-scale', String(settings.fontScale * nativeAccessibility.textScale));
     root.style.colorScheme = settings.theme === 'calm-dark' ? 'dark' : 'light';
-  }, [settings.theme, settings.fontScale]);
+  }, [settings.theme, settings.fontScale, nativeAccessibility.textScale]);
 
   if (!hydrated) {
     return <div className="app app--boot" aria-label="Opening Mahjong Brain" />;
@@ -63,7 +76,11 @@ export function App() {
   const isGameplay = screen === 'gameplay';
 
   return (
-    <div className={`app ${isGameplay ? 'app--gameplay' : 'app--flow'}`} data-reduce-motion={settings.reduceMotion}>
+    <div
+      className={`app ${isGameplay ? 'app--gameplay' : 'app--flow'}`}
+      data-reduce-motion={settings.reduceMotion || nativeAccessibility.reduceMotion}
+      data-increase-contrast={nativeAccessibility.increaseContrast}
+    >
       {isGameplay ? (
         <>
           <TopBar />
