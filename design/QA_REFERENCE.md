@@ -30,6 +30,7 @@ This written contract is the durable QA baseline. Competitor screenshots may exp
 - Phone gameplay tiles measure at least 66 points wide; iPad tiles at least 80 points where layout permits. A visible botanical-green rim separates overlapping ivory faces. Faces use a restrained top-left ceramic sheen; they must read as fired bone, never glossy plastic. Blocked tiles remain readable at 72% opacity.
 - The starter board uses the original Garden Steps silhouette: tapered outer rows and three visible elevations. It must not read as a uniform rectangular grid, and controls never move to make room for it.
 - Gameplay chrome uses the same spatial anchors on phone and iPad: Back top-left, remaining count top-center, Settings top-right, four-slot holder centered below, and Shuffle/Hint/Undo centered at the bottom. Tablet size may scale spacing and tiles but must never create a right-hand control rail.
+- The launch build is portrait-only on iPhone and iPad; rotation must not expose an unapproved landscape layout or move the gameplay controls.
 
 ## Canonical screen states
 
