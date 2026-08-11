@@ -19,8 +19,8 @@ export const TILE_ASPECT = 1.32;
  * has to be unmistakable at a glance and on a small screen. Anything under
  * about 0.15 reads as a flat grid with some tiles oddly faded.
  */
-const LAYER_SHIFT_X = 0.17;
-const LAYER_SHIFT_Y = 0.17;
+const LAYER_SHIFT_X = 0.16;
+const LAYER_SHIFT_Y = 0.16;
 
 /**
  * Visual spacing between tiles on the same layer.
@@ -31,8 +31,8 @@ const LAYER_SHIFT_Y = 0.17;
  * than the game coordinates) preserves every blocking rule while giving each
  * face a comfortably larger drawing and hit target.
  */
-export const CELL_STEP_X = 0.47;
-export const CELL_STEP_Y = 0.62;
+export const CELL_STEP_X = 0.44;
+export const CELL_STEP_Y = 0.56;
 
 /** Extruded side thickness, as a fraction of tile width. */
 export const SIDE_DEPTH = 0.11;

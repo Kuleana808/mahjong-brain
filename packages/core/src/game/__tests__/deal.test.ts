@@ -17,7 +17,7 @@ describe('layouts', () => {
     expect(seen.size).toBe(LAYOUTS[id].cells.length);
   });
 
-  it('builds the classic 144-tile turtle', () => {
+  it('builds the original 144-tile Lotus Terrace stack', () => {
     expect(LAYOUTS.turtle.cells.length).toBe(144);
     expect(LAYOUTS.turtle.maxZ).toBe(4);
   });

@@ -10,6 +10,12 @@ describe('phone board presentation', () => {
     expect(view.tileH).toBeGreaterThan(view.tileW);
   });
 
+  it('keeps every production layout at the phone readability floor', () => {
+    for (const layout of ['pyramid', 'turtle', 'dragon'] as const) {
+      expect(computeView(layout, 390, 520).tileW, layout).toBeGreaterThanOrEqual(66);
+    }
+  });
+
   it('keeps the starter silhouette tapered instead of a uniform rectangle', async () => {
     const { LAYOUTS } = await import('../../../packages/core/src/game/layouts');
     const ground = LAYOUTS.pyramid.cells.filter((cell) => cell.z === 0);
