@@ -121,7 +121,7 @@ export async function handle(request: ApiRequest, ports: Ports): Promise<ApiResp
 
     // 8
     if (method === 'POST' && path === '/api/receipts/validate') {
-      return validateReceipt(unvalidated(body), ports);
+      return validateReceipt(unvalidated(body), bearer, ports);
     }
 
     // 9

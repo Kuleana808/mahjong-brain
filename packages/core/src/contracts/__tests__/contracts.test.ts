@@ -283,7 +283,7 @@ describe('unconfigured endpoints fail honestly', () => {
 
 describe('purchases fail closed', () => {
   it('an unconfigured verifier never grants an unlock', async () => {
-    const envelope = await validateReceipt({ signedTransaction: 'a.b.c' }, fixed);
+    const envelope = await validateReceipt({ signedTransaction: 'a.b.c' }, null, fixed);
     expect(envelope.data).toBeNull();
     expect(envelope.error?.code).toBe('not_configured');
     // The important assertion: nothing anywhere in this response says unlocked.
@@ -294,11 +294,11 @@ describe('purchases fail closed', () => {
     // Codex reads `state` to know whether an endpoint is worth calling. A
     // working verifier rejecting a bad token must not look like an unbuilt
     // endpoint, and an unbuilt endpoint must not look like a working one.
-    const unconfigured = await validateReceipt({ signedTransaction: 'a.b.c' }, fixed);
+    const unconfigured = await validateReceipt({ signedTransaction: 'a.b.c' }, null, fixed);
     expect(unconfigured.state).toBe('source_available');
     expect(unconfigured.error?.code).toBe('not_configured');
 
-    const configured = await validateReceipt({ signedTransaction: 'a.b.c' }, {
+    const configured = await validateReceipt({ signedTransaction: 'a.b.c' }, null, {
       ...fixed,
       store: stubStore(),
       storekit: {
@@ -321,7 +321,7 @@ describe('purchases fail closed', () => {
       },
       store: stubStore(),
     };
-    const envelope = await validateReceipt({ signedTransaction: 'a.b.c' }, ports);
+    const envelope = await validateReceipt({ signedTransaction: 'a.b.c' }, null, ports);
     expect(envelope.data).toBeNull();
     expect(envelope.error?.code).toBe('unverified_transaction');
     expect(envelope.fallback_reason).toMatch(/signature/);
@@ -341,7 +341,7 @@ describe('purchases fail closed', () => {
       },
       store: stubStore(),
     };
-    const envelope = await validateReceipt({ signedTransaction: 'a.b.c' }, ports);
+    const envelope = await validateReceipt({ signedTransaction: 'a.b.c' }, null, ports);
     expect(envelope.data!.unlocked).toBe(true);
     expect(envelope.state).toBe('configured');
   });
@@ -360,7 +360,7 @@ describe('purchases fail closed', () => {
       },
       store: stubStore(),
     };
-    const envelope = await validateReceipt({ signedTransaction: 'a.b.c' }, ports);
+    const envelope = await validateReceipt({ signedTransaction: 'a.b.c' }, null, ports);
     expect(envelope.data!.unlocked).toBe(false);
     expect(envelope.fallback_reason).toMatch(/revoked/i);
   });

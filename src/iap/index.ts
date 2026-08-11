@@ -145,10 +145,8 @@ class VerifiedStoreKitPurchases implements Purchases {
     const session = await loadAccountSession();
     const envelope = await apiRequest<ReceiptValidateResponse>('/api/receipts/validate', {
       method: 'POST',
-      body: {
-        signedTransaction: result.signedTransaction,
-        ...(session ? { accountId: session.accountId } : {}),
-      },
+      bearer: session?.token,
+      body: { signedTransaction: result.signedTransaction },
     });
     if (!envelope.data?.unlocked || envelope.data.productId !== this.productId) return false;
     await NativeStoreKit.finish({ transactionId: result.transactionId });

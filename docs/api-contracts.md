@@ -441,7 +441,13 @@ Pyramid to Dragon, and a player hovering near a boundary keeps the same shape.
 
 ## 8. `POST /api/receipts/validate`
 
-**Request** `{ "signedTransaction": "<StoreKit 2 JWS>", "accountId": "<optional>" }`
+**Request** `{ "signedTransaction": "<StoreKit 2 JWS>" }`
+
+An optional bearer session associates the verified transaction with the signed-in
+account for cross-device restore. The server derives the account from that signed
+session; a client-supplied account identifier is ignored and never establishes
+ownership. Without a bearer, the transaction can still verify the local device
+entitlement but is not written to an account.
 
 **Response**
 

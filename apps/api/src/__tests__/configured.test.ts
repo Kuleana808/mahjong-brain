@@ -213,14 +213,15 @@ describe('contracts 8 and 9 — purchase and unlock status', () => {
   });
 
   it('unlocks on a verified transaction and reports it back on unlock-status', async () => {
-    const { token, accountId } = await signIn('sub-buyer');
+    const { token } = await signIn('sub-buyer');
 
     const before = await call('GET', '/api/unlock-status', { bearer: token });
     expect((before.envelope.data as { unlocked: boolean }).unlocked).toBe(false);
 
     const jws = await signEs256(transaction(), leafKeys, chain);
     const validated = await call('POST', '/api/receipts/validate', {
-      body: { signedTransaction: jws, accountId },
+      bearer: token,
+      body: { signedTransaction: jws },
     });
     expect((validated.envelope.data as { unlocked: boolean }).unlocked).toBe(true);
 
@@ -231,11 +232,12 @@ describe('contracts 8 and 9 — purchase and unlock status', () => {
   });
 
   it('a refund takes the unlock away again', async () => {
-    const { token, accountId } = await signIn('sub-refunded');
+    const { token } = await signIn('sub-refunded');
 
     const original = transaction();
     await call('POST', '/api/receipts/validate', {
-      body: { signedTransaction: await signEs256(original, leafKeys, chain), accountId },
+      bearer: token,
+      body: { signedTransaction: await signEs256(original, leafKeys, chain) },
     });
     expect(
       ((await call('GET', '/api/unlock-status', { bearer: token })).envelope.data as {
@@ -249,7 +251,8 @@ describe('contracts 8 and 9 — purchase and unlock status', () => {
       chain,
     );
     const result = await call('POST', '/api/receipts/validate', {
-      body: { signedTransaction: revoked, accountId },
+      bearer: token,
+      body: { signedTransaction: revoked },
     });
     expect((result.envelope.data as { unlocked: boolean }).unlocked).toBe(false);
     expect(result.envelope.fallback_reason).toMatch(/revoked/i);
@@ -259,7 +262,7 @@ describe('contracts 8 and 9 — purchase and unlock status', () => {
   });
 
   it('an attacker-signed transaction never unlocks anything', async () => {
-    const { token, accountId } = await signIn('sub-attacker');
+    const { token } = await signIn('sub-attacker');
 
     const evilRootKeys = await generateEcKeyPair();
     const evilLeafKeys = await generateEcKeyPair();
@@ -268,7 +271,8 @@ describe('contracts 8 and 9 — purchase and unlock status', () => {
 
     const jws = await signEs256(transaction(), evilLeafKeys, [evilLeaf.base64, evilRoot.base64]);
     const result = await call('POST', '/api/receipts/validate', {
-      body: { signedTransaction: jws, accountId },
+      bearer: token,
+      body: { signedTransaction: jws },
     });
 
     expect(result.envelope.data).toBeNull();
@@ -279,15 +283,18 @@ describe('contracts 8 and 9 — purchase and unlock status', () => {
     expect((after.envelope.data as { unlocked: boolean }).unlocked).toBe(false);
   });
 
-  it('one purchase does not unlock a second account', async () => {
+  it('derives purchase ownership from the bearer and ignores a forged account id', async () => {
     const buyer = await signIn('sub-owner');
     const other = await signIn('sub-other');
 
     const jws = await signEs256(transaction(), leafKeys, chain);
     await call('POST', '/api/receipts/validate', {
-      body: { signedTransaction: jws, accountId: buyer.accountId },
+      bearer: buyer.token,
+      body: { signedTransaction: jws, accountId: other.accountId },
     });
 
+    const owners = await call('GET', '/api/unlock-status', { bearer: buyer.token });
+    expect((owners.envelope.data as { unlocked: boolean }).unlocked).toBe(true);
     const theirs = await call('GET', '/api/unlock-status', { bearer: other.token });
     expect((theirs.envelope.data as { unlocked: boolean }).unlocked).toBe(false);
   });

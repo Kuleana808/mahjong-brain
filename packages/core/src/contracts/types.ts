@@ -206,7 +206,6 @@ export interface ReceiptValidateRequest {
    * client boolean — the only thing that can establish a purchase.
    */
   readonly signedTransaction: string;
-  readonly accountId?: string;
 }
 
 export interface ReceiptValidateResponse {
