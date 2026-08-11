@@ -74,14 +74,17 @@ export function App() {
   }
 
   const isGameplay = screen === 'gameplay';
+  const isSettings = settingsOpen;
 
   return (
     <div
-      className={`app ${isGameplay ? 'app--gameplay' : 'app--flow'}`}
+      className={`app ${isSettings ? 'app--settings' : isGameplay ? 'app--gameplay' : 'app--flow'}`}
       data-reduce-motion={settings.reduceMotion || nativeAccessibility.reduceMotion}
       data-increase-contrast={nativeAccessibility.increaseContrast}
     >
-      {isGameplay ? (
+      {isSettings ? (
+        <SettingsSheet />
+      ) : isGameplay ? (
         <>
           <TopBar />
           <Holder />
@@ -99,7 +102,6 @@ export function App() {
       </p>
 
       {paywallOpen ? <Paywall /> : null}
-      {settingsOpen ? <SettingsSheet /> : null}
     </div>
   );
 }

@@ -11,6 +11,7 @@ import { useEffect, useRef, type ReactNode } from 'react';
 import { levelProgress, xpForLevel } from '../../packages/core/src/progression/progression';
 import { purchasesConfigured } from '../iap';
 import { useGame, type Settings } from '../state/store';
+import { Icon } from './Icon';
 
 function Overlay({ label, children }: { label: string; children: ReactNode }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -187,18 +188,21 @@ export function SettingsSheet() {
   const signOut = useGame((s) => s.signOut);
 
   return (
-    <Overlay label="Settings">
+    <main className="settings-screen" aria-labelledby="settings-title">
+      <section className="settings-screen__panel">
       <div className="settings-header">
-        <h2>Settings</h2>
         <button
           type="button"
-          className="settings-header__close"
-          aria-label="Close settings"
+          className="settings-header__back"
+          aria-label="Back"
           onClick={() => openSettings(false)}
         >
-          ×
+          <Icon name="back" size={26} />
         </button>
+        <h1 id="settings-title">Settings</h1>
       </div>
+
+      <div className="settings-screen__content">
 
       <div className="setting">
         <span className="setting__label">Appearance</span>
@@ -307,6 +311,8 @@ export function SettingsSheet() {
           {purchasePending === 'restoring' ? 'Checking with Apple…' : 'Restore purchase'}
         </button>
       ) : null}
-    </Overlay>
+      </div>
+      </section>
+    </main>
   );
 }
