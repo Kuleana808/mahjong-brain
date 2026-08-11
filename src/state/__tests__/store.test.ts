@@ -304,6 +304,24 @@ describe('paywall timing', () => {
     await useGame.getState().hydrate();
     expect(useGame.getState().unlocked).toBe(false);
   });
+
+  it('keeps a verified cached unlock when StoreKit verification is unavailable', async () => {
+    const bought = new MockPurchases();
+    setPurchases(bought);
+    await useGame.getState().hydrate();
+    await useGame.getState().buy();
+    expect(useGame.getState().unlocked).toBe(true);
+    await Promise.resolve();
+
+    setPurchases({
+      isUnlocked: async () => null,
+      purchase: async () => ({ status: 'unavailable' as const }),
+      restore: async () => ({ status: 'unavailable' as const }),
+    });
+    useGame.setState({ ...initial, board: null, status: 'idle', hydrated: false });
+    await useGame.getState().hydrate();
+    expect(useGame.getState().unlocked).toBe(true);
+  });
 });
 
 describe('difficulty adapts silently', () => {

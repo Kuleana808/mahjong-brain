@@ -30,8 +30,8 @@ export interface PurchaseResult {
 }
 
 export interface Purchases {
-  /** True when the unlock has already been bought on this Apple ID. */
-  isUnlocked(): Promise<boolean>;
+  /** True/false when StoreKit answered; null when entitlement cannot be checked. */
+  isUnlocked(): Promise<boolean | null>;
   purchase(): Promise<PurchaseResult>;
   /** Required by App Review, and by anyone who changes phone. */
   restore(): Promise<PurchaseResult>;
@@ -58,8 +58,8 @@ export class MockPurchases implements Purchases {
 }
 
 class UnavailablePurchases implements Purchases {
-  async isUnlocked(): Promise<boolean> {
-    return false;
+  async isUnlocked(): Promise<null> {
+    return null;
   }
 
   async purchase(): Promise<PurchaseResult> {
@@ -95,13 +95,14 @@ class VerifiedStoreKitPurchases implements Purchases {
     this.productId = productId;
   }
 
-  async isUnlocked(): Promise<boolean> {
+  async isUnlocked(): Promise<boolean | null> {
     try {
       const result = await NativeStoreKit.currentEntitlement({ productId: this.productId });
       if (result.status === 'not_found') return false;
       return await this.verifyAndFinish(result);
     } catch {
-      return false;
+      // Offline, timeout, or verifier outage is not evidence of revocation.
+      return null;
     }
   }
 

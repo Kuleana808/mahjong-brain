@@ -7,7 +7,7 @@ import type {
   SyncedSettings,
   UnlockStatusResponse,
 } from '../../packages/core/src/contracts/types';
-import { apiConfigured, apiRequest } from '../services/api';
+import { ApiContractError, apiConfigured, apiRequest } from '../services/api';
 
 const SESSION_KEY = 'mahjongbrain.account.session.v1';
 
@@ -61,13 +61,23 @@ async function saveSession(response: AppleAuthResponse): Promise<AccountSession>
 }
 
 async function snapshot(session: AccountSession, created = false): Promise<AccountSnapshot> {
+  const optionalRequest = async <T>(path: string): Promise<T | null> => {
+    try {
+      return (await apiRequest<T>(path, { bearer: session.token })).data;
+    } catch (cause) {
+      if (
+        cause instanceof ApiContractError &&
+        ['invalid_session', 'unauthenticated'].includes(cause.code)
+      ) {
+        throw cause;
+      }
+      // Offline settings/unlock sync must not block local play.
+      return null;
+    }
+  };
   const [settings, unlock] = await Promise.all([
-    apiRequest<SettingsResponse>('/api/settings', { bearer: session.token })
-      .then((result) => result.data)
-      .catch(() => null),
-    apiRequest<UnlockStatusResponse>('/api/unlock-status', { bearer: session.token })
-      .then((result) => result.data)
-      .catch(() => null),
+    optionalRequest<SettingsResponse>('/api/settings'),
+    optionalRequest<UnlockStatusResponse>('/api/unlock-status'),
   ]);
   return { session, created, settings, unlock };
 }
@@ -85,7 +95,19 @@ export async function signInWithApple(): Promise<AccountSnapshot> {
 
 export async function restoreAccount(): Promise<AccountSnapshot | null> {
   const session = await loadAccountSession();
-  return session && apiConfigured() ? snapshot(session) : null;
+  if (!session || !apiConfigured()) return null;
+  try {
+    return await snapshot(session);
+  } catch (cause) {
+    if (
+      cause instanceof ApiContractError &&
+      ['invalid_session', 'unauthenticated'].includes(cause.code)
+    ) {
+      await Preferences.remove({ key: SESSION_KEY });
+      return null;
+    }
+    throw cause;
+  }
 }
 
 export async function syncAccountSettings(settings: SyncedSettings): Promise<void> {

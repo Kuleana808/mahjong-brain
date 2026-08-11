@@ -326,7 +326,7 @@ export const useGame = create<GameStore>((set, get) => {
       // during an earlier launch. In builds without StoreKit, preserve the
       // cache so development/offline hydration never invents a revocation.
       const unlocked = purchasesConfigured()
-        ? currentDeviceEntitlement
+        ? currentDeviceEntitlement ?? progress.unlocked === true
         : progress.unlocked === true;
       const account = await restoreAccount();
       const remoteSettings = account?.settings?.settings;
@@ -727,7 +727,7 @@ export const useGame = create<GameStore>((set, get) => {
           accountStatus: 'signed_in',
           accountId: account.session.accountId,
           accountError: null,
-          unlocked: s.unlocked || currentDeviceEntitlement || account.unlock?.unlocked === true,
+          unlocked: s.unlocked || currentDeviceEntitlement === true || account.unlock?.unlocked === true,
           announcement: 'Signed in with Apple. Settings and unlock status are protected.',
         }));
         persist();
