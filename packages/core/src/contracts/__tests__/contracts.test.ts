@@ -449,6 +449,16 @@ describe('settings sync', () => {
     expect((await getSettings('token', ports)).data!.settings.fontScale).toBe(1.45);
   });
 
+  it('round-trips the sound preference and rejects non-boolean values', async () => {
+    const ports = withAccount();
+    const written = await patchSettings('token', { sounds: false }, ports);
+    expect(written.data!.settings.sounds).toBe(false);
+
+    const invalid = await patchSettings('token', { sounds: 'off' } as never, ports);
+    expect(invalid.error?.code).toBe('invalid_request');
+    expect(invalid.error?.field).toBe('sounds');
+  });
+
   it('reports configured, not source_available, for a signed-out caller', async () => {
     const ports = withAccount();
     const envelope = await getSettings(null, ports);

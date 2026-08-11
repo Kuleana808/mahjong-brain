@@ -168,10 +168,11 @@ describe('contract 4 — settings sync', () => {
 
     const written = await call('PATCH', '/api/settings', {
       bearer: token,
-      body: { fontScale: 1.45, theme: 'high-contrast' },
+      body: { fontScale: 1.45, theme: 'high-contrast', sounds: false },
     });
     const data = written.envelope.data as { settings: Record<string, unknown>; revision: number };
     expect(data.settings.fontScale).toBe(1.45);
+    expect(data.settings.sounds).toBe(false);
     expect(data.revision).toBe(1);
 
     const after = await call('GET', '/api/settings', { bearer: token });
