@@ -18,7 +18,8 @@
     "smoke:events": "npm --workspace @mahjong-brain/api run smoke:events",
     "marketing:dev": "npm --workspace @mahjong-brain/marketing run dev",
     "marketing:build": "npm --workspace @mahjong-brain/marketing run build",
-    "preflight": "node scripts/preflight.mjs"
+    "preflight": "node scripts/preflight.mjs",
+    "smoke:supabase": "node scripts/smoke-local-supabase.mjs"
   },
   "dependencies": {
     "@capacitor/core": "^8.5.0",
