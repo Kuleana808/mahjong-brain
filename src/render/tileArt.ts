@@ -248,7 +248,7 @@ export function drawFace(ctx: Ctx, face: TileFace, box: Box, palette: Palette): 
       // 0.4 of the smaller cell dimension leaves visible air between marks at
       // every rank, which is what keeps 2-of-circles from reading as an eight.
       const r = Math.min(cell.w, cell.h) * 0.46;
-      const accents = ['#D34B38', '#1C4E8A', '#24734A'];
+      const accents = ['#E13A36', '#1556B0', '#079452'];
       for (const [index, p] of points.entries()) {
         drawCircleMark(ctx, motif.x + p.x * motif.w, motif.y + p.y * motif.h, r, colour, accents[(index + face.rank) % accents.length]);
       }

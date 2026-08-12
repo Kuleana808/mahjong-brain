@@ -59,7 +59,7 @@
   "tileFaces": {
     "motifCoverage": "89 percent width by 84 percent height",
     "weight": "heavy silhouette at phone scale",
-    "numberedSuitColor": "two or three original high-contrast inks per face",
+    "numberedSuitColor": "two or three saturated original red, cobalt, and emerald inks per face",
     "forbidden": ["thin diagram strokes", "tiny corner labels", "traced competitor artwork"]
   },
   "semantic": {
@@ -77,7 +77,8 @@
     "danger": "#93361F",
     "info": "#2C4F73",
     "disabledOpacity": 0.42,
-    "blockedTileOpacity": 0.82
+    "blockedTileOpacity": 0.88,
+    "blockedTileFilter": "saturate 62 percent, brightness 68 percent, never grayscale"
   },
   "components": {
     "primaryButton": ["rest", "pressed", "focused", "disabled", "loading"],
