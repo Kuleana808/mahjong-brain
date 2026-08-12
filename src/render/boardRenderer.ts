@@ -79,7 +79,7 @@ function drawTileBody(
   layer: number,
 ): void {
   const depth = w * SIDE_DEPTH;
-  const radius = w * 0.13;
+  const radius = w * 0.11;
 
   ctx.save();
   ctx.shadowColor = palette.tileShadow;
@@ -93,8 +93,8 @@ function drawTileBody(
   // Rear slab. Drawing this separately from the face gives the tile actual
   // thickness instead of reading as a flat card with a drop shadow.
   const rear = ctx.createLinearGradient(x, y, x + depth, y + h + depth);
-  rear.addColorStop(0, palette.tileSide);
-  rear.addColorStop(0.62, palette.tileSide);
+  rear.addColorStop(0, '#2FCB63');
+  rear.addColorStop(0.38, palette.tileSide);
   rear.addColorStop(1, palette.tileEdge);
   ctx.fillStyle = rear;
   ctx.beginPath();
@@ -113,8 +113,8 @@ function drawTileBody(
   const gradient = ctx.createLinearGradient(x, y, x, y + h);
   gradient.addColorStop(0, palette.tileFaceTop);
   gradient.addColorStop(0.48, palette.tileFace);
-  gradient.addColorStop(0.86, palette.tileFace);
-  gradient.addColorStop(1, palette.tileSide);
+  gradient.addColorStop(0.88, palette.tileFace);
+  gradient.addColorStop(1, '#E7D7B7');
   ctx.fillStyle = gradient;
   ctx.beginPath();
   ctx.roundRect(x, y, w, h, radius);
@@ -122,7 +122,7 @@ function drawTileBody(
 
   // Fired-ceramic bevel: light catches the top/left rim, while the lower rim
   // rolls into the honey-coloured body.
-  ctx.strokeStyle = 'rgba(255, 250, 226, 0.78)';
+  ctx.strokeStyle = 'rgba(255, 255, 246, 0.92)';
   ctx.lineWidth = Math.max(1, w * 0.026);
   ctx.beginPath();
   ctx.roundRect(x + w * 0.018, y + w * 0.018, w - w * 0.036, h - w * 0.036, radius * 0.88);
@@ -166,15 +166,15 @@ function drawCeramicGlaze(
   w: number,
   h: number,
 ): void {
-  const radius = w * 0.13;
+  const radius = w * 0.11;
   ctx.save();
   ctx.beginPath();
   ctx.roundRect(x, y, w, h, radius);
   ctx.clip();
 
   const sheen = ctx.createLinearGradient(x, y, x + w * 0.72, y + h * 0.62);
-  sheen.addColorStop(0, 'rgba(255, 255, 255, 0.48)');
-  sheen.addColorStop(0.16, 'rgba(255, 255, 255, 0.2)');
+  sheen.addColorStop(0, 'rgba(255, 255, 255, 0.6)');
+  sheen.addColorStop(0.18, 'rgba(255, 255, 255, 0.24)');
   sheen.addColorStop(0.42, 'rgba(255, 255, 255, 0.025)');
   sheen.addColorStop(0.78, 'rgba(123, 86, 38, 0.025)');
   sheen.addColorStop(1, 'rgba(86, 55, 20, 0.14)');

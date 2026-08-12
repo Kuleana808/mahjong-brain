@@ -8,7 +8,7 @@
 
 import { useEffect, useState } from 'react';
 
-import { PALETTES } from '../render/palette';
+import { paletteFor } from '../render/palette';
 import {
   startNativeAccessibilityPreferences,
   type NativeAccessibilityPreferences,
@@ -55,7 +55,7 @@ export function App() {
 
   // Push the palette into CSS so the chrome and the canvas cannot drift apart.
   useEffect(() => {
-    const palette = PALETTES[settings.theme];
+    const palette = paletteFor(settings.theme, settings.tileStyle);
     const root = document.documentElement;
     root.style.setProperty('--felt', palette.felt);
     root.style.setProperty('--felt-edge', palette.feltEdge);
@@ -67,7 +67,7 @@ export function App() {
     root.style.setProperty('--hint', palette.hinted);
     root.style.setProperty('--font-scale', String(settings.fontScale * nativeAccessibility.textScale));
     root.style.colorScheme = settings.theme === 'calm-dark' ? 'dark' : 'light';
-  }, [settings.theme, settings.fontScale, nativeAccessibility.textScale]);
+  }, [settings.theme, settings.tileStyle, settings.fontScale, nativeAccessibility.textScale]);
 
   if (!hydrated) {
     return <div className="app app--boot" aria-label="Opening Mahjong Brain" />;

@@ -29,6 +29,8 @@ This written contract is the durable QA baseline. Competitor screenshots may exp
 - No turtle, cartoon mascot, borrowed art, or unapproved color.
 - Phone gameplay tiles measure at least 66 points wide; iPad tiles at least 80 points where layout permits. A visible botanical-green rim separates overlapping ivory faces. Faces use a restrained top-left ceramic sheen; they must read as fired bone, never glossy plastic. Blocked tiles remain readable at 72% opacity.
 - The starter board uses the original Garden Steps silhouette: tapered outer rows and three visible elevations. It must not read as a uniform rectangular grid, and controls never move to make room for it.
+- Every default gameplay tile has a warm ivory ceramic face, a visible vivid-jade bottom/right sidewall, a dark green contact seam, restrained top-left gloss, and a short stack shadow. The face symbol remains the largest high-contrast element. Honey-bone, flat-white-card, and traced competitor treatments fail drift QA.
+- Gameplay controls stay secondary to the board: compact round carved-walnut Back/Menu and Shuffle/Hint/Undo controls, cream icons, bronze-orange rings, and fixed reference locations.
 - Gameplay chrome uses the same spatial anchors on phone and iPad: Back top-left, remaining count top-center, Settings top-right, four-slot holder centered below, and Shuffle/Hint/Undo centered at the bottom. Tablet size may scale spacing and tiles but must never create a right-hand control rail.
 - The launch build is portrait-only on iPhone and iPad; rotation must not expose an unapproved landscape layout or move the gameplay controls.
 
@@ -72,6 +74,8 @@ This written contract is the durable QA baseline. Competitor screenshots may exp
 | `S12-settings-large` | 200% text | No clipped values; sheet scrolls; controls remain paired with labels. |
 | `S12-settings-offline` | Settings sync unavailable | Local settings persist; sync limitation is secondary. |
 | `S13-signin` | Apple sign-in | Native Apple control treatment; why/optional nature clear; free play not blocked. |
+| `S19-theme-tiles` | Theme picker, tiles | Ivory, Jade edge, and Porcelain rows preview the actual face, edge, and shadow material; one selection check. |
+| `S19-theme-backgrounds` | Theme picker, backgrounds | Light, Dark, and High contrast previews use the same palette tokens as gameplay; one selection check. |
 | `S13-signin-pending` | Apple sign-in pending | Duplicate taps disabled; native cancellation remains possible. |
 | `S13-signin-error` | Invalid/expired token | No account/unlock granted; retry and local play remain available. |
 | `S14-levels` | Levels | Current level dominant, completed/current/locked distinguishable without color. |

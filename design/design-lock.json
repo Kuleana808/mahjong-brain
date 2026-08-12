@@ -1,6 +1,6 @@
 {
-  "version": 3,
-  "approvedReference": "Dark felt, fired-ivory tiles, and carved-walnut gameplay controls approved 2026-08-11",
+  "version": 4,
+  "approvedReference": "Dark felt, glossy ivory faces, vivid jade sidewalls, and compact carved-walnut controls approved 2026-08-10",
   "cssTokens": {
     "--jade-950": "#001b18",
     "--jade-900": "#002b26",
@@ -26,8 +26,8 @@
     "feltEdge": "#001B18",
     "tileFace": "#EEDDB7",
     "tileFaceTop": "#FFF4D6",
-    "tileSide": "#AF8650",
-    "tileEdge": "#79562E",
+    "tileSide": "#159447",
+    "tileEdge": "#075D31",
     "selected": "#E07A0B",
     "hinted": "#D9AC5B"
   },
@@ -50,11 +50,11 @@
   },
   "tileMaterial": {
     "face": "warm ivory fired ceramic",
-    "finish": "polished satin glaze",
+    "finish": "polished ceramic glaze with restrained top-left gloss",
     "highlight": "visible top-left ceramic sheen with a restrained face bloom",
-    "side": "warm honey-bone extrusion with a dark fired edge",
-    "shadow": "short warm contact shadow plus soft stack shadow",
-    "forbidden": ["mirror glare", "white plastic", "glass", "neon green edge"]
+    "side": "vivid jade extrusion with a darker green contact edge",
+    "shadow": "short dark contact shadow plus soft stack shadow",
+    "forbidden": ["mirror glare over symbols", "flat white cards", "glass", "copied competitor glyph art"]
   },
   "semantic": {
     "backgroundApp": "#001B18",
