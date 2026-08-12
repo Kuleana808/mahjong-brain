@@ -91,6 +91,31 @@ function cellSize(points: { x: number; y: number }[], area: { w: number; h: numb
   return { w: area.w / cols, h: area.h / rows, cols, rows };
 }
 
+/**
+ * Sizes circle pips from their real centre-to-centre distance. Grid points are
+ * inset from the motif bounds, so nominal cell dimensions overestimate the
+ * available room on dense 8- and 9-circle faces.
+ */
+export function circleMotifGeometry(rank: number, area: { w: number; h: number }) {
+  const points = arrangement(rank);
+  const cell = cellSize(points, area);
+  let nearestSpacing = Number.POSITIVE_INFINITY;
+
+  for (let i = 0; i < points.length; i++) {
+    for (let j = i + 1; j < points.length; j++) {
+      const dx = (points[i].x - points[j].x) * area.w;
+      const dy = (points[i].y - points[j].y) * area.h;
+      nearestSpacing = Math.min(nearestSpacing, Math.hypot(dx, dy));
+    }
+  }
+
+  const radius = points.length === 1
+    ? Math.min(area.w, area.h) * 0.27
+    : Math.min(nearestSpacing * 0.36, Math.min(cell.w, cell.h) * 0.4);
+
+  return { points, radius, nearestSpacing };
+}
+
 // ---------------------------------------------------------------------------
 // suit motifs
 
@@ -243,14 +268,10 @@ export function drawFace(ctx: Ctx, face: TileFace, box: Box, palette: Palette): 
 
   switch (face.suit) {
     case 'circle': {
-      const points = arrangement(face.rank);
-      const cell = cellSize(points, motif);
-      // 0.4 of the smaller cell dimension leaves visible air between marks at
-      // every rank, which is what keeps 2-of-circles from reading as an eight.
-      const r = Math.min(cell.w, cell.h) * 0.46;
+      const { points, radius } = circleMotifGeometry(face.rank, motif);
       const accents = ['#E13A36', '#1556B0', '#079452'];
       for (const [index, p] of points.entries()) {
-        drawCircleMark(ctx, motif.x + p.x * motif.w, motif.y + p.y * motif.h, r, colour, accents[(index + face.rank) % accents.length]);
+        drawCircleMark(ctx, motif.x + p.x * motif.w, motif.y + p.y * motif.h, radius, colour, accents[(index + face.rank) % accents.length]);
       }
       break;
     }

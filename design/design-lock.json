@@ -60,6 +60,7 @@
     "motifCoverage": "89 percent width by 84 percent height",
     "weight": "heavy silhouette at phone scale",
     "numberedSuitColor": "two or three saturated original red, cobalt, and emerald inks per face",
+    "circleSpacing": "circle diameter is at most 72 percent of nearest center spacing at minimum phone tile size",
     "forbidden": ["thin diagram strokes", "tiny corner labels", "traced competitor artwork"]
   },
   "semantic": {
