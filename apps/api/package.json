@@ -7,7 +7,8 @@
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "start": "tsx src/server.ts",
-    "smoke:events": "tsx src/smoke/events.ts"
+    "smoke:events": "tsx src/smoke/events.ts",
+    "smoke:contracts": "tsx src/smoke/contracts.ts"
   },
   "dependencies": {
     "@mahjong-brain/core": "*"
