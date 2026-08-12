@@ -55,6 +55,7 @@ flowchart TD
 | `F11` | Board won | Board and holder empty | success, continue | Completion recorded once and home progress increments once | Relaunch cannot double-count completion |
 | `F12` | Holder full | Four unmatched held | full, restart, home | No further tile taps; restart/home works | P0 never grants an unverified revive; hidden revive entry if unavailable |
 | `F13` | Settings | Home or gameplay | default, changed, large text, reduced motion | Local settings apply immediately and persist | Closing without a network still keeps local settings |
+| `F16` | Theme picker | Home appearance action | tiles-tab, backgrounds-tab, selected, confirmed | Tile material and background change immediately and persist | Closing keeps the last confirmed local selection |
 | `F14` | Offline/error recovery | Any API-capable state | offline, retrying, recovered, unavailable | Local P0 path remains usable; no mocked success | Retry is bounded and failure copy states what remains safe |
 | `F15` | Accessibility traversal | Every P0 screen | VoiceOver, keyboard, Dynamic Type, Reduced Motion, contrast | Reading/focus order follows visual order; all actions named; gameplay operable | 200% text scrolls instead of clipping; motion swaps to opacity |
 

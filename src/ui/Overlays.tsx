@@ -6,7 +6,7 @@
  * sub-pages.
  */
 
-import { useEffect, useRef, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 
 import { levelProgress, xpForLevel } from '../../packages/core/src/progression/progression';
 import { purchasesConfigured } from '../iap';
@@ -179,6 +179,44 @@ const SIZES: { value: number; label: string }[] = [
   { value: 1.2, label: 'Large' },
   { value: 1.45, label: 'Largest' },
 ];
+
+export function ThemeSheet({ onClose }: { onClose: () => void }) {
+  const settings = useGame((s) => s.settings);
+  const update = useGame((s) => s.updateSettings);
+  const [tab, setTab] = useState<'tiles' | 'background'>('tiles');
+
+  return (
+    <Overlay label="Theme">
+      <div className="sheet-titlebar">
+        <h2>Theme</h2>
+        <button type="button" className="sheet-close" aria-label="Close theme" onClick={onClose}><Icon name="close" /></button>
+      </div>
+      <div className="theme-tabs" role="tablist" aria-label="Theme category">
+        <button type="button" role="tab" aria-selected={tab === 'tiles'} onClick={() => setTab('tiles')}>Tiles</button>
+        <button type="button" role="tab" aria-selected={tab === 'background'} onClick={() => setTab('background')}>Background</button>
+      </div>
+      {tab === 'tiles' ? (
+        <div className="theme-options">
+          {TILE_STYLES.map((style) => (
+            <button key={style.id} type="button" className="theme-option" aria-pressed={settings.tileStyle === style.id} onClick={() => update({ tileStyle: style.id })}>
+              <span className={`theme-swatch theme-swatch--${style.id}`}><i>中</i><i>●●<br />●●</i><i>發</i></span>
+              <strong>{style.label}</strong>
+            </button>
+          ))}
+        </div>
+      ) : (
+        <div className="background-options">
+          {THEMES.map((theme) => (
+            <button key={theme.id} type="button" className={`background-swatch background-swatch--${theme.id}`} aria-label={theme.label} aria-pressed={settings.theme === theme.id} onClick={() => update({ theme: theme.id })}>
+              <span>{theme.label}</span>
+            </button>
+          ))}
+        </div>
+      )}
+      <button type="button" className="button" onClick={onClose}>Confirm</button>
+    </Overlay>
+  );
+}
 
 export function SettingsSheet() {
   const settings = useGame((s) => s.settings);

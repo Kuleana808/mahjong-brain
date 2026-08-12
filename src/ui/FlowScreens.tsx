@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { levelProgress as progressionFraction } from '../../packages/core/src/progression/progression';
 import { useGame } from '../state/store';
 import { Icon } from './Icon';
-import { LevelsSheet } from './Overlays';
+import { LevelsSheet, ThemeSheet } from './Overlays';
 
 function BrainLeafMark({ compact = false }: { compact?: boolean }) {
   return (
@@ -253,20 +253,11 @@ export function TutorialHolderScreen() {
 export function HomeScreen() {
   const dispatch = useGame((s) => s.dispatchFlow);
   const openSettings = useGame((s) => s.openSettings);
-  const settings = useGame((s) => s.settings);
-  const updateSettings = useGame((s) => s.updateSettings);
   const progression = useGame((s) => s.progression);
   const [levelsOpen, setLevelsOpen] = useState(false);
+  const [themeOpen, setThemeOpen] = useState(false);
   const level = progression.level;
   const progress = progressionFraction(progression.xp);
-  const cycleAppearance = () => {
-    const next = settings.theme === 'calm'
-      ? 'calm-dark'
-      : settings.theme === 'calm-dark'
-        ? 'high-contrast'
-        : 'calm';
-    updateSettings({ theme: next });
-  };
   return (
     <ScreenFrame className="flow-screen--home">
       <BrandHeader />
@@ -279,10 +270,11 @@ export function HomeScreen() {
       </button>
       <div className="home-actions">
         <button type="button" className="medallion" aria-label="Levels and profile" onClick={() => setLevelsOpen(true)}><Icon name="profile" /></button>
-        <button type="button" className="medallion" aria-label="Change appearance" onClick={cycleAppearance}><Icon name="daily" /></button>
+        <button type="button" className="medallion" aria-label="Change appearance" onClick={() => setThemeOpen(true)}><Icon name="daily" /></button>
         <button type="button" className="medallion" aria-label="Settings" onClick={() => openSettings(true)}><Icon name="settings" /></button>
       </div>
       {levelsOpen ? <LevelsSheet onClose={() => setLevelsOpen(false)} /> : null}
+      {themeOpen ? <ThemeSheet onClose={() => setThemeOpen(false)} /> : null}
     </ScreenFrame>
   );
 }
