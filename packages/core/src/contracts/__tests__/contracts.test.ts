@@ -416,15 +416,17 @@ describe('analytics is opt-in', () => {
     );
 
     expect(rows).toHaveLength(1);
+    // Column names, not request keys — Postgres is snake_case and PostgREST
+    // 400s on anything else.
     expect(Object.keys(rows[0]).sort()).toEqual(
       [
-        'anonymousSessionId',
-        'appVersion',
-        'boardsCompleted',
-        'boardsStarted',
-        'hintsUsed',
+        'anonymous_session_id',
+        'app_version',
+        'boards_completed',
+        'boards_started',
+        'hints_used',
         'recorded_at',
-        'totalSeconds',
+        'total_seconds',
       ].sort(),
     );
     expect(JSON.stringify(rows[0])).not.toMatch(/ffffffff/);

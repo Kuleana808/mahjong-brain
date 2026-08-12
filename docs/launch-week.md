@@ -22,16 +22,16 @@ Twelve, not eleven — 11 and 12 arrived with the parity doctrine.
 |---|---|---|---|
 | 1 | `game/board/generate` | **live_verified** | — |
 | 2 | `game/board/validate-move` | **live_verified** | — |
-| 3 | `auth/apple-id` | `configured` | a Supabase project |
-| 4 | `settings` | `configured` | a Supabase project |
+| 3 | `auth/apple-id` | `configured` | a real Apple identity token round-trip |
+| 4 | `settings` | **live_verified** | — (real Postgres 2026-08-11) |
 | 5 | `hints/generate` | **live_verified** | — |
 | 6 | `play-pattern/log` | **live_verified** | — |
 | 7 | `difficulty/next-board` | **live_verified** | — |
 | 8 | `receipts/validate` | `source_available` | **D-005** — fails closed by design |
-| 9 | `unlock-status` | `configured` | a Supabase project |
-| 10 | `analytics/session` | `configured` | a Supabase project |
-| 11 | `events/batch` | `configured` | a Supabase project |
-| 12 | `retention/daily` | `configured` | a Supabase project |
+| 9 | `unlock-status` | **live_verified** | — (real Postgres 2026-08-11) |
+| 10 | `analytics/session` | **live_verified** | — (real Postgres 2026-08-11) |
+| 11 | `events/batch` | **live_verified** | — 165 events into real Postgres |
+| 12 | `retention/daily` | **live_verified** | — (real Postgres 2026-08-11) |
 
 **On "live-verified end-to-end".** `live_verified` in this repo means *observed
 working against the real thing* — that is the whole point of the state ladder,
