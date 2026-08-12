@@ -114,12 +114,12 @@ Not code. The OrbStack VM is 28 GiB and was 100% full.
 
 I reclaimed **3.3 GiB** by removing ten Supabase images that no container
 referenced — leftovers from an earlier aborted pull plus superseded versions. I
-deliberately did **not** run `prune -a`: the `people-by-place` (canvass.to)
+deliberately did **not** run `prune -a`: the Hoaloha (hoaloha.vote)
 stack was live in that VM and would have lost its images.
 
 The stack then began pulling and **OrbStack itself crashed and will not
 restart** (`orb status` → `Stopped`, docker socket gone). That also stopped
-canvass.to's local Supabase as a side effect — it should return when OrbStack
+Hoaloha's local Supabase as a side effect — it should return when OrbStack
 comes back.
 
 I stopped there rather than attempting a VM repair, because that VM holds
@@ -136,4 +136,4 @@ another project's database.
   immediately.
 
 Local stack config is already committed and port-remapped to **544xx** so it
-cannot collide with canvass.to on 5432x.
+cannot collide with Hoaloha on 5432x.
