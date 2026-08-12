@@ -168,6 +168,12 @@ const THEMES: { id: Settings['theme']; label: string }[] = [
   { id: 'high-contrast', label: 'High contrast' },
 ];
 
+const TILE_STYLES: { id: Settings['tileStyle']; label: string }[] = [
+  { id: 'ivory', label: 'Ivory' },
+  { id: 'jade-edge', label: 'Jade edge' },
+  { id: 'porcelain', label: 'Porcelain' },
+];
+
 const SIZES: { value: number; label: string }[] = [
   { value: 1, label: 'Normal' },
   { value: 1.2, label: 'Large' },
@@ -231,6 +237,22 @@ export function SettingsSheet() {
               onClick={() => update({ fontScale: size.value })}
             >
               {size.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="setting">
+        <span className="setting__label">Tile design</span>
+        <div className="segmented">
+          {TILE_STYLES.map((style) => (
+            <button
+              key={style.id}
+              type="button"
+              aria-pressed={settings.tileStyle === style.id}
+              onClick={() => update({ tileStyle: style.id })}
+            >
+              {style.label}
             </button>
           ))}
         </div>

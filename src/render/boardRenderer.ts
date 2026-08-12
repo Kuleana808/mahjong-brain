@@ -90,26 +90,47 @@ function drawTileBody(
   ctx.shadowOffsetX = depth * 0.22 * height;
   ctx.shadowOffsetY = depth * 0.5 * height;
 
-  // Extruded body: one rounded rect covering face + sides, then the face on top.
-  ctx.fillStyle = palette.tileSide;
+  // Rear slab. Drawing this separately from the face gives the tile actual
+  // thickness instead of reading as a flat card with a drop shadow.
+  const rear = ctx.createLinearGradient(x, y, x + depth, y + h + depth);
+  rear.addColorStop(0, palette.tileSide);
+  rear.addColorStop(0.62, palette.tileSide);
+  rear.addColorStop(1, palette.tileEdge);
+  ctx.fillStyle = rear;
   ctx.beginPath();
-  ctx.roundRect(x, y, w + depth, h + depth, radius);
+  ctx.roundRect(x + depth * 0.2, y + depth * 0.22, w + depth * 0.8, h + depth * 0.78, radius);
   ctx.fill();
   ctx.restore();
 
+  // Dark lower/right seam and a warm reflected edge separate overlapping
+  // tiles even when their faces are the same colour.
   ctx.strokeStyle = palette.tileEdge;
-  ctx.lineWidth = Math.max(0.6, w * 0.018);
+  ctx.lineWidth = Math.max(1, w * 0.025);
   ctx.beginPath();
-  ctx.roundRect(x, y, w + depth, h + depth, radius);
+  ctx.roundRect(x + depth * 0.2, y + depth * 0.22, w + depth * 0.8, h + depth * 0.78, radius);
   ctx.stroke();
 
   const gradient = ctx.createLinearGradient(x, y, x, y + h);
   gradient.addColorStop(0, palette.tileFaceTop);
-  gradient.addColorStop(1, palette.tileFace);
+  gradient.addColorStop(0.48, palette.tileFace);
+  gradient.addColorStop(0.86, palette.tileFace);
+  gradient.addColorStop(1, palette.tileSide);
   ctx.fillStyle = gradient;
   ctx.beginPath();
   ctx.roundRect(x, y, w, h, radius);
   ctx.fill();
+
+  // Fired-ceramic bevel: light catches the top/left rim, while the lower rim
+  // rolls into the honey-coloured body.
+  ctx.strokeStyle = 'rgba(255, 250, 226, 0.78)';
+  ctx.lineWidth = Math.max(1, w * 0.026);
+  ctx.beginPath();
+  ctx.roundRect(x + w * 0.018, y + w * 0.018, w - w * 0.036, h - w * 0.036, radius * 0.88);
+  ctx.stroke();
+  ctx.strokeStyle = palette.tileEdge;
+  ctx.lineWidth = Math.max(0.75, w * 0.014);
+  ctx.beginPath();
+  ctx.roundRect(x, y, w, h, radius);
   ctx.stroke();
 }
 
@@ -121,18 +142,22 @@ function drawRing(
   h: number,
   colour: string,
 ): void {
-  const inset = w * 0.05;
+  const inset = w * 0.035;
+  ctx.save();
+  ctx.shadowColor = colour;
+  ctx.shadowBlur = w * 0.13;
   ctx.strokeStyle = colour;
-  ctx.lineWidth = Math.max(2, w * 0.075);
+  ctx.lineWidth = Math.max(2, w * 0.035);
   ctx.beginPath();
   ctx.roundRect(x + inset, y + inset, w - inset * 2, h - inset * 2, w * 0.1);
   ctx.stroke();
+  ctx.restore();
 }
 
 /**
- * A quiet ceramic glaze: a narrow top-left reflection and a soft lower falloff.
- * The opacity is intentionally restrained so the face art stays crisp and the
- * material reads as fired bone rather than shiny plastic.
+ * Fired ceramic glaze with a broad face bloom, narrow rim reflection, and a
+ * soft lower falloff. It is glossy enough to read as a physical tile without
+ * putting mirror glare over the symbols.
  */
 function drawCeramicGlaze(
   ctx: CanvasRenderingContext2D,
@@ -148,15 +173,22 @@ function drawCeramicGlaze(
   ctx.clip();
 
   const sheen = ctx.createLinearGradient(x, y, x + w * 0.72, y + h * 0.62);
-  sheen.addColorStop(0, 'rgba(255, 255, 255, 0.34)');
-  sheen.addColorStop(0.18, 'rgba(255, 255, 255, 0.12)');
-  sheen.addColorStop(0.48, 'rgba(255, 255, 255, 0)');
-  sheen.addColorStop(1, 'rgba(96, 68, 31, 0.08)');
+  sheen.addColorStop(0, 'rgba(255, 255, 255, 0.48)');
+  sheen.addColorStop(0.16, 'rgba(255, 255, 255, 0.2)');
+  sheen.addColorStop(0.42, 'rgba(255, 255, 255, 0.025)');
+  sheen.addColorStop(0.78, 'rgba(123, 86, 38, 0.025)');
+  sheen.addColorStop(1, 'rgba(86, 55, 20, 0.14)');
   ctx.fillStyle = sheen;
   ctx.fillRect(x, y, w, h);
 
-  ctx.strokeStyle = 'rgba(255, 255, 255, 0.58)';
-  ctx.lineWidth = Math.max(0.8, w * 0.018);
+  const bloom = ctx.createRadialGradient(x + w * 0.28, y + h * 0.18, 0, x + w * 0.28, y + h * 0.18, w * 0.72);
+  bloom.addColorStop(0, 'rgba(255, 255, 255, 0.16)');
+  bloom.addColorStop(1, 'rgba(255, 255, 255, 0)');
+  ctx.fillStyle = bloom;
+  ctx.fillRect(x, y, w, h);
+
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.76)';
+  ctx.lineWidth = Math.max(1, w * 0.022);
   ctx.beginPath();
   ctx.moveTo(x + radius, y + ctx.lineWidth);
   ctx.lineTo(x + w - radius, y + ctx.lineWidth);
@@ -197,6 +229,7 @@ export function render(canvas: HTMLCanvasElement, state: RenderState): View {
     ctx.globalAlpha *= motion?.alpha ?? 1;
     if (state.dimBlocked && !isFree && !isSelected && !isHinted) {
       ctx.globalAlpha *= state.palette.dimAlpha;
+      ctx.filter = 'grayscale(58%) brightness(62%)';
     }
 
     drawTileBody(ctx, rect.x, drawY, rect.w, rect.h, state.palette, lift > 0, tile.z);
@@ -205,6 +238,11 @@ export function render(canvas: HTMLCanvasElement, state: RenderState): View {
     ctx.beginPath();
     ctx.roundRect(rect.x, drawY, rect.w, rect.h, rect.w * 0.13);
     ctx.clip();
+    // A tiny pressed-ink shadow gives the symbols the depth of paint sitting
+    // in a shallow engraving, rather than SVG art floating over a card.
+    ctx.shadowColor = 'rgba(68, 42, 15, 0.34)';
+    ctx.shadowBlur = Math.max(0.5, rect.w * 0.012);
+    ctx.shadowOffsetY = Math.max(0.5, rect.w * 0.012);
     ctx.drawImage(
       faceCanvas(tile.face, state.palette, rect.w, rect.h, dpr),
       rect.x,

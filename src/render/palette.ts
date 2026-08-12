@@ -7,8 +7,8 @@
  * theme clears AAA.
  *
  * Suit hues are drawn from the Okabe–Ito colourblind-safe set, muted. Colour is
- * never the only signal: every family has a distinct large central motif and
- * numbered suits carry an Arabic numeral. See `tileArt.ts`.
+ * never the only signal: every family has a distinct large central motif, and
+ * character tiles use traditional Chinese numerals plus 萬. See `tileArt.ts`.
  */
 
 export interface Palette {
@@ -33,6 +33,7 @@ export interface Palette {
 }
 
 export type ThemeName = 'calm' | 'calm-dark' | 'high-contrast';
+export type TileStyleName = 'ivory' | 'jade-edge' | 'porcelain';
 
 export type SuitKey =
   | 'bamboo'
@@ -58,8 +59,8 @@ export const PALETTES: Readonly<Record<ThemeName, Palette>> = {
     ink: '#143E34',
     inkSoft: '#526158',
     selected: '#E07A0B',
-    hinted: '#607B25',
-    dimAlpha: 0.72,
+    hinted: '#D9AC5B',
+    dimAlpha: 0.82,
     suits: {
       bamboo: '#2F6B4F',
       character: '#9A3025',
@@ -125,6 +126,23 @@ export const PALETTES: Readonly<Record<ThemeName, Palette>> = {
     },
   },
 };
+
+/** Material choices are independent from accessibility appearance. */
+export function paletteFor(theme: ThemeName, tileStyle: TileStyleName): Palette {
+  const base = PALETTES[theme];
+  if (theme !== 'calm' || tileStyle === 'ivory') return base;
+  if (tileStyle === 'jade-edge') {
+    return { ...base, tileSide: '#236B4B', tileEdge: '#0F513A', tileShadow: 'rgba(0, 10, 8, 0.72)' };
+  }
+  return {
+    ...base,
+    tileFace: '#F1EFE7',
+    tileFaceTop: '#FFFDF7',
+    tileSide: '#C9C2AF',
+    tileEdge: '#776E5B',
+    tileShadow: 'rgba(0, 12, 10, 0.62)',
+  };
+}
 
 export function suitKey(suit: string, rank: number): SuitKey {
   if (suit === 'dragon') return (['dragonRed', 'dragonGreen', 'dragonWhite'] as const)[rank - 1];

@@ -91,7 +91,8 @@ Maintain one Storybook-like internal specimen route or deterministic test harnes
 | Primary button | `rest`, `pressed`, `focused`, `disabled`, `loading` |
 | Secondary button | `rest`, `pressed`, `focused`, `disabled` |
 | Icon button | `rest`, `pressed`, `focused`, `disabled`, `selected` |
-| Tile | `free`, `blocked`, `pressed`, `hinted`, `matched`, `removing` |
+| Tile | `free`, `blocked`, `pressed`, `hinted`, `matched`, `removing`, `flying-to-holder` |
+| Tile design | `ivory`, `jade-edge`, `porcelain` |
 | Holder | `empty`, `one`, `two`, `warning-three`, `full-four`, `matching`, `clearing` |
 | Panel | `standard`, `dialog`, `warning`, `success`, `offline`, `error` |
 | Switch | `off`, `on`, `focused`, `disabled` |

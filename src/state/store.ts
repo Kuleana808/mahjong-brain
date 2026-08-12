@@ -59,7 +59,7 @@ import {
   syncAccountSettings,
 } from '../auth/apple';
 import { clearFaceCache } from '../render/boardRenderer';
-import { PALETTES, type ThemeName } from '../render/palette';
+import { PALETTES, type ThemeName, type TileStyleName } from '../render/palette';
 import { track } from '../telemetry/client';
 import { loadPersisted, savePersisted } from './persist';
 
@@ -68,6 +68,7 @@ export const PAYWALL_AFTER_BOARDS = 3;
 
 export interface Settings {
   readonly theme: ThemeName;
+  readonly tileStyle: TileStyleName;
   /** 1.0 = system default. The UI scales with it; so does the tile art. */
   readonly fontScale: number;
   readonly reduceMotion: boolean;
@@ -79,6 +80,7 @@ export interface Settings {
 
 export const DEFAULT_SETTINGS: Settings = {
   theme: 'calm',
+  tileStyle: 'ivory',
   fontScale: 1,
   reduceMotion: false,
   dimBlocked: true,
@@ -200,7 +202,12 @@ function replayFromBaseline(baseline: UndoBaseline, taps: readonly number[]): Pl
 }
 
 const syncedSettings = (settings: Settings) => ({
-  ...settings,
+  theme: settings.theme,
+  fontScale: settings.fontScale,
+  reduceMotion: settings.reduceMotion,
+  dimBlocked: settings.dimBlocked,
+  haptics: settings.haptics,
+  sounds: settings.sounds,
   difficultyPreference: 'auto' as const,
 });
 
@@ -712,7 +719,7 @@ export const useGame = create<GameStore>((set, get) => {
     },
 
     updateSettings(patch) {
-      if (patch.theme) clearFaceCache();
+      if (patch.theme || patch.tileStyle) clearFaceCache();
       for (const key of Object.keys(patch)) void track('setting_changed', { settingKey: key });
       set((s) => ({ settings: { ...s.settings, ...patch } }));
       persist();

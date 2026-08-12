@@ -29,7 +29,7 @@
     "tileSide": "#AF8650",
     "tileEdge": "#79562E",
     "selected": "#E07A0B",
-    "hinted": "#607B25"
+    "hinted": "#D9AC5B"
   },
   "presentation": {
     "fontDisplay": "Georgia, 'Times New Roman', serif",
@@ -40,8 +40,8 @@
     "typePx": { "caption": 13, "body": 19, "button": 20, "title": 32, "display": 52 },
     "controlMinHeight": 48,
     "primaryControlHeight": 64,
-    "cellStepX": 0.44,
-    "cellStepY": 0.5,
+    "cellStepX": 0.38,
+    "cellStepY": 0.45,
     "holderSlots": 4,
     "tileMinimumPhoneWidth": 66,
     "tileMinimumTabletWidth": 80,
@@ -71,13 +71,14 @@
     "danger": "#93361F",
     "info": "#2C4F73",
     "disabledOpacity": 0.42,
-    "blockedTileOpacity": 0.72
+    "blockedTileOpacity": 0.82
   },
   "components": {
     "primaryButton": ["rest", "pressed", "focused", "disabled", "loading"],
     "secondaryButton": ["rest", "pressed", "focused", "disabled"],
     "iconButton": ["rest", "pressed", "focused", "disabled", "selected"],
-    "tile": ["free", "blocked", "pressed", "hinted", "matched", "removing"],
+    "tile": ["free", "blocked", "pressed", "hinted", "matched", "removing", "flying-to-holder"],
+    "tileDesign": ["ivory", "jade-edge", "porcelain"],
     "holder": ["empty", "one", "two", "warning-three", "full-four", "matching", "clearing"],
     "panel": ["standard", "dialog", "warning", "success", "offline", "error"],
     "switch": ["off", "on", "focused", "disabled"],

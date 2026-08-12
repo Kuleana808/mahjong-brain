@@ -11,14 +11,22 @@
  * accessible board, just a technically-focusable one.
  */
 
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react';
 
 import { freeTiles, openSides, type Tile } from '../../packages/core/src/game/board';
 import { faceName } from '../../packages/core/src/game/tiles';
 import { computeView, tileRect, paintOrder, type View } from '../render/geometry';
 import { render, type TileMotion } from '../render/boardRenderer';
-import { PALETTES } from '../render/palette';
+import { paletteFor } from '../render/palette';
 import { useGame } from '../state/store';
+import { TileFaceCanvas } from './TileFaceCanvas';
+
+interface TileFlight {
+  readonly id: number;
+  readonly face: Tile['face'];
+  readonly from: DOMRect;
+  readonly to: DOMRect;
+}
 
 export function BoardView() {
   const board = useGame((s) => s.board);
@@ -33,6 +41,7 @@ export function BoardView() {
   const animationRef = useRef<number | null>(null);
   const [view, setView] = useState<View | null>(null);
   const [box, setBox] = useState({ w: 0, h: 0 });
+  const [flight, setFlight] = useState<TileFlight | null>(null);
 
   // Track the available box rather than reading layout during paint.
   useLayoutEffect(() => {
@@ -47,7 +56,7 @@ export function BoardView() {
     return () => observer.disconnect();
   }, []);
 
-  const palette = PALETTES[settings.theme];
+  const palette = paletteFor(settings.theme, settings.tileStyle);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -67,12 +76,14 @@ export function BoardView() {
     const paint = (now: number) => {
       const progress = animateMatch ? Math.min(1, (now - startedAt) / duration) : 1;
       const eased = 1 - Math.pow(1 - progress, 3);
+      const presentationBoard = animateMatch && progress < 1 ? previous! : board;
       const motion = new Map<number, TileMotion>();
       if (animateMatch) {
         for (const id of removed) motion.set(id, { alpha: 1 - eased, lift: 1 + eased * 0.35 });
       }
-
-      const presentationBoard = animateMatch && progress < 1 ? previous! : board;
+      if (flight && presentationBoard.remaining.has(flight.id)) {
+        motion.set(flight.id, { alpha: 0, lift: 1 });
+      }
       const nextView = render(canvas, {
         board: presentationBoard,
         palette,
@@ -98,7 +109,22 @@ export function BoardView() {
       if (animationRef.current !== null) cancelAnimationFrame(animationRef.current);
       animationRef.current = null;
     };
-  }, [board, palette, selectedId, hint, settings.dimBlocked, settings.reduceMotion, box]);
+  }, [board, palette, selectedId, hint, settings.dimBlocked, settings.reduceMotion, box, flight]);
+
+  const takeTile = useCallback((tile: Tile, source: HTMLElement) => {
+    if (flight || settings.reduceMotion) {
+      if (!flight) tapTile(tile.id);
+      return;
+    }
+
+    const holderCount = useGame.getState().holder.length;
+    const destination = document.querySelector<HTMLElement>(`.holder [data-slot-index="${Math.min(holderCount, 3)}"]`);
+    if (!destination) {
+      tapTile(tile.id);
+      return;
+    }
+    setFlight({ id: tile.id, face: tile.face, from: source.getBoundingClientRect(), to: destination.getBoundingClientRect() });
+  }, [flight, settings.reduceMotion, tapTile]);
 
   const moveFocus = useCallback(
     (from: Tile, direction: 'up' | 'down' | 'left' | 'right') => {
@@ -148,7 +174,7 @@ export function BoardView() {
               className="board__hit"
               style={{ left: rect.x, top: rect.y, width: rect.w, height: rect.h }}
               tabIndex={isFree ? 0 : -1}
-              aria-disabled={!isFree}
+              aria-disabled={!isFree || Boolean(flight)}
               aria-pressed={tile.id === selectedId}
               aria-describedby={hintedIds.includes(tile.id) ? 'hint-text' : undefined}
               aria-label={
@@ -156,7 +182,7 @@ export function BoardView() {
                   ? `${faceName(tile.face)}, free on the ${sides.join(' and ')}`
                   : `${faceName(tile.face)}, blocked`
               }
-              onClick={() => tapTile(tile.id)}
+              onClick={(event) => takeTile(tile, event.currentTarget)}
               onKeyDown={(event) => {
                 const map = {
                   ArrowUp: 'up',
@@ -174,6 +200,28 @@ export function BoardView() {
           );
         })}
       </div>
+      {flight ? (
+        <div
+          className="tile-flight"
+          style={{
+            left: flight.from.left,
+            top: flight.from.top,
+            width: flight.from.width,
+            height: flight.from.height,
+            '--flight-x': `${flight.to.left - flight.from.left}px`,
+            '--flight-y': `${flight.to.top - flight.from.top}px`,
+            '--flight-scale-x': flight.to.width / flight.from.width,
+            '--flight-scale-y': flight.to.height / flight.from.height,
+          } as CSSProperties}
+          onAnimationEnd={() => {
+            tapTile(flight.id);
+            setFlight(null);
+          }}
+          aria-hidden="true"
+        >
+          <TileFaceCanvas face={flight.face} palette={palette} />
+        </div>
+      ) : null}
     </div>
   );
 }

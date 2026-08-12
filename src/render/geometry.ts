@@ -31,8 +31,8 @@ const LAYER_SHIFT_Y = 0.16;
  * than the game coordinates) preserves every blocking rule while giving each
  * face a comfortably larger drawing and hit target.
  */
-export const CELL_STEP_X = 0.44;
-export const CELL_STEP_Y = 0.5;
+export const CELL_STEP_X = 0.38;
+export const CELL_STEP_Y = 0.45;
 
 /** Extruded side thickness, as a fraction of tile width. */
 export const SIDE_DEPTH = 0.11;
@@ -66,7 +66,7 @@ export function computeView(layoutId: LayoutId, boxW: number, boxH: number): Vie
   const spanCols = 1 + (cols - 1) * CELL_STEP_X + maxZ * LAYER_SHIFT_X + SIDE_DEPTH;
   const spanRows = 1 + (rows - 1) * CELL_STEP_Y + maxZ * LAYER_SHIFT_Y + SIDE_DEPTH * TILE_ASPECT;
 
-  const margin = 0.97;
+  const margin = 0.99;
   const tileW = Math.min((boxW * margin) / spanCols, (boxH * margin) / (spanRows * TILE_ASPECT));
   const tileH = tileW * TILE_ASPECT;
 

@@ -22,13 +22,17 @@ describe('layouts', () => {
     expect(LAYOUTS.turtle.maxZ).toBe(4);
   });
 
-  it('gives Lotus Terrace a broad rectangular ground layer', () => {
+  it('gives Lotus Terrace a tall tapered ground silhouette', () => {
     const ground = LAYOUTS.turtle.cells.filter((cell) => cell.z === 0);
     const rows = new Map<number, number>();
     for (const cell of ground) rows.set(cell.y, (rows.get(cell.y) ?? 0) + 1);
 
-    expect(ground).toHaveLength(48);
-    expect([...rows.values()]).toEqual([8, 8, 8, 8, 8, 8]);
+    expect(ground).toHaveLength(64);
+    expect([...rows.values()]).toEqual([4, 6, 8, 8, 8, 8, 8, 6, 5, 3]);
+  });
+
+  it('finishes Lotus Terrace with a two-tile crown', () => {
+    expect(LAYOUTS.turtle.cells.filter((cell) => cell.z === 4)).toHaveLength(2);
   });
 
   it('builds 144-tile pyramid and dragon boards', () => {
