@@ -93,7 +93,7 @@ function drawTileBody(
   // Rear slab. Drawing this separately from the face gives the tile actual
   // thickness instead of reading as a flat card with a drop shadow.
   const rear = ctx.createLinearGradient(x, y, x + depth, y + h + depth);
-  rear.addColorStop(0, '#2FCB63');
+  rear.addColorStop(0, '#299657');
   rear.addColorStop(0.38, palette.tileSide);
   rear.addColorStop(1, palette.tileEdge);
   ctx.fillStyle = rear;

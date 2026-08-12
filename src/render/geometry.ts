@@ -35,7 +35,7 @@ export const CELL_STEP_X = 0.38;
 export const CELL_STEP_Y = 0.45;
 
 /** Extruded side thickness, as a fraction of tile width. */
-export const SIDE_DEPTH = 0.11;
+export const SIDE_DEPTH = 0.065;
 
 export interface View {
   readonly tileW: number;

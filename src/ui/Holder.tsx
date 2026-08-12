@@ -19,11 +19,11 @@ export function Holder() {
       {Array.from({ length: 4 }, (_, index) => {
         const tile = held[index];
         return tile ? (
-          <span key={tile.id} data-slot-index={index} data-tile-id={tile.id} className={`holder__tile holder__tile--${tile.face.suit}`} aria-label={faceName(tile.face)}>
+          <span key={tile.id} data-slot-index={index} data-tile-id={tile.id} className={`holder__slot holder__tile holder__tile--${tile.face.suit}`} aria-label={faceName(tile.face)}>
             <TileFaceCanvas face={tile.face} palette={palette} />
           </span>
         ) : (
-          <span key={`empty-${index}`} data-slot-index={index} aria-label={`Empty slot ${index + 1}`} />
+          <span key={`empty-${index}`} data-slot-index={index} className="holder__slot" aria-label={`Empty slot ${index + 1}`} />
         );
       })}
     </div>

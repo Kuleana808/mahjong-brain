@@ -26,8 +26,8 @@
     "feltEdge": "#001B18",
     "tileFace": "#EEDDB7",
     "tileFaceTop": "#FFF4D6",
-    "tileSide": "#159447",
-    "tileEdge": "#075D31",
+    "tileSide": "#167A42",
+    "tileEdge": "#07512F",
     "selected": "#E07A0B",
     "hinted": "#D9AC5B"
   },
@@ -45,16 +45,22 @@
     "holderSlots": 4,
     "tileMinimumPhoneWidth": 66,
     "tileMinimumTabletWidth": 80,
-    "motionMs": { "instant": 0, "micro": 100, "short": 180, "medium": 320, "long": 600 },
+    "motionMs": { "instant": 0, "micro": 100, "short": 180, "medium": 320, "matchCelebration": 460, "long": 600 },
     "easing": { "enter": "cubic-bezier(0.2, 0.8, 0.2, 1)", "exit": "cubic-bezier(0.4, 0, 1, 1)", "move": "cubic-bezier(0.4, 0, 0.2, 1)" }
   },
   "tileMaterial": {
     "face": "warm ivory fired ceramic",
     "finish": "polished ceramic glaze with restrained top-left gloss",
     "highlight": "visible top-left ceramic sheen with a restrained face bloom",
-    "side": "vivid jade extrusion with a darker green contact edge",
+    "side": "narrow muted-jade extrusion, 6.5 percent of tile width, with a darker green contact edge",
     "shadow": "short dark contact shadow plus soft stack shadow",
     "forbidden": ["mirror glare over symbols", "flat white cards", "glass", "copied competitor glyph art"]
+  },
+  "tileFaces": {
+    "motifCoverage": "89 percent width by 84 percent height",
+    "weight": "heavy silhouette at phone scale",
+    "numberedSuitColor": "two or three original high-contrast inks per face",
+    "forbidden": ["thin diagram strokes", "tiny corner labels", "traced competitor artwork"]
   },
   "semantic": {
     "backgroundApp": "#001B18",
@@ -79,7 +85,8 @@
     "iconButton": ["rest", "pressed", "focused", "disabled", "selected"],
     "tile": ["free", "blocked", "pressed", "hinted", "matched", "removing", "flying-to-holder"],
     "tileDesign": ["ivory", "jade-edge", "porcelain"],
-    "holder": ["empty", "one", "two", "warning-three", "full-four", "matching", "clearing"],
+    "holder": ["empty-hairline-slots", "one", "two", "warning-three", "full-four", "matching", "clearing"],
+    "matchCelebration": ["two-origin-flash", "ceramic-shards", "reduced-motion-dissolve"],
     "panel": ["standard", "dialog", "warning", "success", "offline", "error"],
     "switch": ["off", "on", "focused", "disabled"],
     "segmentedControl": ["rest", "selected", "focused", "disabled"],

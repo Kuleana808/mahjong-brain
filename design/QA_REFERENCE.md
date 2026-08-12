@@ -13,6 +13,7 @@ The canonical gameplay reference is the four-panel board approved on 2026-08-10:
 - face art uses one bold central hierarchy with no tiny corner badges; numbered suits retain large Arabic numerals, while winds and dragons use traditional glyphs with full English VoiceOver names;
 - highlights describe the tile's curved edge but never form mirror glare, hard white streaks, or a plastic/glass shine;
 - Back, remaining count, and Settings occupy one fixed top row; the four-slot holder sits immediately below it;
+- The holder reads as one continuous dark-green tray. Empty positions are separated only by three quiet one-point vertical dividers, never four inset boxes.
 - Shuffle, Hint, and Undo form one fixed three-button bottom dock; gameplay feedback floats over the board without moving any chrome;
 - the full-holder state dims the board and presents one ivory sheet with Revive primary and Restart secondary.
 
@@ -29,7 +30,8 @@ This written contract is the durable QA baseline. Competitor screenshots may exp
 - No turtle, cartoon mascot, borrowed art, or unapproved color.
 - Phone gameplay tiles measure at least 66 points wide; iPad tiles at least 80 points where layout permits. A visible botanical-green rim separates overlapping ivory faces. Faces use a restrained top-left ceramic sheen; they must read as fired bone, never glossy plastic. Blocked tiles remain readable at 72% opacity.
 - The starter board uses the original Garden Steps silhouette: tapered outer rows and three visible elevations. It must not read as a uniform rectangular grid, and controls never move to make room for it.
-- Every default gameplay tile has a warm ivory ceramic face, a visible vivid-jade bottom/right sidewall, a dark green contact seam, restrained top-left gloss, and a short stack shadow. The face symbol remains the largest high-contrast element. Honey-bone, flat-white-card, and traced competitor treatments fail drift QA.
+- Every default gameplay tile has a warm ivory ceramic face, a narrow muted-jade bottom/right sidewall capped at 6.5% of tile width, a dark green contact seam, restrained top-left gloss, and a short stack shadow. The face symbol remains the largest high-contrast element. Wide green backing plates, flat-white cards, and traced competitor treatments fail drift QA.
+- Tile art uses heavy original silhouettes across roughly 89% of the usable face width. Dots use layered two/three-colour rings, bamboo has broad segmented stalks, and characters/winds/dragons use the heaviest available CJK weight. Thin diagram marks and tiny metadata fail readability QA.
 - Gameplay controls stay secondary to the board: compact round carved-walnut Back/Menu and Shuffle/Hint/Undo controls, cream icons, bronze-orange rings, and fixed reference locations.
 - Gameplay chrome uses the same spatial anchors on phone and iPad: Back top-left, remaining count top-center, Settings top-right, four-slot holder centered below, and Shuffle/Hint/Undo centered at the bottom. Tablet size may scale spacing and tiles but must never create a right-hand control rail.
 - The launch build is portrait-only on iPhone and iPad; rotation must not expose an unapproved landscape layout or move the gameplay controls.
@@ -97,7 +99,8 @@ Maintain one Storybook-like internal specimen route or deterministic test harnes
 | Icon button | `rest`, `pressed`, `focused`, `disabled`, `selected` |
 | Tile | `free`, `blocked`, `pressed`, `hinted`, `matched`, `removing`, `flying-to-holder` |
 | Tile design | `ivory`, `jade-edge`, `porcelain` |
-| Holder | `empty`, `one`, `two`, `warning-three`, `full-four`, `matching`, `clearing` |
+| Holder | `empty-hairline-slots`, `one`, `two`, `warning-three`, `full-four`, `matching`, `clearing` |
+| Match celebration | `two-origin-flash`, `ceramic-shards`, `reduced-motion-dissolve` |
 | Panel | `standard`, `dialog`, `warning`, `success`, `offline`, `error` |
 | Switch | `off`, `on`, `focused`, `disabled` |
 | Segmented control | `rest`, `selected`, `focused`, `disabled` |

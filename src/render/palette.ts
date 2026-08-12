@@ -53,8 +53,8 @@ export const PALETTES: Readonly<Record<ThemeName, Palette>> = {
     feltEdge: '#001B18',
     tileFace: '#EEDDB7',
     tileFaceTop: '#FFF4D6',
-    tileSide: '#159447',
-    tileEdge: '#075D31',
+    tileSide: '#167A42',
+    tileEdge: '#07512F',
     tileShadow: 'rgba(0, 12, 10, 0.68)',
     ink: '#143E34',
     inkSoft: '#526158',
@@ -132,7 +132,7 @@ export function paletteFor(theme: ThemeName, tileStyle: TileStyleName): Palette 
   const base = PALETTES[theme];
   if (theme !== 'calm' || tileStyle === 'ivory') return base;
   if (tileStyle === 'jade-edge') {
-    return { ...base, tileSide: '#08723A', tileEdge: '#034B27', tileShadow: 'rgba(0, 9, 5, 0.76)' };
+    return { ...base, tileSide: '#0B6035', tileEdge: '#033E25', tileShadow: 'rgba(0, 9, 5, 0.76)' };
   }
   return {
     ...base,

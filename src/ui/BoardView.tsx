@@ -14,7 +14,7 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react';
 
 import { freeTiles, openSides, type Tile } from '../../packages/core/src/game/board';
-import { faceName } from '../../packages/core/src/game/tiles';
+import { faceName, matchGroup } from '../../packages/core/src/game/tiles';
 import { computeView, tileRect, paintOrder, type View } from '../render/geometry';
 import { render, type TileMotion } from '../render/boardRenderer';
 import { paletteFor } from '../render/palette';
@@ -26,6 +26,37 @@ interface TileFlight {
   readonly face: Tile['face'];
   readonly from: DOMRect;
   readonly to: DOMRect;
+}
+
+interface MatchCelebration {
+  readonly id: number;
+  readonly origins: readonly DOMRect[];
+}
+
+const SHARDS = Array.from({ length: 12 }, (_, index) => ({
+  x: ((index * 37) % 92) - 46,
+  y: -34 - ((index * 23) % 54),
+  r: ((index * 47) % 150) - 75,
+  delay: (index % 4) * 12,
+}));
+
+function MatchBurst({ origin }: { origin: DOMRect }) {
+  return (
+    <div className="match-burst" style={{ left: origin.left, top: origin.top, width: origin.width, height: origin.height }} aria-hidden="true">
+      <span className="match-burst__flash" />
+      {SHARDS.map((shard, index) => (
+        <i
+          key={index}
+          style={{
+            '--shard-x': `${shard.x}px`,
+            '--shard-y': `${shard.y}px`,
+            '--shard-r': `${shard.r}deg`,
+            '--shard-delay': `${shard.delay}ms`,
+          } as CSSProperties}
+        />
+      ))}
+    </div>
+  );
 }
 
 export function BoardView() {
@@ -42,6 +73,7 @@ export function BoardView() {
   const [view, setView] = useState<View | null>(null);
   const [box, setBox] = useState({ w: 0, h: 0 });
   const [flight, setFlight] = useState<TileFlight | null>(null);
+  const [celebration, setCelebration] = useState<MatchCelebration | null>(null);
 
   // Track the available box rather than reading layout during paint.
   useLayoutEffect(() => {
@@ -69,7 +101,7 @@ export function BoardView() {
       previous && previous.seed === board.seed
         ? [...previous.remaining].filter((id) => !board.remaining.has(id))
         : [];
-    const animateMatch = !settings.reduceMotion && removed.length === 2;
+    const animateMatch = !settings.reduceMotion && removed.length > 0;
     const startedAt = performance.now();
     const duration = 180;
 
@@ -214,7 +246,22 @@ export function BoardView() {
             '--flight-scale-y': flight.to.height / flight.from.height,
           } as CSSProperties}
           onAnimationEnd={() => {
+            const before = useGame.getState();
+            const matchingHeld = before.holder.find((id) => {
+              const held = before.board?.tiles.find((tile) => tile.id === id);
+              return held && matchGroup(held.face) === matchGroup(flight.face);
+            });
+            const heldOrigin = matchingHeld
+              ? document.querySelector<HTMLElement>(`.holder [data-tile-id="${matchingHeld}"]`)?.getBoundingClientRect()
+              : undefined;
+            const incomingOrigin = flight.to;
             tapTile(flight.id);
+            const after = useGame.getState();
+            if (after.holder.length < before.holder.length && !settings.reduceMotion) {
+              const id = performance.now();
+              setCelebration({ id, origins: heldOrigin ? [heldOrigin, incomingOrigin] : [incomingOrigin] });
+              window.setTimeout(() => setCelebration((active) => active?.id === id ? null : active), 460);
+            }
             setFlight(null);
           }}
           aria-hidden="true"
@@ -222,6 +269,7 @@ export function BoardView() {
           <TileFaceCanvas face={flight.face} palette={palette} />
         </div>
       ) : null}
+      {celebration ? <div className="match-celebration" aria-hidden="true">{celebration.origins.map((origin, index) => <MatchBurst key={index} origin={origin} />)}</div> : null}
     </div>
   );
 }
