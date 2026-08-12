@@ -95,14 +95,18 @@ function cellSize(points: { x: number; y: number }[], area: { w: number; h: numb
 // suit motifs
 
 /** A dot: outer ring with a filled core. Reads at small sizes. */
-function drawCircleMark(ctx: Ctx, cx: number, cy: number, r: number, colour: string): void {
-  ctx.strokeStyle = colour;
+function drawCircleMark(ctx: Ctx, cx: number, cy: number, r: number, colour: string, accent: string): void {
   ctx.fillStyle = colour;
-  ctx.lineWidth = Math.max(1, r * 0.3);
-  dot(ctx, cx, cy, r * 0.82);
-  ctx.stroke();
-  dot(ctx, cx, cy, r * 0.3);
+  dot(ctx, cx, cy, r);
   ctx.fill();
+  ctx.fillStyle = accent;
+  dot(ctx, cx, cy, r * 0.46);
+  ctx.fill();
+  ctx.save();
+  ctx.globalCompositeOperation = 'destination-out';
+  dot(ctx, cx, cy, r * 0.18);
+  ctx.fill();
+  ctx.restore();
 }
 
 /** A bamboo stalk: a rounded segment with two node bands and a leaf notch. */
@@ -111,6 +115,13 @@ function drawBambooMark(ctx: Ctx, cx: number, cy: number, w: number, h: number, 
   ctx.strokeStyle = colour;
 
   roundRect(ctx, cx - w / 2, cy - h / 2, w, h, w * 0.42);
+  ctx.fill();
+
+  // Two small shoulders make each stalk read as a carved bamboo segment rather
+  // than a generic rounded bar at phone scale.
+  ctx.beginPath();
+  ctx.ellipse(cx - w * 0.34, cy - h * 0.34, w * 0.26, h * 0.13, -0.5, 0, Math.PI * 2);
+  ctx.ellipse(cx + w * 0.34, cy + h * 0.34, w * 0.26, h * 0.13, -0.5, 0, Math.PI * 2);
   ctx.fill();
 
   // Node bands, knocked out so they read on any background.
@@ -224,7 +235,7 @@ function drawSeasonMark(ctx: Ctx, cx: number, cy: number, s: number, rank: numbe
  */
 export function drawFace(ctx: Ctx, face: TileFace, box: Box, palette: Palette): void {
   const colour = palette.suits[suitKey(face.suit, face.rank)];
-  const motif = { x: box.w * 0.1, y: box.h * 0.14, w: box.w * 0.8, h: box.h * 0.76 };
+  const motif = { x: box.w * 0.055, y: box.h * 0.085, w: box.w * 0.89, h: box.h * 0.84 };
 
   ctx.save();
   ctx.fillStyle = colour;
@@ -236,9 +247,10 @@ export function drawFace(ctx: Ctx, face: TileFace, box: Box, palette: Palette): 
       const cell = cellSize(points, motif);
       // 0.4 of the smaller cell dimension leaves visible air between marks at
       // every rank, which is what keeps 2-of-circles from reading as an eight.
-      const r = Math.min(cell.w, cell.h) * 0.43;
-      for (const p of points) {
-        drawCircleMark(ctx, motif.x + p.x * motif.w, motif.y + p.y * motif.h, r, colour);
+      const r = Math.min(cell.w, cell.h) * 0.46;
+      const accents = ['#D34B38', '#1C4E8A', '#24734A'];
+      for (const [index, p] of points.entries()) {
+        drawCircleMark(ctx, motif.x + p.x * motif.w, motif.y + p.y * motif.h, r, colour, accents[(index + face.rank) % accents.length]);
       }
       break;
     }
@@ -254,8 +266,8 @@ export function drawFace(ctx: Ctx, face: TileFace, box: Box, palette: Palette): 
             }))
           : arrangement(face.rank);
       const cell = cellSize(points, motif);
-      const w = Math.min(cell.w * 0.36, cell.h * 0.34);
-      const h = cell.h * 0.72;
+      const w = Math.min(cell.w * 0.48, cell.h * 0.42);
+      const h = cell.h * 0.82;
       for (const p of points) {
         drawBambooMark(ctx, motif.x + p.x * motif.w, motif.y + p.y * motif.h, w, h, colour);
       }
@@ -264,18 +276,18 @@ export function drawFace(ctx: Ctx, face: TileFace, box: Box, palette: Palette): 
 
     case 'character': {
       const numeral = ['一', '二', '三', '四', '五', '六', '七', '八', '九'][face.rank - 1];
-      ctx.font = `700 ${box.h * 0.31}px "PingFang TC", "Hiragino Sans", serif`;
+      ctx.font = `900 ${box.h * 0.35}px "PingFang TC", "Hiragino Sans", serif`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillText(numeral, box.w / 2, box.h * 0.34);
-      ctx.font = `700 ${box.h * 0.3}px "PingFang TC", "Hiragino Sans", serif`;
+      ctx.font = `900 ${box.h * 0.34}px "PingFang TC", "Hiragino Sans", serif`;
       ctx.fillText('萬', box.w / 2, box.h * 0.69);
       break;
     }
 
     case 'wind': {
       const initial = ['東', '南', '西', '北'][face.rank - 1];
-      ctx.font = `700 ${box.h * 0.45}px "PingFang TC", "Hiragino Sans", ui-rounded, system-ui, sans-serif`;
+      ctx.font = `900 ${box.h * 0.54}px "PingFang TC", "Hiragino Sans", ui-rounded, system-ui, sans-serif`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillText(initial, box.w / 2, box.h * 0.5);
@@ -285,7 +297,7 @@ export function drawFace(ctx: Ctx, face: TileFace, box: Box, palette: Palette): 
 
     case 'dragon': {
       const glyph = ['中', '發', '白'][face.rank - 1];
-      ctx.font = `700 ${box.h * 0.52}px "PingFang TC", "Hiragino Sans", ui-rounded, system-ui, sans-serif`;
+      ctx.font = `900 ${box.h * 0.61}px "PingFang TC", "Hiragino Sans", ui-rounded, system-ui, sans-serif`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillStyle = colour;
@@ -294,12 +306,12 @@ export function drawFace(ctx: Ctx, face: TileFace, box: Box, palette: Palette): 
     }
 
     case 'flower': {
-      drawFlowerMark(ctx, box.w / 2, box.h * 0.52, box.w * 0.36, face.rank, colour);
+      drawFlowerMark(ctx, box.w / 2, box.h * 0.52, box.w * 0.43, face.rank, colour);
       break;
     }
 
     case 'season': {
-      drawSeasonMark(ctx, box.w / 2, box.h * 0.52, box.w * 0.36, face.rank, colour);
+      drawSeasonMark(ctx, box.w / 2, box.h * 0.52, box.w * 0.43, face.rank, colour);
       break;
     }
   }
