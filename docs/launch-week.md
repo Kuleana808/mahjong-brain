@@ -22,16 +22,16 @@ Twelve, not eleven — 11 and 12 arrived with the parity doctrine.
 |---|---|---|---|
 | 1 | `game/board/generate` | **live_verified** | — |
 | 2 | `game/board/validate-move` | **live_verified** | — |
-| 3 | `auth/apple-id` | `configured` | a Supabase project |
-| 4 | `settings` | `configured` | a Supabase project |
+| 3 | `auth/apple-id` | `configured` | a real Apple identity token round-trip |
+| 4 | `settings` | **live_verified** | — (real Postgres 2026-08-11) |
 | 5 | `hints/generate` | **live_verified** | — |
 | 6 | `play-pattern/log` | **live_verified** | — |
 | 7 | `difficulty/next-board` | **live_verified** | — |
-| 8 | `receipts/validate` | `source_available` | permanent product id + sandbox purchase |
-| 9 | `unlock-status` | `configured` | a Supabase project |
-| 10 | `analytics/session` | `configured` | a Supabase project |
-| 11 | `events/batch` | `configured` | a Supabase project |
-| 12 | `retention/daily` | `configured` | a Supabase project |
+| 8 | `receipts/validate` | `source_available` | **D-005** — fails closed by design |
+| 9 | `unlock-status` | **live_verified** | — (real Postgres 2026-08-11) |
+| 10 | `analytics/session` | **live_verified** | — (real Postgres 2026-08-11) |
+| 11 | `events/batch` | **live_verified** | — 165 events into real Postgres |
+| 12 | `retention/daily` | **live_verified** | — (real Postgres 2026-08-11) |
 
 **On "live-verified end-to-end".** `live_verified` in this repo means *observed
 working against the real thing* — that is the whole point of the state ladder,
@@ -39,16 +39,15 @@ so it should not be claimed loosely.
 
 - 1, 2, 5, 6 and 7 are genuinely there. They are pure functions of the request,
   need no credentials, and never will.
-- 3, 4, 9, 10, 11 and 12 are **`configured` and verified end to end against the
-  in-process dev store**, with real Apple token verification and real signature
-  checks in the path. They are one environment variable pair away from
-  `live_verified`, and **that pair does not exist yet** — there is no Supabase
-  project, and creating one needs an account this session cannot reach.
-- 8 stays `source_available` and fails closed until D-001 supplies the product
-  id and a real sandbox transaction proves the installed bridge and pin.
+- 4, 9, 10, 11 and 12 were observed against real Postgres on 2026-08-11.
+- 3 remains `configured`: its verifier uses real signature checks, but a real
+  Apple identity-token round trip has not yet been observed.
+- 8 stays `source_available` and fails closed until D-005 and a real sandbox
+  transaction prove the installed bridge, product identifier, and certificate
+  pin end to end.
 
-Calling 3/4/9/10/11/12 "live-verified" today would be the exact thing the state
-ladder exists to prevent.
+Calling 3 or 8 "live-verified" today would be the exact thing the state ladder
+exists to prevent.
 
 ### Instrumentation
 

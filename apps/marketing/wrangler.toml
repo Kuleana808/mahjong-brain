@@ -1,0 +1,13 @@
+# Cloudflare Pages.
+#
+# The site is a static export (see next.config.mjs), so Pages serves the `out/`
+# directory straight from its CDN — no adapter, no worker, no build plugin.
+#
+#   npx wrangler pages deploy out --project-name=mahjong-brain
+#
+# Deploying needs a Cloudflare API token, which this session does not have. See
+# docs/deploy.md for the one-time setup.
+
+name = "mahjong-brain"
+pages_build_output_dir = "out"
+compatibility_date = "2026-08-11"

@@ -69,8 +69,22 @@ export async function recordSessionAnalytics(
 
   // Allow-list, not deny-list: a field added to the request type later cannot
   // start flowing to storage without someone adding it here on purpose.
+  //
+  // The map is also the column names. The request is camelCase and Postgres is
+  // snake_case, and writing the request keys straight through produced a 400
+  // from PostgREST on every call — caught by running contract 10 against real
+  // Postgres rather than the in-process dev store.
+  const COLUMNS: Record<(typeof ALLOWED_FIELDS)[number], string> = {
+    boardsStarted: 'boards_started',
+    boardsCompleted: 'boards_completed',
+    hintsUsed: 'hints_used',
+    totalSeconds: 'total_seconds',
+    appVersion: 'app_version',
+    anonymousSessionId: 'anonymous_session_id',
+  };
+
   const row: Record<string, unknown> = { recorded_at: now };
-  for (const field of ALLOWED_FIELDS) row[field] = request[field];
+  for (const field of ALLOWED_FIELDS) row[COLUMNS[field]] = request[field];
 
   await ports.store.recordSession(row);
 

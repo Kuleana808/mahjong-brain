@@ -20,7 +20,9 @@
     "smoke:events": "npm --workspace @mahjong-brain/api run smoke:events",
     "marketing:dev": "npm --workspace @mahjong-brain/marketing run dev",
     "marketing:build": "npm --workspace @mahjong-brain/marketing run build",
-    "preflight": "npm run check:design-drift && npm run check:brand-assets && node scripts/preflight.mjs"
+    "preflight": "npm run check:design-drift && npm run check:brand-assets && node scripts/preflight.mjs",
+    "smoke:supabase": "node scripts/smoke-local-supabase.mjs",
+    "smoke:contracts": "npm --workspace @mahjong-brain/api run smoke:contracts"
   },
   "dependencies": {
     "@capacitor/core": "^8.5.0",

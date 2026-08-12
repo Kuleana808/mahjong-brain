@@ -81,8 +81,14 @@ export function createSupabaseStore(options: SupabaseStoreOptions): StorePort {
       throw new Error(`Supabase ${init.method ?? 'GET'} ${path} failed with ${response.status}`);
     }
 
+    // PostgREST answers 201/204 with an EMPTY body unless asked for
+    // `Prefer: return=representation`, so parsing unconditionally throws on
+    // every successful insert. Caught by the first real-Postgres smoke run;
+    // the in-process dev store could never have shown it.
     if (response.status === 204) return undefined as T;
-    return (await response.json()) as T;
+    const body = await response.text();
+    if (body.length === 0) return undefined as T;
+    return JSON.parse(body) as T;
   }
 
   const encode = encodeURIComponent;
