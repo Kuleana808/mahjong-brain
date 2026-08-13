@@ -1,41 +1,56 @@
 {
-  "version": 1,
-  "approvedReference": "Emerald felt, ivory engraved brain tile, olive botanicals, restrained bronze frame",
+  "version": 2,
+  "approvedReference": "Energetic emerald and amber match-burst icon used consistently as the app icon, in-app logo, favicon, and splash identity",
   "palette": ["#075a49", "#00483c", "#003b32", "#fff9e9", "#f5ecd5", "#b98a3e", "#745022"],
   "files": {
-    "design/assets/app-icon-master.svg": {
-      "sha256": "057392b950641ca92d6fb4664cf936fe3dffe72507b5b18e23c3f668d1ad76ed",
-      "kind": "svg",
-      "requiredColors": ["#075a49", "#00483c", "#003b32", "#fff9e9", "#f5ecd5", "#b98a3e", "#745022"]
+    "design/assets/app-icon-generated-source.png": {
+      "sha256": "7ddb553af2eed405cb2db7a2c7d99eb4e539a70240365c724810fb27f6e81044",
+      "kind": "png",
+      "width": 1254,
+      "height": 1254,
+      "allowAlpha": false
     },
-    "design/assets/splash-master.svg": {
-      "sha256": "0b9f1feb438df3c5e362376d23197608ef508cb88f0a78cce42d36088e357a5d",
-      "kind": "svg",
-      "requiredColors": ["#075a49", "#00483c", "#003b32", "#fff9e9", "#b98a3e", "#745022"]
+    "scripts/render-brand-splash.py": {
+      "sha256": "c3b3e982eb4b87d9535a5a25679a10bd5b96adeae640968878970d391b886c40",
+      "kind": "source"
+    },
+    "public/brand-mark.png": {
+      "sha256": "e2c196dbfb1f2425dd23376a400da8fb4e48e44f58ec9c95f54c99ebc4e928db",
+      "kind": "png",
+      "width": 512,
+      "height": 512,
+      "allowAlpha": false
+    },
+    "public/favicon.png": {
+      "sha256": "89f0571c9a8f432e63067032f409f9dea77eb5834e7e7bfe91b03b5c45b6a16f",
+      "kind": "png",
+      "width": 180,
+      "height": 180,
+      "allowAlpha": false
     },
     "ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png": {
-      "sha256": "4c6782157364754e328beeaba26f7b6f5dfc50e6616a04e9c7874e99cbb85246",
+      "sha256": "ddb5d6bc55a016fa6f1869d6b4dde3c0ff47a15a53b889e48fcf6fddf4b01d6a",
       "kind": "png",
       "width": 1024,
       "height": 1024,
       "allowAlpha": false
     },
     "ios/App/App/Assets.xcassets/Splash.imageset/splash-2732x2732.png": {
-      "sha256": "7ca94b99f058dc784e0ebe568f365c0940eef53bb4414e5aaeb9abb41085fe81",
+      "sha256": "2d9c78c9069413a3c35e9bb94cab9700668c62b448601caa1b1ed30cb54cdfba",
       "kind": "png",
       "width": 2732,
       "height": 2732,
       "allowAlpha": false
     },
     "ios/App/App/Assets.xcassets/Splash.imageset/splash-2732x2732-1.png": {
-      "sha256": "7ca94b99f058dc784e0ebe568f365c0940eef53bb4414e5aaeb9abb41085fe81",
+      "sha256": "2d9c78c9069413a3c35e9bb94cab9700668c62b448601caa1b1ed30cb54cdfba",
       "kind": "png",
       "width": 2732,
       "height": 2732,
       "allowAlpha": false
     },
     "ios/App/App/Assets.xcassets/Splash.imageset/splash-2732x2732-2.png": {
-      "sha256": "7ca94b99f058dc784e0ebe568f365c0940eef53bb4414e5aaeb9abb41085fe81",
+      "sha256": "2d9c78c9069413a3c35e9bb94cab9700668c62b448601caa1b1ed30cb54cdfba",
       "kind": "png",
       "width": 2732,
       "height": 2732,

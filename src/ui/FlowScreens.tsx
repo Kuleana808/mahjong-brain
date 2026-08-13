@@ -4,14 +4,10 @@ import { useGame } from '../state/store';
 import { Icon } from './Icon';
 import { LevelsSheet, ThemeSheet } from './Overlays';
 
-function BrainLeafMark({ compact = false }: { compact?: boolean }) {
+function BrandMark({ compact = false }: { compact?: boolean }) {
   return (
-    <div className={compact ? 'brand-tile brand-tile--compact' : 'brand-tile'} aria-hidden="true">
-      <svg viewBox="0 0 120 140" role="img">
-        <path d="M60 28c-8-14-30-9-30 9-15 1-19 23-6 30-9 13 2 30 16 27 4 10 15 14 20 6V28Z" />
-        <path d="M60 28c8-14 30-9 30 9 15 1 19 23 6 30 9 13-2 30-16 27-4 10-15 14-20 6V28Z" />
-        <path d="M60 98v24M60 112c-15-2-25-9-31-20M60 112c15-2 25-9 31-20" />
-      </svg>
+    <div className={compact ? 'brand-mark brand-mark--compact' : 'brand-mark'}>
+      <img src="/brand-mark.png" alt="" />
     </div>
   );
 }
@@ -84,7 +80,7 @@ export function TermsScreen() {
   return (
     <ScreenFrame className="flow-screen--terms">
       <div className="ornament ornament--top" />
-      <BrainLeafMark />
+      <BrandMark />
       <section className="jade-panel">
         <h1>Welcome to<br />Mahjong Brain!</h1>
         <p>
@@ -134,7 +130,7 @@ export function LoadingScreen() {
 
   return (
     <ScreenFrame className="flow-screen--loading">
-      <span className="demo-tile demo-tile--loading" aria-hidden="true">中</span>
+      <BrandMark compact />
       <h1>Rest your mind<br />for a moment.</h1>
       <p className="quote-credit">— Mahjong Brain</p>
       <div className="progress-track" aria-label="Loading">
@@ -261,7 +257,7 @@ export function HomeScreen() {
   return (
     <ScreenFrame className="flow-screen--home">
       <BrandHeader />
-      <div className="home-mark"><BrainLeafMark /></div>
+      <div className="home-mark"><BrandMark /></div>
       <div className="home-progress" aria-label={`Level progress ${Math.round(progress * 100)} percent`}>
         <span style={{ width: `${Math.max(8, progress * 100)}%` }} />
       </div>
@@ -289,7 +285,7 @@ export function ResultScreen() {
   return (
     <ScreenFrame className="flow-screen--result">
       <div className="result-card">
-        <BrainLeafMark compact />
+        <BrandMark compact />
         <p className="result-kicker">{isFull ? 'Round paused' : 'Beautiful work'}</p>
         <h1>{isFull ? 'Out of space' : 'Board clear'}</h1>
         <p>

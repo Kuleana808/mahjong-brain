@@ -168,8 +168,8 @@ if (!project.includes('DEVELOPMENT_TEAM =')) {
 
 const icon = 'ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png';
 const splash = 'ios/App/App/Assets.xcassets/Splash.imageset/splash-2732x2732.png';
-const iconMaster = 'design/assets/app-icon-master.svg';
-const splashMaster = 'design/assets/splash-master.svg';
+const iconMaster = 'design/assets/app-icon-generated-source.png';
+const splashMaster = 'scripts/render-brand-splash.py';
 const assetIsApproved = (path, master) =>
   existsSync(join(root, path)) &&
   statSync(join(root, path)).size > 100_000 &&
