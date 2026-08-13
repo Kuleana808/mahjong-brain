@@ -224,6 +224,16 @@ function drawFreeTileGlint(
   ctx.moveTo(x + radius * 0.72, y + ctx.lineWidth);
   ctx.lineTo(x + w * 0.72, y + ctx.lineWidth);
   ctx.stroke();
+
+  // The jade edge is the persistent affordance: available tiles are vivid and
+  // tactile, while blocked tiles recede. It keeps colour off the face artwork.
+  ctx.strokeStyle = 'rgba(31, 190, 87, 0.72)';
+  ctx.lineWidth = Math.max(1, w * 0.018);
+  ctx.beginPath();
+  ctx.moveTo(x + w * 0.18, y + h - ctx.lineWidth);
+  ctx.lineTo(x + w - radius * 0.58, y + h - ctx.lineWidth);
+  ctx.quadraticCurveTo(x + w - ctx.lineWidth, y + h - ctx.lineWidth, x + w - ctx.lineWidth, y + h - radius * 0.58);
+  ctx.stroke();
   ctx.restore();
 }
 

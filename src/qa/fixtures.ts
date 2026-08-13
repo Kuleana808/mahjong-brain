@@ -124,7 +124,7 @@ export async function applyQaFixture(id: QaFixtureId): Promise<void> {
     screen('home');
     useGame.setState((state) => ({
       settingsOpen: true,
-      settings: { ...state.settings, fontScale: id === 'S12-settings-large' ? 1.45 : 1 },
+      settings: { ...state.settings, fontScale: id === 'S12-settings-large' ? 2 : 1 },
     }));
   }
   if (id === 'S16-generic-offline') {

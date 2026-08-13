@@ -33,10 +33,10 @@ interface MatchCelebration {
   readonly origins: readonly DOMRect[];
 }
 
-const SHARDS = Array.from({ length: 12 }, (_, index) => ({
-  x: ((index * 37) % 92) - 46,
-  y: -34 - ((index * 23) % 54),
-  r: ((index * 47) % 150) - 75,
+const SHARDS = Array.from({ length: 18 }, (_, index) => ({
+  x: ((index * 43) % 132) - 66,
+  y: -38 - ((index * 29) % 76),
+  r: ((index * 53) % 210) - 105,
   delay: (index % 4) * 12,
 }));
 
@@ -75,7 +75,8 @@ function MatchCelebrationLayer({ celebration }: { celebration: MatchCelebration 
         className="match-celebration__word"
         style={{ left: centre.x / count, top: centre.y / count }}
       >
-        Match!
+        <strong>Perfect!</strong>
+        <small>+1</small>
       </span>
       {celebration.origins.map((origin, index) => <MatchBurst key={index} origin={origin} />)}
     </div>
@@ -283,7 +284,7 @@ export function BoardView() {
             if (after.holder.length < before.holder.length && !settings.reduceMotion) {
               const id = performance.now();
               setCelebration({ id, origins: heldOrigin ? [heldOrigin, incomingOrigin] : [incomingOrigin] });
-              window.setTimeout(() => setCelebration((active) => active?.id === id ? null : active), 620);
+              window.setTimeout(() => setCelebration((active) => active?.id === id ? null : active), 760);
             }
             setFlight(null);
           }}
