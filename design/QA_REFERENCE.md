@@ -97,7 +97,8 @@ For app-level fixtures in a development build, append `?qa=<QA ID>` to the local
 The complete P0 fixture set covers Terms rest/focus; age; loading online/offline;
 all tutorial steps; home new/progress/offline; gameplay holder counts 0–3 plus
 real match, hint, blocked, shuffle, and resume transitions; holder full; board
-complete; settings default/200%/offline; and generic offline/error/maintenance.
+complete; settings default/200%/offline; generic offline/error/maintenance; and
+both approved theme-picker tabs for swappable tiles and backgrounds.
 `S00-boot` remains a native cold-launch capture rather than a query fixture, so
 QA proves the actual pre-hydration frame instead of a simulated screen.
 

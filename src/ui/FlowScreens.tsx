@@ -255,7 +255,10 @@ export function HomeScreen() {
   const progression = useGame((s) => s.progression);
   const announcement = useGame((s) => s.announcement);
   const [levelsOpen, setLevelsOpen] = useState(false);
-  const [themeOpen, setThemeOpen] = useState(false);
+  const qaTheme = import.meta.env.DEV
+    ? new URLSearchParams(window.location.search).get('qa')
+    : null;
+  const [themeOpen, setThemeOpen] = useState(qaTheme === 'S19-theme-tiles' || qaTheme === 'S19-theme-backgrounds');
   const level = progression.level;
   const progress = progressionFraction(progression.xp);
   const serviceNotice = /Offline|temporarily unavailable|went wrong while syncing/i.test(announcement)
@@ -278,7 +281,12 @@ export function HomeScreen() {
         <button type="button" className="medallion" aria-label="Settings" onClick={() => openSettings(true)}><Icon name="settings" /></button>
       </div>
       {levelsOpen ? <LevelsSheet onClose={() => setLevelsOpen(false)} /> : null}
-      {themeOpen ? <ThemeSheet onClose={() => setThemeOpen(false)} /> : null}
+      {themeOpen ? (
+        <ThemeSheet
+          onClose={() => setThemeOpen(false)}
+          initialTab={qaTheme === 'S19-theme-backgrounds' ? 'background' : 'tiles'}
+        />
+      ) : null}
     </ScreenFrame>
   );
 }

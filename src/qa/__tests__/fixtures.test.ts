@@ -40,8 +40,18 @@ describe('deterministic QA fixtures', () => {
       'S09-holder-full', 'S10-complete',
       'S12-settings', 'S12-settings-large', 'S12-settings-offline',
       'S16-generic-offline', 'S17-generic-error', 'S18-maintenance',
+      'S19-theme-tiles', 'S19-theme-backgrounds',
     ] as const;
     for (const id of required) expect(QA_FIXTURE_IDS).toContain(id);
+  });
+
+  it('anchors both theme fixtures on home with approved local selections', async () => {
+    for (const id of ['S19-theme-tiles', 'S19-theme-backgrounds'] as const) {
+      await applyQaFixture(id);
+      expect(useGame.getState().flow.screen).toBe('home');
+      expect(useGame.getState().settings.tileStyle).toBeTruthy();
+      expect(useGame.getState().settings.theme).toBeTruthy();
+    }
   });
 
   it('creates a real match transition through the public tap action', async () => {

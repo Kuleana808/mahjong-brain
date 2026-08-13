@@ -180,10 +180,10 @@ const SIZES: { value: number; label: string }[] = [
   { value: 1.45, label: 'Largest' },
 ];
 
-export function ThemeSheet({ onClose }: { onClose: () => void }) {
+export function ThemeSheet({ onClose, initialTab = 'tiles' }: { onClose: () => void; initialTab?: 'tiles' | 'background' }) {
   const settings = useGame((s) => s.settings);
   const update = useGame((s) => s.updateSettings);
-  const [tab, setTab] = useState<'tiles' | 'background'>('tiles');
+  const [tab, setTab] = useState<'tiles' | 'background'>(initialTab);
 
   return (
     <Overlay label="Theme">

@@ -35,6 +35,8 @@ export const QA_FIXTURE_IDS = [
   'S16-generic-offline',
   'S17-generic-error',
   'S18-maintenance',
+  'S19-theme-tiles',
+  'S19-theme-backgrounds',
 ] as const;
 
 export type QaFixtureId = (typeof QA_FIXTURE_IDS)[number];
@@ -92,6 +94,8 @@ export async function applyQaFixture(id: QaFixtureId): Promise<void> {
     'S07-home-new': 'home',
     'S07-home-progress': 'home',
     'S07-home-offline': 'home',
+    'S19-theme-tiles': 'home',
+    'S19-theme-backgrounds': 'home',
   };
   const flowScreen = flowScreens[id];
   if (flowScreen) {
