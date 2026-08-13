@@ -19,11 +19,28 @@ const app = join(archive, 'Products/Applications/App.app');
 const infoPath = join(app, 'Info.plist');
 const failures = [];
 
+const xmlValue = (key) => {
+  const xml = readFileSync(infoPath, 'utf8');
+  const escaped = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const scalar = xml.match(new RegExp(`<key>${escaped}</key>\\s*<(string|integer)>([^<]*)</\\1>`));
+  if (scalar) return scalar[2];
+  const array = xml.match(new RegExp(`<key>${escaped}</key>\\s*<array>([\\s\\S]*?)</array>`));
+  if (!array) return '';
+  return [...array[1].matchAll(/<(?:string|integer)>([^<]*)<\/(?:string|integer)>/g)]
+    .map((match) => match[1])
+    .join('\n');
+};
+
 const plistValue = (key) => {
+  if (process.platform !== 'darwin') return xmlValue(key);
   try {
     return execFileSync('/usr/libexec/PlistBuddy', ['-c', `Print :${key}`, infoPath], { encoding: 'utf8' }).trim();
   } catch {
-    return '';
+    try {
+      return xmlValue(key);
+    } catch {
+      return '';
+    }
   }
 };
 

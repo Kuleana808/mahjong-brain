@@ -12,15 +12,15 @@ function archive(bundleId = 'com.nihi.mahjong') {
   created.push(root);
   const app = join(root, 'Products/Applications/App.app');
   mkdirSync(join(app, 'public'), { recursive: true });
-  const plist = {
-    CFBundleIdentifier: bundleId,
-    CFBundleDisplayName: 'Mahjong Brain',
-    CFBundleShortVersionString: '1.0',
-    CFBundleVersion: '2',
-    MinimumOSVersion: '15.0',
-    UIDeviceFamily: [1, 2],
-  };
-  writeFileSync(join(app, 'Info.plist'), execFileSync('plutil', ['-convert', 'xml1', '-o', '-', '--', '-'], { input: JSON.stringify(plist) }));
+  writeFileSync(join(app, 'Info.plist'), `<?xml version="1.0" encoding="UTF-8"?>
+<plist version="1.0"><dict>
+<key>CFBundleIdentifier</key><string>${bundleId}</string>
+<key>CFBundleDisplayName</key><string>Mahjong Brain</string>
+<key>CFBundleShortVersionString</key><string>1.0</string>
+<key>CFBundleVersion</key><string>2</string>
+<key>MinimumOSVersion</key><string>15.0</string>
+<key>UIDeviceFamily</key><array><integer>1</integer><integer>2</integer></array>
+</dict></plist>`);
   for (const path of ['PrivacyInfo.xcprivacy', 'AppIcon60x60@2x.png', 'AppIcon76x76@2x~ipad.png', 'public/brand-mark.png', 'public/favicon.png']) {
     writeFileSync(join(app, path), 'asset');
   }
