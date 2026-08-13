@@ -15,10 +15,22 @@
       name="description"
       content="Mahjong Brain — a calm, readable mahjong solitaire game with a four-slot holder."
     />
+    <style>
+      html,body,#root{width:100%;height:100%;margin:0;background:#002f27}
+      .boot-shell{height:100%;display:grid;place-content:center;justify-items:center;gap:14px;color:#f5ecd5;background:radial-gradient(circle at 50% 42%,#16594866,transparent 34%),linear-gradient(145deg,#00483c,#002f27);font:700 21px Georgia,serif}
+      .boot-shell img{width:min(27vw,124px);height:auto;border-radius:24%;filter:drop-shadow(0 12px 14px #00120e70)}
+    </style>
     <title>Mahjong Brain</title>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <!-- Visible before React and native persistence hydrate. This prevents a
+           blank emerald frame on slower WebKit starts; React replaces it. -->
+      <div class="boot-shell" role="status" aria-label="Opening Mahjong Brain">
+        <img src="/brand-mark.png" alt="" width="112" height="112" />
+        <span>Mahjong Brain</span>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

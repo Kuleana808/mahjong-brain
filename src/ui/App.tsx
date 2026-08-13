@@ -70,7 +70,12 @@ export function App() {
   }, [settings.theme, settings.tileStyle, settings.fontScale, nativeAccessibility.textScale]);
 
   if (!hydrated) {
-    return <div className="app app--boot" aria-label="Opening Mahjong Brain" />;
+    return (
+      <div className="app app--boot" role="status" aria-label="Opening Mahjong Brain">
+        <img src="/brand-mark.png" alt="" width="112" height="112" />
+        <span>Mahjong Brain</span>
+      </div>
+    );
   }
 
   const isGameplay = screen === 'gameplay';

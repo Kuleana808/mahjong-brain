@@ -119,17 +119,44 @@ a:focus-visible {
   background-size: 180px 180px, 240px 240px;
 }
 
-.app--boot::after {
-  content: '';
-  position: absolute;
-  width: 56px;
-  height: 56px;
-  left: calc(50% - 28px);
-  top: calc(50% - 28px);
-  border: 5px solid rgba(245, 236, 213, 0.3);
-  border-top-color: var(--ivory-100);
-  border-radius: 50%;
-  animation: spin 800ms linear infinite;
+.boot-shell,
+.app--boot {
+  min-height: 100%;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 14px;
+  color: var(--ivory-100);
+  background:
+    radial-gradient(circle at 50% 42%, rgba(22, 89, 72, 0.4), transparent 34%),
+    linear-gradient(145deg, var(--jade-900), var(--jade-950));
+}
+
+.boot-shell img,
+.app--boot img {
+  width: clamp(96px, 27vw, 124px);
+  height: auto;
+  border-radius: 24%;
+  filter: drop-shadow(0 12px 14px rgba(0, 18, 14, 0.44));
+  animation: boot-breathe 1200ms ease-in-out infinite alternate;
+}
+
+.boot-shell span,
+.app--boot span {
+  font-family: var(--font-display);
+  font-size: 1.32rem;
+  font-weight: 700;
+  letter-spacing: 0.015em;
+}
+
+@keyframes boot-breathe {
+  from { transform: translateY(0) scale(0.985); opacity: 0.9; }
+  to { transform: translateY(-3px) scale(1); opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .boot-shell img,
+  .app--boot img { animation: none; }
 }
 
 .app--flow { display: block; height: 100%; overflow-y: auto; }
