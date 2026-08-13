@@ -104,6 +104,15 @@ if (process.env.APPLE_BUNDLE_ID && capacitorBundleId && process.env.APPLE_BUNDLE
   blockers.push(`APPLE_BUNDLE_ID (${process.env.APPLE_BUNDLE_ID}) does not match the app bundle id (${capacitorBundleId}).`);
 }
 
+const marketingVersions = [...new Set([...project.matchAll(/MARKETING_VERSION\s*=\s*([^;]+);/g)].map((match) => match[1].trim()))];
+const buildNumbers = [...new Set([...project.matchAll(/CURRENT_PROJECT_VERSION\s*=\s*([^;]+);/g)].map((match) => match[1].trim()))];
+if (marketingVersions.length !== 1 || !/^\d+\.\d+(?:\.\d+)?$/.test(marketingVersions[0] ?? '')) {
+  blockers.push(`The iOS project does not have one valid marketing version: ${marketingVersions.join(', ') || 'none found'}.`);
+}
+if (buildNumbers.length !== 1 || !/^\d+$/.test(buildNumbers[0] ?? '') || Number(buildNumbers[0]) < 1) {
+  blockers.push(`The iOS project does not have one positive integer build number: ${buildNumbers.join(', ') || 'none found'}.`);
+}
+
 const types = read('packages/core/src/contracts/types.ts');
 if (types.includes(PLACEHOLDER_BUNDLE_ID)) {
   blockers.push('PRODUCT_CATALOGUE still carries placeholder product ids derived from the bundle id.');

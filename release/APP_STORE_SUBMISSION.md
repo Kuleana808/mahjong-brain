@@ -97,3 +97,9 @@ fails closed on release configuration, rebuilds and syncs the production app
 into the ignored Capacitor native bundle, and verifies every bundled file
 byte-for-byte. A successful Xcode build without this check is not evidence that
 the archive contains the current UI or brand assets.
+
+After archiving, run `npm run ios:verify-archive -- /path/to/MahjongBrain.xcarchive`.
+This independently checks the bundle identifier, display name, marketing/build
+versions, minimum iOS, iPhone/iPad support, privacy manifest, compiled icons,
+and current web brand assets inside the archive. The archive still requires
+Apple signing, validation, upload, and processing evidence afterward.
