@@ -88,8 +88,14 @@ for (const path of required) {
 }
 
 const indexPath = join(app, 'public/index.html');
-if (existsSync(indexPath) && !readFileSync(indexPath, 'utf8').includes('/favicon.png')) {
-  failures.push('Archived app does not reference the approved favicon.');
+if (existsSync(indexPath)) {
+  const index = readFileSync(indexPath, 'utf8');
+  if (!index.includes('/favicon.png')) {
+    failures.push('Archived app does not reference the approved favicon.');
+  }
+  if (!index.includes('class="boot-shell"') || !index.includes('/brand-mark.png')) {
+    failures.push('Archived app does not contain the branded pre-hydration boot shell.');
+  }
 }
 
 if (failures.length > 0) {

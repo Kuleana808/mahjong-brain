@@ -7,7 +7,11 @@ import { afterEach, describe, expect, it } from 'vitest';
 const script = new URL('../verify-ios-archive.mjs', import.meta.url).pathname;
 const created: string[] = [];
 
-function archive(bundleId = 'com.nihi.mahjong', phoneOrientation = 'UIInterfaceOrientationPortrait') {
+function archive(
+  bundleId = 'com.nihi.mahjong',
+  phoneOrientation = 'UIInterfaceOrientationPortrait',
+  brandedBoot = true,
+) {
   const root = mkdtempSync(join(tmpdir(), 'mahjong-archive-'));
   created.push(root);
   const app = join(root, 'Products/Applications/App.app');
@@ -26,7 +30,10 @@ function archive(bundleId = 'com.nihi.mahjong', phoneOrientation = 'UIInterfaceO
   for (const path of ['PrivacyInfo.xcprivacy', 'AppIcon60x60@2x.png', 'AppIcon76x76@2x~ipad.png', 'public/brand-mark.png', 'public/favicon.png']) {
     writeFileSync(join(app, path), 'asset');
   }
-  writeFileSync(join(app, 'public/index.html'), '<link rel="icon" href="/favicon.png">');
+  writeFileSync(
+    join(app, 'public/index.html'),
+    `<link rel="icon" href="/favicon.png">${brandedBoot ? '<div class="boot-shell"><img src="/brand-mark.png"></div>' : ''}`,
+  );
   return root;
 }
 
@@ -46,5 +53,9 @@ describe('iOS archive verification', () => {
 
   it('fails closed when the launch orientation drifts', () => {
     expect(() => execFileSync(process.execPath, [script, archive('com.nihi.mahjong', 'UIInterfaceOrientationLandscapeLeft')], { stdio: 'pipe' })).toThrow();
+  });
+
+  it('fails closed when the pre-hydration brand shell is missing', () => {
+    expect(() => execFileSync(process.execPath, [script, archive('com.nihi.mahjong', 'UIInterfaceOrientationPortrait', false)], { stdio: 'pipe' })).toThrow();
   });
 });
