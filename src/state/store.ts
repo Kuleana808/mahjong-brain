@@ -139,6 +139,7 @@ interface GameStore {
   hydrate(): Promise<void>;
   dispatchFlow(action: FlowAction): void;
   start(layoutId?: LayoutId): void;
+  newBoard(layoutId?: LayoutId): void;
   tapTile(id: number): void;
   clearSelection(): void;
   requestHint(): Promise<void>;
@@ -527,6 +528,18 @@ export const useGame = create<GameStore>((set, get) => {
         session: freshSession(),
         announcement: `New board. ${play.board.remaining.size} tiles.`,
       });
+      persist();
+    },
+
+    newBoard(layoutId) {
+      // A fresh-board command is navigation plus state replacement. Keep it in
+      // one store action so Settings cannot deal a board behind Home, and so
+      // gameplay callers cannot accidentally remain on a result screen.
+      const screen = get().flow.screen;
+      if (screen === 'gameplay') get().dispatchFlow({ type: 'leave_board' });
+      get().start(layoutId);
+      get().dispatchFlow({ type: 'start_board' });
+      set({ settingsOpen: false, paywallOpen: false });
       persist();
     },
 

@@ -563,6 +563,61 @@ describe('persistence', () => {
     expect(useGame.getState().holder).toEqual([free.id]);
   });
 
+  it('opens a fresh playable board when New board is chosen from Home settings', async () => {
+    await useGame.getState().hydrate();
+    useGame.setState({
+      flow: {
+        screen: 'home',
+        ageBlocked: false,
+        progress: {
+          tosAcceptedAt: '2026-08-10T00:00:00.000Z',
+          agePassed: true,
+          tutorialCompleted: 'tutorial_c',
+          tutorialSkipped: false,
+          boardsCompleted: 0,
+        },
+      },
+      settingsOpen: true,
+    });
+    const previousSeed = useGame.getState().board!.seed;
+
+    useGame.getState().newBoard();
+
+    expect(useGame.getState().flow.screen).toBe('gameplay');
+    expect(useGame.getState().settingsOpen).toBe(false);
+    expect(useGame.getState().status).toBe('playing');
+    expect(useGame.getState().board!.seed).not.toBe(previousSeed);
+  });
+
+  it('replaces an active board and stays in gameplay when New board is chosen in-game', async () => {
+    await useGame.getState().hydrate();
+    useGame.setState({
+      flow: {
+        screen: 'gameplay',
+        ageBlocked: false,
+        progress: {
+          tosAcceptedAt: '2026-08-10T00:00:00.000Z',
+          agePassed: true,
+          tutorialCompleted: 'tutorial_c',
+          tutorialSkipped: false,
+          boardsCompleted: 0,
+        },
+      },
+      settingsOpen: true,
+    });
+    const tile = freeTiles(useGame.getState().board!)[0];
+    useGame.getState().tapTile(tile.id);
+    const previousSeed = useGame.getState().board!.seed;
+
+    useGame.getState().newBoard();
+
+    expect(useGame.getState().flow.screen).toBe('gameplay');
+    expect(useGame.getState().settingsOpen).toBe(false);
+    expect(useGame.getState().board!.seed).not.toBe(previousSeed);
+    expect(useGame.getState().holder).toEqual([]);
+    expect(useGame.getState().tapHistory).toEqual([]);
+  });
+
   it('starts a fresh board when there is nothing saved', async () => {
     await useGame.getState().hydrate();
     expect(useGame.getState().board).not.toBeNull();

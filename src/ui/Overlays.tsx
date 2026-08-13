@@ -36,7 +36,7 @@ function Overlay({ label, children }: { label: string; children: ReactNode }) {
 }
 
 export function CompletionCard() {
-  const start = useGame((s) => s.start);
+  const newBoard = useGame((s) => s.newBoard);
   const boardsCompleted = useGame((s) => s.boardsCompleted);
 
   return (
@@ -47,7 +47,7 @@ export function CompletionCard() {
           ? 'That is one board down.'
           : `That is ${boardsCompleted} boards down.`}
       </p>
-      <button type="button" className="button" onClick={() => start()}>
+      <button type="button" className="button" onClick={() => newBoard()}>
         Play again
       </button>
     </Overlay>
@@ -222,7 +222,7 @@ export function SettingsSheet() {
   const settings = useGame((s) => s.settings);
   const update = useGame((s) => s.updateSettings);
   const openSettings = useGame((s) => s.openSettings);
-  const start = useGame((s) => s.start);
+  const newBoard = useGame((s) => s.newBoard);
   const unlocked = useGame((s) => s.unlocked);
   const restore = useGame((s) => s.restore);
   const purchasePending = useGame((s) => s.purchasePending);
@@ -359,10 +359,7 @@ export function SettingsSheet() {
       <button
         type="button"
         className="button button--quiet"
-        onClick={() => {
-          openSettings(false);
-          start();
-        }}
+        onClick={() => newBoard()}
       >
         New board
       </button>

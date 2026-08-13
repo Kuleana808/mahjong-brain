@@ -15,7 +15,7 @@ export function HintBar() {
   const status = useGame((s) => s.status);
   const dismissHint = useGame((s) => s.dismissHint);
   const shuffleBoard = useGame((s) => s.shuffleBoard);
-  const start = useGame((s) => s.start);
+  const newBoard = useGame((s) => s.newBoard);
 
   if (status === 'stuck' && board) {
     // A shuffle moves faces, never positions. If the last tiles are stacked,
@@ -33,7 +33,7 @@ export function HintBar() {
           <button
             type="button"
             className="hint__dismiss"
-            onClick={shufflable ? shuffleBoard : () => start()}
+            onClick={shufflable ? shuffleBoard : () => newBoard()}
           >
             {shufflable ? 'Shuffle' : 'New board'}
           </button>
