@@ -7,7 +7,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 const script = new URL('../verify-ios-archive.mjs', import.meta.url).pathname;
 const created: string[] = [];
 
-function archive(bundleId = 'com.nihi.mahjong') {
+function archive(bundleId = 'com.nihi.mahjong', phoneOrientation = 'UIInterfaceOrientationPortrait') {
   const root = mkdtempSync(join(tmpdir(), 'mahjong-archive-'));
   created.push(root);
   const app = join(root, 'Products/Applications/App.app');
@@ -20,6 +20,8 @@ function archive(bundleId = 'com.nihi.mahjong') {
 <key>CFBundleVersion</key><string>2</string>
 <key>MinimumOSVersion</key><string>15.0</string>
 <key>UIDeviceFamily</key><array><integer>1</integer><integer>2</integer></array>
+<key>UISupportedInterfaceOrientations</key><array><string>${phoneOrientation}</string></array>
+<key>UISupportedInterfaceOrientations~ipad</key><array><string>UIInterfaceOrientationPortrait</string><string>UIInterfaceOrientationPortraitUpsideDown</string></array>
 </dict></plist>`);
   for (const path of ['PrivacyInfo.xcprivacy', 'AppIcon60x60@2x.png', 'AppIcon76x76@2x~ipad.png', 'public/brand-mark.png', 'public/favicon.png']) {
     writeFileSync(join(app, path), 'asset');
@@ -40,5 +42,9 @@ describe('iOS archive verification', () => {
 
   it('fails closed on a bundle identifier mismatch', () => {
     expect(() => execFileSync(process.execPath, [script, archive('com.example.wrong')], { stdio: 'pipe' })).toThrow();
+  });
+
+  it('fails closed when the launch orientation drifts', () => {
+    expect(() => execFileSync(process.execPath, [script, archive('com.nihi.mahjong', 'UIInterfaceOrientationLandscapeLeft')], { stdio: 'pipe' })).toThrow();
   });
 });

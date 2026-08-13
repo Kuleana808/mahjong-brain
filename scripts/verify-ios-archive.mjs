@@ -62,6 +62,17 @@ if (!existsSync(infoPath)) {
   if (!deviceFamily.includes('1') || !deviceFamily.includes('2')) {
     failures.push('Archive must support both iPhone and iPad device families.');
   }
+  const orientationValues = (key) => [...plistValue(key).matchAll(/UIInterfaceOrientation[A-Za-z]+/g)].map((match) => match[0]);
+  const phoneOrientations = orientationValues('UISupportedInterfaceOrientations');
+  if (phoneOrientations.length !== 1 || phoneOrientations[0] !== 'UIInterfaceOrientationPortrait') {
+    failures.push('iPhone launch build must remain portrait-only.');
+  }
+  const tabletOrientations = orientationValues('UISupportedInterfaceOrientations~ipad');
+  const expectedTabletOrientations = ['UIInterfaceOrientationPortrait', 'UIInterfaceOrientationPortraitUpsideDown'];
+  const actualTabletOrientations = tabletOrientations.sort();
+  if (actualTabletOrientations.join('\n') !== expectedTabletOrientations.sort().join('\n')) {
+    failures.push('iPad launch build must remain portrait and portrait-upside-down only.');
+  }
 }
 
 const required = [
