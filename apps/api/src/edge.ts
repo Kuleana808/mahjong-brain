@@ -17,7 +17,11 @@ export async function handleEdgeRequest(request: Request, ports: Ports): Promise
   if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: corsHeaders });
 
   const url = new URL(request.url);
-  const path = url.pathname.replace(/^\/functions\/v1\/contracts(?=\/|$)/, '') || '/';
+  // Local edge tests retain the full gateway prefix, while hosted Supabase
+  // forwards a pathname beginning at the function slug (`/contracts/...`).
+  const path = url.pathname
+    .replace(/^\/functions\/v1\/contracts(?=\/|$)/, '')
+    .replace(/^\/contracts(?=\/|$)/, '') || '/';
   let body: unknown;
   if (!['GET', 'HEAD'].includes(request.method)) {
     const raw = await request.text();

@@ -1,7 +1,3 @@
-import { createEdgePorts } from '../../../apps/api/src/edgeConfig.ts';
-import { handleEdgeRequest } from '../../../apps/api/src/edge.ts';
-
-const { ports, lines } = createEdgePorts((key) => Deno.env.get(key));
-for (const line of lines) console.info(line);
-
-Deno.serve((request) => handleEdgeRequest(request, ports));
+// This file is bundled from the shared API sources before deployment so Deno's
+// graph never depends on workspace package resolution in the hosted runtime.
+import './bundle.js';

@@ -18,6 +18,16 @@ describe('Supabase Edge request adapter', () => {
     expect(response.headers.get('access-control-allow-origin')).toBe('*');
   });
 
+  it('strips the hosted Supabase function slug and routes the same contract', async () => {
+    const response = await handleEdgeRequest(
+      new Request('https://edge-runtime.supabase.co/contracts/api/game/board/generate?seed=7'),
+      ports,
+    );
+    const body = await response.json();
+    expect(response.status).toBe(200);
+    expect(body.contract).toBe('game/board/generate');
+  });
+
   it('answers preflight without invoking a contract', async () => {
     const response = await handleEdgeRequest(
       new Request('https://project.supabase.co/functions/v1/contracts/api/settings', { method: 'OPTIONS' }),
