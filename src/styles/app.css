@@ -168,6 +168,39 @@ a:focus-visible {
   padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
 }
 
+.recovery-banner {
+  position: fixed;
+  z-index: 40;
+  left: max(18px, env(safe-area-inset-left));
+  right: max(18px, env(safe-area-inset-right));
+  bottom: max(22px, calc(env(safe-area-inset-bottom) + 12px));
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  max-width: 620px;
+  margin-inline: auto;
+  padding: 14px 14px 14px 18px;
+  color: var(--ivory-100);
+  background: color-mix(in srgb, var(--jade-900) 94%, black);
+  border: 1px solid var(--bronze-400);
+  border-radius: 18px;
+  box-shadow: 0 14px 30px rgba(0, 18, 14, 0.42);
+  font-size: 0.95rem;
+  line-height: 1.35;
+}
+
+.recovery-banner span { flex: 1; }
+.recovery-banner button {
+  min-width: 60px;
+  min-height: 48px;
+  padding: 0 14px;
+  border: 1px solid var(--amber-400);
+  border-radius: 14px;
+  color: var(--jade-950);
+  background: var(--ivory-100);
+  font-weight: 800;
+}
+
 .flow-screen {
   position: relative;
   z-index: 1;

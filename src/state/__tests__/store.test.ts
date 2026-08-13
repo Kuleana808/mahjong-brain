@@ -685,6 +685,8 @@ describe('persistence', () => {
     expect(useGame.getState().board).not.toBeNull();
     expect(useGame.getState().announcement).toMatch(/could not be restored/i);
     expect(useGame.getState().announcement).toMatch(/local play is still available/i);
+    useGame.getState().dismissAnnouncement();
+    expect(useGame.getState().announcement).toBe('');
   });
 
   it('recovers an unsupported saved-state version instead of trusting it', async () => {

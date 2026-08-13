@@ -38,6 +38,7 @@ export function App() {
   const paywallOpen = useGame((s) => s.paywallOpen);
   const settingsOpen = useGame((s) => s.settingsOpen);
   const announcement = useGame((s) => s.announcement);
+  const dismissAnnouncement = useGame((s) => s.dismissAnnouncement);
 
   useEffect(() => {
     configureNativePurchases();
@@ -117,6 +118,13 @@ export function App() {
       <p aria-live="polite" className="visually-hidden">
         {announcement}
       </p>
+
+      {announcement.includes('Saved progress could not be restored') ? (
+        <aside className="recovery-banner" role="status">
+          <span>{announcement}</span>
+          <button type="button" onClick={dismissAnnouncement}>Got it</button>
+        </aside>
+      ) : null}
 
       {paywallOpen ? <Paywall /> : null}
     </div>

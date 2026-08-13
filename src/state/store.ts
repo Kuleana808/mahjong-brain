@@ -142,6 +142,7 @@ interface GameStore {
   newBoard(layoutId?: LayoutId): void;
   tapTile(id: number): void;
   clearSelection(): void;
+  dismissAnnouncement(): void;
   requestHint(): Promise<void>;
   dismissHint(): void;
   undo(): void;
@@ -643,6 +644,10 @@ export const useGame = create<GameStore>((set, get) => {
 
     clearSelection() {
       set({ selectedId: null });
+    },
+
+    dismissAnnouncement() {
+      set({ announcement: '' });
     },
 
     async requestHint() {
