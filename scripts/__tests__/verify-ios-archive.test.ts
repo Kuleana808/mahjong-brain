@@ -1,10 +1,17 @@
 import { execFileSync } from 'node:child_process';
-import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { afterEach, describe, expect, it } from 'vitest';
 
 const script = new URL('../verify-ios-archive.mjs', import.meta.url).pathname;
+const project = readFileSync(
+  join(dirname(fileURLToPath(import.meta.url)), '../../ios/App/App.xcodeproj/project.pbxproj'),
+  'utf8',
+);
+const currentBuild = project.match(/CURRENT_PROJECT_VERSION\s*=\s*([^;]+);/)?.[1].trim();
+if (!currentBuild) throw new Error('Could not read CURRENT_PROJECT_VERSION from the Xcode project.');
 const created: string[] = [];
 
 function archive(
@@ -21,7 +28,7 @@ function archive(
 <key>CFBundleIdentifier</key><string>${bundleId}</string>
 <key>CFBundleDisplayName</key><string>Mahjong Brain</string>
 <key>CFBundleShortVersionString</key><string>1.0</string>
-<key>CFBundleVersion</key><string>2</string>
+<key>CFBundleVersion</key><string>${currentBuild}</string>
 <key>MinimumOSVersion</key><string>15.0</string>
 <key>UIDeviceFamily</key><array><integer>1</integer><integer>2</integer></array>
 <key>UISupportedInterfaceOrientations</key><array><string>${phoneOrientation}</string></array>
