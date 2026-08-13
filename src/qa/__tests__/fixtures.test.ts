@@ -22,4 +22,10 @@ describe('deterministic QA fixtures', () => {
     }
     expect(useGame.getState().status).toBe('holder_full');
   });
+
+  it('keeps the resume fixture visibly truthful', async () => {
+    await applyQaFixture('S08-game-resume');
+    expect(useGame.getState().holder).toHaveLength(1);
+    expect(useGame.getState().announcement).toMatch(/restored/i);
+  });
 });

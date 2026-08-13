@@ -20,6 +20,8 @@ export const QA_FIXTURE_IDS = [
   'S08-game-three',
   'S08-game-hint',
   'S08-game-blocked',
+  'S08-game-shuffle',
+  'S08-game-resume',
   'S09-holder-full',
   'S10-complete',
   'S12-settings',
@@ -100,6 +102,14 @@ export async function applyQaFixture(id: QaFixtureId): Promise<void> {
     const blocked = state.board!.tiles.find((tile) => state.board!.remaining.has(tile.id) && !free.has(tile.id));
     if (blocked) state.tapTile(blocked.id);
   }
+  if (id === 'S08-game-shuffle') {
+    gameplay(2);
+    useGame.getState().shuffleBoard();
+  }
+  if (id === 'S08-game-resume') {
+    gameplay(1);
+    useGame.setState({ announcement: 'Saved game restored. One of four holder slots occupied.' });
+  }
   if (id === 'S09-holder-full') gameplay(4);
   if (id === 'S10-complete') {
     gameplay(0);
@@ -128,4 +138,8 @@ export async function applyQaFixture(id: QaFixtureId): Promise<void> {
 export function qaFixtureFromLocation(): QaFixtureId | null {
   const requested = new URLSearchParams(window.location.search).get('qa');
   return QA_FIXTURE_IDS.includes(requested as QaFixtureId) ? (requested as QaFixtureId) : null;
+}
+
+export function qaFixtureActive(): boolean {
+  return qaFixtureFromLocation() !== null;
 }

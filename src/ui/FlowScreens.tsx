@@ -124,6 +124,7 @@ export function AgeScreen() {
 export function LoadingScreen() {
   const dispatch = useGame((s) => s.dispatchFlow);
   useEffect(() => {
+    if (import.meta.env.DEV && new URLSearchParams(window.location.search).has('qa')) return;
     const id = window.setTimeout(() => dispatch({ type: 'loading_finished' }), 900);
     return () => window.clearTimeout(id);
   }, [dispatch]);
