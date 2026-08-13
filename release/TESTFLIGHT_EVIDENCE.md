@@ -8,14 +8,14 @@ upload, an upload is not processing, and processing is not tester availability.
 
 | Field | Evidence |
 |---|---|
-| Marketing version | PENDING |
-| Build number | PENDING; must be greater than 2 |
+| Marketing version | `1.0` |
+| Build number | `3` |
 | Bundle ID | `com.nihi.mahjong` |
 | Apple app ID | `6800468742` |
-| Git commit | PENDING; must be the merged release SHA |
+| Git commit | `9a063a9` candidate SHA; PR #10 remains review-required and unmerged |
 | Working tree clean | PENDING |
-| Archive path | PENDING |
-| Archive verification command/output | PENDING |
+| Archive path | `/tmp/MahjongBrain-build3.xcarchive` |
+| Archive verification command/output | `npm run ios:verify-archive -- /tmp/MahjongBrain-build3.xcarchive` passed: identity, version/build, iPhone+iPad, privacy and brand assets |
 
 ## Configuration gates
 
@@ -36,13 +36,13 @@ upload, an upload is not processing, and processing is not tester availability.
 
 | Check | Evidence |
 |---|---|
-| `npm test` | PENDING |
-| `npm run build` | PENDING |
-| `npm run preflight` | PENDING; must exit 0 |
-| `npm run check:design-drift` | PENDING |
-| `npm run check:brand-assets` | PENDING |
-| `npm run ios:prepare` | PENDING |
-| PR checks | PENDING |
+| `npm test` | 307 passed, 2026-08-13 |
+| `npm run build` | passed, production bundle generated |
+| `npm run preflight` | passed with production Supabase/API and StoreKit IDs configured |
+| `npm run check:design-drift` | Design lock v4 passed |
+| `npm run check:brand-assets` | Brand assets v2 passed |
+| `npm run ios:prepare` | passed; native web assets verified byte-for-byte |
+| PR checks | `check`, `native-ios`, and `original-art` passed on `4a9b0df`; build-3 SHA checks pending after push |
 
 ## Native QA matrix
 
@@ -73,8 +73,8 @@ Record device, OS, clean-install status, result, and screenshot/video path.
 
 | Stage | Evidence |
 |---|---|
-| Xcode archive completed | PENDING |
-| Upload completed | PENDING |
+| Xcode archive completed | Build 3 archive succeeded and passed repository archive verifier |
+| Upload completed | BLOCKED: Xcode reports no App Store Connect account for team `RCCA2K8UXV`; user must restore the account session in Xcode Settings > Accounts |
 | App Store Connect processing completed | PENDING |
 | Export compliance resolved | PENDING |
 | Internal testing group assigned | PENDING |

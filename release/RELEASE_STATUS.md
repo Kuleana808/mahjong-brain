@@ -50,6 +50,15 @@ purchase and restore, final privacy/accessibility answers, final native QA,
 screenshots, a fresh signed archive above build 2, upload, processing, and
 TestFlight verification.
 
+Build 3 was prepared from candidate commit `9a063a9` on 2026-08-13. All 307
+tests, preflight, native asset verification, simulator compilation, and a clean
+iPhone onboarding launch passed. `/tmp/MahjongBrain-build3.xcarchive` archived
+successfully and passed `ios:verify-archive`. Upload is currently blocked at the
+Apple account boundary: Xcode's distribution log says it cannot find an App
+Store Connect account for team `RCCA2K8UXV`. The user must restore that account
+session in Xcode Settings > Accounts before upload can continue. PR #10 also
+remains protected by its required external review; do not bypass it.
+
 The Mac keychain currently exposes only `Apple Development: Created via API` to
 command-line signing. Xcode nevertheless produced and uploaded build 2 using
 Apple's managed distribution preparation. A new release must repeat the signed
