@@ -270,7 +270,10 @@ export function render(canvas: HTMLCanvasElement, state: RenderState): View {
     ctx.globalAlpha *= motion?.alpha ?? 1;
     if (state.dimBlocked && !isFree && !isSelected && !isHinted) {
       ctx.globalAlpha *= state.palette.dimAlpha;
-      ctx.filter = 'saturate(62%) brightness(68%)';
+      // Keep blocked tiles materially present in the stack. Availability is a
+      // hierarchy cue, not a disabled-screen treatment: the ivory body and
+      // suit colours remain recognisable while free tiles stay unmistakable.
+      ctx.filter = 'saturate(72%) brightness(86%)';
     }
 
     drawTileBody(ctx, rect.x, drawY, rect.w, rect.h, state.palette, lift > 0, tile.z);

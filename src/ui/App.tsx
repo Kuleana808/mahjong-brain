@@ -105,6 +105,7 @@ export function App() {
       className={`app ${isSettings ? 'app--settings' : isGameplay ? 'app--gameplay' : 'app--flow'}`}
       data-reduce-motion={settings.reduceMotion || nativeAccessibility.reduceMotion}
       data-increase-contrast={nativeAccessibility.increaseContrast}
+      data-large-text={settings.fontScale * nativeAccessibility.textScale >= 1.8}
     >
       {isSettings ? (
         <SettingsSheet />
