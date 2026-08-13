@@ -287,8 +287,6 @@ export function ResultScreen() {
   const dispatch = useGame((s) => s.dispatchFlow);
   const completed = useGame((s) => s.boardsCompleted);
   const status = useGame((s) => s.status);
-  const freeReviveAvailable = useGame((s) => s.freeReviveAvailable);
-  const revive = useGame((s) => s.revive);
   const isFull = status === 'holder_full';
   return (
     <ScreenFrame className="flow-screen--result">
@@ -303,16 +301,7 @@ export function ResultScreen() {
               ? 'Your first board is complete.'
               : `${completed} boards complete.`}
         </p>
-        {isFull && freeReviveAvailable ? (
-          <>
-            <button type="button" className="primary-button revive-button" onClick={revive}>
-              Revive <span>Free</span>
-            </button>
-            <button type="button" className="ivory-button result-restart" onClick={() => dispatch({ type: 'start_board' })}>
-              Restart
-            </button>
-          </>
-        ) : isFull ? (
+        {isFull ? (
           <button type="button" className="primary-button" onClick={() => dispatch({ type: 'start_board' })}>
             Restart
           </button>

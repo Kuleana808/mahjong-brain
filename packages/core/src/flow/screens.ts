@@ -215,7 +215,7 @@ export function eventsFor(action: FlowAction, before: FlowState, after: FlowStat
       events.push('board_won');
       break;
     case 'holder_full':
-      events.push('holder_full', 'revive_offered');
+      events.push('holder_full');
       break;
     case 'revive':
       events.push('revive_granted');

@@ -6,7 +6,7 @@ QA uses this matrix with `DESIGN.md` and `design/design-lock.json`. Capture each
 
 ## Approved gameplay composition
 
-The canonical gameplay reference is the four-panel board approved on 2026-08-10: normal play, blocked-tile feedback, three-slot holder warning, and full-holder revive. It fixes the following composition for every gameplay state:
+The canonical gameplay reference is the four-panel board approved on 2026-08-10: normal play, blocked-tile feedback, three-slot holder warning, and the full-holder result. It fixes the following composition for every gameplay state:
 
 - large overlapping portrait tiles dominate the middle of the screen; the board is a layered silhouette, never a uniform grid;
 - tile faces are warm ivory fired ceramic with a satin glaze, a quiet top-left highlight, deep jade sides, and short contact shadows;
@@ -15,7 +15,7 @@ The canonical gameplay reference is the four-panel board approved on 2026-08-10:
 - Back, remaining count, and Settings occupy one fixed top row; the four-slot holder sits immediately below it;
 - The holder reads as one continuous dark-green tray. Empty positions are separated only by three quiet one-point vertical dividers, never four inset boxes.
 - Shuffle, Hint, and Undo form one fixed three-button bottom dock; gameplay feedback floats over the board without moving any chrome;
-- the full-holder state dims the board and presents one ivory sheet with Revive primary and Restart secondary.
+- the full-holder state dims the board and presents one ivory sheet with Restart primary. Revive remains hidden until a verified rewarded-ad grant exists; local telemetry never grants it.
 
 This written contract is the durable QA baseline. Competitor screenshots may explain scale or mechanics but are not visual assets and must not be copied into the product.
 
@@ -61,7 +61,7 @@ This written contract is the durable QA baseline. Competitor screenshots may exp
 | `S08-game-blocked` | Blocked tile attempt | No holder change; concise spoken feedback; no punitive shake. |
 | `S08-game-shuffle` | Shuffle | Board state updates; holder behavior follows contract; count and controls remain stable. |
 | `S08-game-resume` | Cold resume | Seed, remaining tiles, holder occupancy, and controls exactly restored. |
-| `S09-holder-full` | Four unmatched/full | Ivory warning/result panel, red semantic accent, Restart/Revive rules explicit. |
+| `S09-holder-full` | Four unmatched/full | Ivory warning/result panel, red semantic accent, Restart primary, and Revive hidden while its verified provider is unavailable. |
 | `S09-revive-pending` | Reward/purchase pending | Dimensions stable, progress visible, duplicate action disabled. |
 | `S09-revive-failed` | Revive unavailable | Factual failure, retry or home action, no grant without verification. |
 | `S10-complete` | Board complete | Success hierarchy, board count/level progress accurate, Continue primary. |

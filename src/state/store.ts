@@ -43,7 +43,6 @@ import {
   hintPair as holderHintPair,
   replaySession,
   shuffle as shufflePlaySession,
-  revive as revivePlaySession,
   startSession,
   tapTile as tapPlayTile,
   type PlaySession,
@@ -128,7 +127,6 @@ interface GameStore {
   purchaseDisplayPrice: string | null;
   paywallOpen: boolean;
   settingsOpen: boolean;
-  freeReviveAvailable: boolean;
   hydrated: boolean;
   accountStatus: 'unavailable' | 'signed_out' | 'signing_in' | 'signed_in';
   accountId: string | null;
@@ -147,7 +145,6 @@ interface GameStore {
   dismissHint(): void;
   undo(): void;
   shuffleBoard(): void;
-  revive(): void;
   updateSettings(patch: Partial<Settings>): void;
   openSettings(open: boolean): void;
   closePaywall(): void;
@@ -273,7 +270,6 @@ export const useGame = create<GameStore>((set, get) => {
                 }
               : null,
             status: s.status,
-            freeReviveAvailable: s.freeReviveAvailable,
             session: s.session,
           }
         : null,
@@ -302,7 +298,6 @@ export const useGame = create<GameStore>((set, get) => {
     purchaseDisplayPrice: null,
     paywallOpen: false,
     settingsOpen: false,
-    freeReviveAvailable: true,
     hydrated: false,
     accountStatus: appleSignInAvailable() ? 'signed_out' : 'unavailable',
     accountId: null,
@@ -403,7 +398,6 @@ export const useGame = create<GameStore>((set, get) => {
               status?: Status;
             } | null;
             status?: Status;
-            freeReviveAvailable?: boolean;
             layoutId: LayoutId;
             seed: number;
             removed: [number, number][];
@@ -450,7 +444,6 @@ export const useGame = create<GameStore>((set, get) => {
           tapHistory: baselineValid ? resume.tapHistory ?? [] : [],
           undoBaseline,
           status: restoredStatus,
-          freeReviveAvailable: resume.freeReviveAvailable ?? true,
           session: resume.session ?? freshSession(),
         });
       } else if (resume?.layoutId) {
@@ -546,7 +539,6 @@ export const useGame = create<GameStore>((set, get) => {
         status: 'playing',
         selectedId: null,
         hint: null,
-        freeReviveAvailable: true,
         session: freshSession(),
         announcement: `New board. ${play.board.remaining.size} tiles.`,
       });
@@ -732,27 +724,6 @@ export const useGame = create<GameStore>((set, get) => {
         announcement: 'Tiles reshuffled.',
         session: { ...get().session, shufflesUsed: (get().session.shufflesUsed ?? 0) + 1 },
       });
-      persist();
-    },
-
-    revive() {
-      const { board, holder, status, freeReviveAvailable, settings } = get();
-      if (!board || status !== 'holder_full' || !freeReviveAvailable) return;
-      void track('revive_tapped', { layout: board.layoutId, seed: board.seed, placement: 'revive' });
-      const next = revivePlaySession(playSessionFromState(board, holder, status));
-      if (next.status !== 'playing') return;
-      playSound('match', settings.sounds);
-      set({
-        board: next.board,
-        holder: next.holder,
-        tapHistory: [],
-        undoBaseline: { board: next.board, holder: next.holder, status: 'playing' },
-        status: 'playing',
-        freeReviveAvailable: false,
-        announcement: 'Free revive used. The held tiles returned to the board.',
-        session: { ...get().session, revivesUsed: (get().session.revivesUsed ?? 0) + 1 },
-      });
-      get().dispatchFlow({ type: 'revive' });
       persist();
     },
 

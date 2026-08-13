@@ -216,12 +216,12 @@ describe('instrumentation is attached to the machine, not the views', () => {
     expect(emitted).toContain('tutorial_step_completed');
   });
 
-  it('offers a revive at the moment the holder fills', () => {
+  it('records holder full without claiming an unverified revive offer', () => {
     const state = reduce(onboard(), { type: 'start_board' });
     const action: FlowAction = { type: 'holder_full' };
     const events = eventsFor(action, state, reduce(state, action));
     expect(events).toContain('holder_full');
-    expect(events).toContain('revive_offered');
+    expect(events).not.toContain('revive_offered');
   });
 
   it('only emits names the catalogue knows', () => {

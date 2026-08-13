@@ -65,7 +65,6 @@ async function reset() {
     deviceUnlocked: false,
     unlocked: false,
     paywallOpen: false,
-    freeReviveAvailable: true,
     hydrated: false,
   });
 }
@@ -491,7 +490,7 @@ describe('persistence', () => {
     expect(useGame.getState().board!.tiles.map((tile) => tile.face)).toEqual(faces);
   });
 
-  it('persists a single free revive and never silently replenishes it', async () => {
+  it('fails closed instead of exposing an unverified client-side revive', async () => {
     await useGame.getState().hydrate();
     const board = useGame.getState().board!;
     const holder = [...board.remaining].slice(0, 4);
@@ -502,22 +501,15 @@ describe('persistence', () => {
       holder,
       status: 'holder_full',
       flow: { ...useGame.getState().flow, screen: 'game_over' },
-      freeReviveAvailable: true,
     });
 
-    useGame.getState().revive();
-    expect(useGame.getState().status).toBe('playing');
-    expect(useGame.getState().holder).toEqual([]);
-    expect(useGame.getState().freeReviveAvailable).toBe(false);
-    for (const id of holder) expect(useGame.getState().board!.remaining.has(id)).toBe(true);
-    await Promise.resolve();
-
-    useGame.setState({ ...initial, board: null, status: 'idle', hydrated: false });
-    await useGame.getState().hydrate();
-    expect(useGame.getState().freeReviveAvailable).toBe(false);
+    expect('revive' in useGame.getState()).toBe(false);
+    expect(useGame.getState().status).toBe('holder_full');
+    expect(useGame.getState().holder).toEqual(holder);
+    for (const id of holder) expect(useGame.getState().board!.remaining.has(id)).toBe(false);
   });
 
-  it('does not count a paused holder-full board before the revive decision', async () => {
+  it('does not count a paused holder-full board before the player chooses restart or home', async () => {
     await useGame.getState().hydrate();
     const board = useGame.getState().board!;
     const holder = [...board.remaining].slice(0, 4);
@@ -528,11 +520,8 @@ describe('persistence', () => {
       holder,
       status: 'holder_full',
       flow: { ...useGame.getState().flow, screen: 'game_over' },
-      freeReviveAvailable: true,
     });
 
-    expect(useGame.getState().progression.boardsPlayed).toBe(0);
-    useGame.getState().revive();
     expect(useGame.getState().progression.boardsPlayed).toBe(0);
   });
 
