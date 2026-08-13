@@ -12,6 +12,7 @@
 import { Preferences } from '@capacitor/preferences';
 
 const KEY = 'mahjongbrain.state.v1';
+let writeQueue: Promise<void> = Promise.resolve();
 
 export interface PersistedState {
   readonly version: 1;
@@ -21,22 +22,38 @@ export interface PersistedState {
   readonly resume: unknown;
 }
 
-export async function loadPersisted(): Promise<PersistedState | null> {
+export interface PersistedLoadResult {
+  readonly state: PersistedState | null;
+  readonly recoveredFromCorruption: boolean;
+}
+
+export async function loadPersisted(): Promise<PersistedLoadResult> {
   try {
     const { value } = await Preferences.get({ key: KEY });
-    if (!value) return null;
+    if (!value) return { state: null, recoveredFromCorruption: false };
     const parsed = JSON.parse(value) as PersistedState;
-    return parsed.version === 1 ? parsed : null;
+    return parsed.version === 1
+      ? { state: parsed, recoveredFromCorruption: false }
+      : { state: null, recoveredFromCorruption: true };
   } catch {
     // A corrupt blob must never stop the game starting.
-    return null;
+    return { state: null, recoveredFromCorruption: true };
   }
 }
 
 export async function savePersisted(state: PersistedState): Promise<void> {
-  try {
-    await Preferences.set({ key: KEY, value: JSON.stringify(state) });
-  } catch {
-    // Storage full or unavailable — the current session still plays fine.
-  }
+  const value = JSON.stringify(state);
+  writeQueue = writeQueue.then(async () => {
+    try {
+      await Preferences.set({ key: KEY, value });
+    } catch {
+      // Storage full or unavailable — the current session still plays fine.
+    }
+  });
+  await writeQueue;
+}
+
+/** Wait until the newest queued snapshot is durable before iOS backgrounds us. */
+export function flushPersisted(): Promise<void> {
+  return writeQueue;
 }

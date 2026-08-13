@@ -36,11 +36,13 @@ vi.mock('../../render/boardRenderer', () => ({
 const { availableMoves, freeTiles } = await import('../../../packages/core/src/game/board');
 const { createRng } = await import('../../../packages/core/src/game/rng');
 const { MockPurchases, setPurchases } = await import('../../iap');
+const { flushPersisted } = await import('../persist');
 const { PAYWALL_AFTER_BOARDS, useGame, DEFAULT_SETTINGS } = await import('../store');
 
 const initial = useGame.getState();
 
-function reset() {
+async function reset() {
+  await flushPersisted();
   store.clear();
   // New boards draw their seed from Math.random. Pin it so these tests are
   // reproducible: a failure here must be re-runnable, not a coin flip.
@@ -144,8 +146,7 @@ describe('session flow', () => {
     });
 
     const hydration = useGame.getState().hydrate();
-    await Promise.resolve();
-    await Promise.resolve();
+    await vi.waitFor(() => expect(useGame.getState().hydrated).toBe(true));
 
     expect(useGame.getState().hydrated).toBe(true);
     expect(useGame.getState().board).not.toBeNull();
@@ -673,6 +674,26 @@ describe('persistence', () => {
     await useGame.getState().hydrate();
     expect(useGame.getState().board).not.toBeNull();
     expect(useGame.getState().board!.removed).toEqual([]);
+  });
+
+  it('recovers corrupt saved progress with an honest announcement', async () => {
+    store.set('mahjongbrain.state.v1', '{not-json');
+
+    await useGame.getState().hydrate();
+
+    expect(useGame.getState().hydrated).toBe(true);
+    expect(useGame.getState().board).not.toBeNull();
+    expect(useGame.getState().announcement).toMatch(/could not be restored/i);
+    expect(useGame.getState().announcement).toMatch(/local play is still available/i);
+  });
+
+  it('recovers an unsupported saved-state version instead of trusting it', async () => {
+    store.set('mahjongbrain.state.v1', JSON.stringify({ version: 99, settings: {}, progress: {}, resume: null }));
+
+    await useGame.getState().hydrate();
+
+    expect(useGame.getState().board).not.toBeNull();
+    expect(useGame.getState().announcement).toMatch(/fresh board is ready/i);
   });
 
   it('keeps settings across a restart', async () => {

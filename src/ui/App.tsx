@@ -14,6 +14,7 @@ import {
   type NativeAccessibilityPreferences,
 } from '../accessibility/native';
 import { configureNativePurchases } from '../iap';
+import { flushPersisted } from '../state/persist';
 import { useGame } from '../state/store';
 import { startTelemetryLifecycle } from '../telemetry/client';
 import { BoardView } from './BoardView';
@@ -44,6 +45,17 @@ export function App() {
   }, [hydrate]);
 
   useEffect(() => startTelemetryLifecycle(), []);
+  useEffect(() => {
+    const preserveLatestMove = () => {
+      if (document.visibilityState === 'hidden') void flushPersisted();
+    };
+    document.addEventListener('visibilitychange', preserveLatestMove);
+    window.addEventListener('pagehide', preserveLatestMove);
+    return () => {
+      document.removeEventListener('visibilitychange', preserveLatestMove);
+      window.removeEventListener('pagehide', preserveLatestMove);
+    };
+  }, []);
   useEffect(
     () => startNativeAccessibilityPreferences(setNativeAccessibility),
     [],

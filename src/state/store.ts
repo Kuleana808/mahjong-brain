@@ -61,7 +61,7 @@ import {
 import { clearFaceCache } from '../render/boardRenderer';
 import { PALETTES, type ThemeName, type TileStyleName } from '../render/palette';
 import { track } from '../telemetry/client';
-import { loadPersisted, savePersisted } from './persist';
+import { flushPersisted, loadPersisted, savePersisted } from './persist';
 
 /** The paywall appears once, after the third completed board. Never before. */
 export const PAYWALL_AFTER_BOARDS = 3;
@@ -344,7 +344,11 @@ export const useGame = create<GameStore>((set, get) => {
     },
 
     async hydrate() {
-      const saved = await loadPersisted();
+      // A WebView can be recreated while its final Preferences write is still
+      // resolving. Always read after the newest in-process snapshot is durable.
+      await flushPersisted();
+      const loaded = await loadPersisted();
+      const saved = loaded.state;
       const settings = {
         ...DEFAULT_SETTINGS,
         // Honour the OS preference unless the player has overridden it.
@@ -494,7 +498,12 @@ export const useGame = create<GameStore>((set, get) => {
       // Local play is now fully restored. Reveal it before any network-backed
       // entitlement or account request, so an offline launch never becomes an
       // eight-second blank screen.
-      set({ hydrated: true });
+      set({
+        hydrated: true,
+        announcement: loaded.recoveredFromCorruption
+          ? 'Saved progress could not be restored. A fresh board is ready, and local play is still available.'
+          : get().announcement,
+      });
 
       const [currentDeviceEntitlement, account, product] = await Promise.all([
         purchases().isUnlocked(),
