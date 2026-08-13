@@ -103,3 +103,8 @@ This independently checks the bundle identifier, display name, marketing/build
 versions, minimum iOS, iPhone/iPad support, privacy manifest, compiled icons,
 and current web brand assets inside the archive. The archive still requires
 Apple signing, validation, upload, and processing evidence afterward.
+
+CI also runs `npm run ios:build-simulator` on macOS. That is authoritative proof
+that the committed Swift/SPM/Xcode target compiles for iPhone and iPad without
+signing; it is deliberately not treated as proof of distribution signing,
+archive validation, upload, processing, or TestFlight availability.

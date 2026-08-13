@@ -15,6 +15,7 @@
     "check:brand-assets": "node scripts/check-brand-assets.mjs",
     "ios:sync": "npm run build && npx cap sync ios",
     "ios:verify-bundle": "node scripts/verify-native-web-assets.mjs",
+    "ios:build-simulator": "xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Debug -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO build",
     "ios:prepare": "npm run preflight && npm run ios:sync && npm run ios:verify-bundle",
     "ios:verify-archive": "node scripts/verify-ios-archive.mjs",
     "ios:open": "npx cap open ios",

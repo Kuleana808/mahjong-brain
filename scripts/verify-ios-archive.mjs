@@ -12,9 +12,23 @@ if (!archive) {
   process.exit(2);
 }
 
-const expectedBundleId = process.env.IOS_BUNDLE_ID || 'com.nihi.mahjong';
-const expectedVersion = process.env.IOS_MARKETING_VERSION || '1.0';
-const expectedBuild = process.env.IOS_BUILD_NUMBER || '2';
+const root = new URL('..', import.meta.url).pathname;
+const project = readFileSync(join(root, 'ios/App/App.xcodeproj/project.pbxproj'), 'utf8');
+const capacitor = readFileSync(join(root, 'capacitor.config.ts'), 'utf8');
+const oneProjectValue = (key) => {
+  const values = [...new Set([...project.matchAll(new RegExp(`${key}\\s*=\\s*([^;]+);`, 'g'))].map((match) => match[1].trim()))];
+  if (values.length !== 1) throw new Error(`Expected one ${key} in the Xcode project; found ${values.join(', ') || 'none'}.`);
+  return values[0];
+};
+const configuredBundleId = capacitor.match(/appId:\s*['"]([^'"]+)['"]/)?.[1];
+if (!configuredBundleId) throw new Error('Could not read appId from capacitor.config.ts.');
+const projectBundleId = oneProjectValue('PRODUCT_BUNDLE_IDENTIFIER');
+if (configuredBundleId !== projectBundleId) {
+  throw new Error(`Capacitor bundle id ${configuredBundleId} does not match Xcode ${projectBundleId}.`);
+}
+const expectedBundleId = process.env.IOS_BUNDLE_ID || configuredBundleId;
+const expectedVersion = process.env.IOS_MARKETING_VERSION || oneProjectValue('MARKETING_VERSION');
+const expectedBuild = process.env.IOS_BUILD_NUMBER || oneProjectValue('CURRENT_PROJECT_VERSION');
 const app = join(archive, 'Products/Applications/App.app');
 const infoPath = join(app, 'Info.plist');
 const failures = [];

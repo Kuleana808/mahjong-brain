@@ -1,9 +1,8 @@
 # CI for Mahjong Brain.
 #
-# Deliberately the same four commands anyone runs locally — if CI and a laptop
-# can disagree, CI stops being a signal. No iOS build here: it needs a macOS
-# runner and Xcode, which is minutes per run for something Codex verifies on
-# real hardware anyway.
+# The web/core job stays Linux-fast. A separate macOS gate compiles the actual
+# iPhone+iPad target without signing so Swift, SPM, privacy-resource, or Xcode
+# project regressions cannot land behind green browser-only checks.
 
 name: CI
 
@@ -90,3 +89,24 @@ jobs:
             exit 1
           fi
           echo "No image assets added to the render pipeline."
+
+  native-ios:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Build and sync current production web bundle
+        run: npm run ios:sync
+
+      - name: Native bundle matches production output byte-for-byte
+        run: npm run ios:verify-bundle
+
+      - name: Compile iPhone and iPad simulator app
+        run: npm run ios:build-simulator
