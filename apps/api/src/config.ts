@@ -26,14 +26,17 @@ export interface ConfigReport {
   readonly lines: readonly string[];
 }
 
-const env = (key: string): string | undefined => {
-  const value = process.env[key];
-  return value && value.length > 0 ? value : undefined;
-};
+export type EnvironmentReader = (key: string) => string | undefined;
 
-export function createPorts(): ConfigReport {
+const nodeEnvironment: EnvironmentReader = (key) => process.env[key];
+
+export function createPorts(readEnvironment: EnvironmentReader = nodeEnvironment): ConfigReport {
   const ports: { -readonly [K in keyof Ports]: Ports[K] } = {};
   const lines: string[] = [];
+  const env = (key: string): string | undefined => {
+    const value = readEnvironment(key);
+    return value && value.length > 0 ? value : undefined;
+  };
 
   // --- store ---------------------------------------------------------------
   const supabaseUrl = env('SUPABASE_URL');

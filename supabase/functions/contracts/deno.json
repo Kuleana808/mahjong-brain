@@ -1,0 +1,9 @@
+{
+  "compilerOptions": { "lib": ["deno.window", "dom", "dom.iterable"] },
+  "imports": {
+    "@mahjong-brain/core/contracts": "../../../packages/core/src/contracts/index.ts",
+    "@mahjong-brain/core/game": "../../../packages/core/src/game/index.ts",
+    "@mahjong-brain/core/ai": "../../../packages/core/src/ai/index.ts"
+  },
+  "unstable": ["sloppy-imports"]
+}
