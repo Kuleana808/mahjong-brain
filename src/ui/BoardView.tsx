@@ -79,6 +79,10 @@ function MatchCelebrationLayer({ celebration }: { celebration: MatchCelebration 
         <strong>Perfect!</strong>
         <small>+1</small>
       </span>
+      <span
+        className="match-celebration__halo"
+        style={{ left: centre.x / count, top: centre.y / count }}
+      />
       {celebration.origins.map((origin, index) => <MatchBurst key={index} origin={origin} />)}
     </div>
   );
@@ -228,7 +232,7 @@ export function BoardView() {
               key={tile.id}
               id={`tile-${tile.id}`}
               type="button"
-              className="board__hit"
+              className={`board__hit${isFree ? ' board__hit--free' : ''}`}
               style={{ left: rect.x, top: rect.y, width: rect.w, height: rect.h }}
               tabIndex={isFree ? 0 : -1}
               aria-disabled={!isFree || Boolean(flight)}

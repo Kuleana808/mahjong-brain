@@ -262,7 +262,10 @@ export function render(canvas: HTMLCanvasElement, state: RenderState): View {
     const isFree = state.freeIds.has(tile.id);
 
     const motion = state.motion?.get(tile.id);
-    const lift = motion?.lift ?? (isSelected ? 1 : 0);
+    // Free tiles sit a fraction above the stack. This small physical cue makes
+    // the available moves read before the player has to hunt for them, while a
+    // selected tile still gets the full lift and amber ring.
+    const lift = motion?.lift ?? (isSelected ? 1 : isFree ? 0.13 : 0);
     const liftY = rect.w * 0.075 * lift;
     const drawY = rect.y - liftY;
 
