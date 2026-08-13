@@ -92,6 +92,8 @@ This written contract is the durable QA baseline. Competitor screenshots may exp
 
 Maintain one Storybook-like internal specimen route or deterministic test harness showing every state named under `components` in `design/design-lock.json`. QA must be able to compare states without playing until each happens.
 
+For app-level fixtures in a development build, append `?qa=<QA ID>` to the local URL—for example, `?qa=S08-game-three` or `?qa=S12-settings-large`. The accepted IDs are exported by `src/qa/fixtures.ts`, are deterministic, and are removed from production bundles. Invalid IDs are ignored and can never mutate release behavior.
+
 | Component | Locked state names |
 |---|---|
 | Primary button | `rest`, `pressed`, `focused`, `disabled`, `loading` |

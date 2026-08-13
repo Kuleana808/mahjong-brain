@@ -42,7 +42,13 @@ export function App() {
 
   useEffect(() => {
     configureNativePurchases();
-    void hydrate();
+    void hydrate().then(async () => {
+      if (import.meta.env.DEV) {
+        const { applyQaFixture, qaFixtureFromLocation } = await import('../qa/fixtures');
+        const fixture = qaFixtureFromLocation();
+        if (fixture) await applyQaFixture(fixture);
+      }
+    });
   }, [hydrate]);
 
   useEffect(() => startTelemetryLifecycle(), []);
