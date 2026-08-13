@@ -59,6 +59,29 @@ function MatchBurst({ origin }: { origin: DOMRect }) {
   );
 }
 
+function MatchCelebrationLayer({ celebration }: { celebration: MatchCelebration }) {
+  const centre = celebration.origins.reduce(
+    (point, origin) => ({
+      x: point.x + origin.left + origin.width / 2,
+      y: point.y + origin.top + origin.height / 2,
+    }),
+    { x: 0, y: 0 },
+  );
+  const count = Math.max(1, celebration.origins.length);
+
+  return (
+    <div className="match-celebration" aria-hidden="true">
+      <span
+        className="match-celebration__word"
+        style={{ left: centre.x / count, top: centre.y / count }}
+      >
+        Match!
+      </span>
+      {celebration.origins.map((origin, index) => <MatchBurst key={index} origin={origin} />)}
+    </div>
+  );
+}
+
 export function BoardView() {
   const board = useGame((s) => s.board);
   const selectedId = useGame((s) => s.selectedId);
@@ -260,7 +283,7 @@ export function BoardView() {
             if (after.holder.length < before.holder.length && !settings.reduceMotion) {
               const id = performance.now();
               setCelebration({ id, origins: heldOrigin ? [heldOrigin, incomingOrigin] : [incomingOrigin] });
-              window.setTimeout(() => setCelebration((active) => active?.id === id ? null : active), 460);
+              window.setTimeout(() => setCelebration((active) => active?.id === id ? null : active), 620);
             }
             setFlight(null);
           }}
@@ -269,7 +292,7 @@ export function BoardView() {
           <TileFaceCanvas face={flight.face} palette={palette} />
         </div>
       ) : null}
-      {celebration ? <div className="match-celebration" aria-hidden="true">{celebration.origins.map((origin, index) => <MatchBurst key={index} origin={origin} />)}</div> : null}
+      {celebration ? <MatchCelebrationLayer celebration={celebration} /> : null}
     </div>
   );
 }

@@ -196,6 +196,37 @@ function drawCeramicGlaze(
   ctx.restore();
 }
 
+/**
+ * Free tiles get a restrained material glint, not a coloured selection ring.
+ * This makes the next action feel inviting while keeping amber reserved for an
+ * actual choice and preserving the ivory face as the visual hero.
+ */
+function drawFreeTileGlint(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+): void {
+  const radius = w * 0.11;
+  ctx.save();
+  ctx.beginPath();
+  ctx.roundRect(x, y, w, h, radius);
+  ctx.clip();
+
+  const glint = ctx.createLinearGradient(x, y, x + w * 0.52, y + h * 0.2);
+  glint.addColorStop(0, 'rgba(255, 255, 246, 0.42)');
+  glint.addColorStop(0.38, 'rgba(255, 224, 156, 0.13)');
+  glint.addColorStop(1, 'rgba(255, 255, 255, 0)');
+  ctx.strokeStyle = glint;
+  ctx.lineWidth = Math.max(1.2, w * 0.028);
+  ctx.beginPath();
+  ctx.moveTo(x + radius * 0.72, y + ctx.lineWidth);
+  ctx.lineTo(x + w * 0.72, y + ctx.lineWidth);
+  ctx.stroke();
+  ctx.restore();
+}
+
 export function render(canvas: HTMLCanvasElement, state: RenderState): View {
   const dpr = Math.min(window.devicePixelRatio || 1, 2.5);
   const boxW = canvas.clientWidth;
@@ -252,6 +283,9 @@ export function render(canvas: HTMLCanvasElement, state: RenderState): View {
     );
     ctx.restore();
     drawCeramicGlaze(ctx, rect.x, drawY, rect.w, rect.h);
+    if (isFree && !isSelected && !isHinted) {
+      drawFreeTileGlint(ctx, rect.x, drawY, rect.w, rect.h);
+    }
 
     if (isSelected) drawRing(ctx, rect.x, drawY, rect.w, rect.h, state.palette.selected);
     else if (isHinted) drawRing(ctx, rect.x, drawY, rect.w, rect.h, state.palette.hinted);
