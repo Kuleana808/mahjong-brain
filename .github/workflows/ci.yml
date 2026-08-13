@@ -56,6 +56,9 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Native bundle contains the current production app
+        run: npx cap copy ios && npm run ios:verify-bundle
+
       - name: Build marketing site
         run: npm run marketing:build
 

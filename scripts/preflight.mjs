@@ -4,12 +4,9 @@
  *
  * Run before any TestFlight or App Store upload:  npm run preflight
  *
- * WHY THIS EXISTS. The bundle id is a placeholder. Brent asked for the code to
- * build against `com.mahjongbrain.game`, and separately asked that nothing be
- * committed against it without his confirmation. Both are reasonable and they
- * point in opposite directions, so the resolution is this: the placeholder
- * stays in the code where it is useful, and this check makes it impossible to
- * *submit* with it by accident.
+ * WHY THIS EXISTS. Permanent App Store identity, public policy URLs, StoreKit,
+ * and production service configuration must all agree before upload. This
+ * check makes those unresolved release decisions impossible to overlook.
  *
  * The bundle id becomes the App Store record permanently at first upload. That
  * is the moment that cannot be undone — not the commit. So the gate belongs
@@ -178,7 +175,7 @@ const assetIsApproved = (path, master) =>
 if (!assetIsApproved(icon, iconMaster) || !assetIsApproved(splash, splashMaster)) {
   warnings.push(
     'Approved app icon or splash assets are missing. Both raster launch assets and\n' +
-      '    their deterministic SVG masters are required before release (D-006).',
+      '    their approved deterministic sources are required before release (D-006).',
   );
 }
 

@@ -89,3 +89,11 @@ Record each separately in the release handoff:
 - App Store processing state
 - internal TestFlight availability
 - tester-group availability
+
+## Archive preparation
+
+Run `npm run ios:prepare` immediately before creating the signed archive. It
+fails closed on release configuration, rebuilds and syncs the production app
+into the ignored Capacitor native bundle, and verifies every bundled file
+byte-for-byte. A successful Xcode build without this check is not evidence that
+the archive contains the current UI or brand assets.
