@@ -11,9 +11,9 @@ cannot be mistaken for a shipped build.
 | Stage | State | Evidence |
 |---|---|---|
 | Local source | verified | Branch `codex/build-mobile-shell`; clean worktree before this documentation update |
-| Committed | verified | `3a3e79db22991e7573a384e54e0bef12206b9f95` |
+| Committed | verified | `959c0fc41ce4049de8028fcd1a0cca041a715d44` |
 | Pushed | verified | Local HEAD matched its upstream branch |
-| Pull request | open | PR #10; `check`, `native-ios`, and `original-art` all passed; review is still required |
+| Pull request | open | PR #10; `check`, `native-ios`, and `original-art` passed on `959c0fc`; review is still required |
 | Merged | not verified | PR #10 remains open and blocked on review |
 | Simulator build | verified | The production web bundle was copied into the Capacitor target and verified byte-for-byte; Xcode simulator build succeeded |
 | Native iPhone QA | verified | Build installed and launched into gameplay on iPhone 17 Pro simulator; 144-tile board rendered |
@@ -72,6 +72,10 @@ source.
 7. Upload the verified archive. Record the archive path, SHA, version, build,
    Apple upload event, processing result, export-compliance result, internal
    tester availability, and tester-group availability separately.
+
+Use [TESTFLIGHT_EVIDENCE.md](TESTFLIGHT_EVIDENCE.md) as the release evidence
+record. A release is not complete until every required row has a value and the
+final TestFlight install has been exercised on a clean device.
 
 Do not revive a player, grant an unlock, or enable purchase UI from client-side
 success alone. Backend, Apple identity, and StoreKit verification continue to

@@ -10,6 +10,10 @@ For the current evidence ladder and exact resume procedure, see
 uploaded successfully on 2026-08-11 but predates the current gameplay-polish
 commit and is not the release candidate.
 
+Complete [TESTFLIGHT_EVIDENCE.md](TESTFLIGHT_EVIDENCE.md) for the exact binary
+being submitted. An Organizer success sheet for an older build does not satisfy
+the current-candidate evidence requirement.
+
 ## Product identity
 
 | Field | Release value | Gate |
