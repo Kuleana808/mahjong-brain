@@ -1,6 +1,6 @@
 # Release status
 
-Last verified: 2026-08-12 (HST)
+Last verified: 2026-08-13 (HST)
 
 This is the operational handoff for Mahjong Brain. It separates source,
 archive, upload, processing, and tester availability so an earlier green step
@@ -11,7 +11,7 @@ cannot be mistaken for a shipped build.
 | Stage | State | Evidence |
 |---|---|---|
 | Local source | verified | Branch `codex/build-mobile-shell`; clean worktree before this documentation update |
-| Committed | verified | `959c0fc41ce4049de8028fcd1a0cca041a715d44` |
+| Committed | verified | `6d8d220` deploys the production Edge Function bundle and hosted-path fix |
 | Pushed | verified | Local HEAD matched its upstream branch |
 | Pull request | open | PR #10; `check`, `native-ios`, and `original-art` passed on `959c0fc`; review is still required |
 | Merged | not verified | PR #10 remains open and blocked on review |
@@ -32,21 +32,23 @@ resolved.
 
 ## Current release gates
 
-`npm run preflight` currently fails closed on five items:
+The public marketing, support, and privacy site is live at
+`https://mahjong-brain.pages.dev/`. The dedicated Supabase project is
+`Mahjong Brain` (`dxtzbidjtkeekthompqb`): migrations 0001-0003 are applied and
+the public contracts function is deployed.
 
-1. `fastlane/metadata/en-US/support_url.txt` is still pending.
-2. `fastlane/metadata/en-US/privacy_url.txt` is still pending.
-3. `IAP_PRODUCT_ID` and `VITE_IAP_PRODUCT_ID` are not configured for the release environment.
-4. The shell contains Supabase credentials, but the referenced hosted project has not been proven to contain Mahjong Brain migrations and functions. Do not deploy into it based on credentials alone.
-5. `VITE_API_BASE_URL` is not configured for the production mobile bundle.
+Production verification on 2026-08-13 established:
 
-Cloudflare Dashboard account `40a94ba21ef29b197c802c00fc5ffb74` is signed in
-and verified. No `mahjong-brain` Pages project exists yet, and no public
-production URL has been verified.
+- board generation returned `live_verified`;
+- unsigned settings access returned the expected `401` boundary;
+- contract smoke covered settings persistence, unlock status, retention,
+  analytics, and fail-closed receipt handling;
+- event smoke persisted all 184 emitted rows across 38 event names.
 
-Supabase organization `Operator.fyi` (`lsolydxvdhifznnkacbg`) is signed in and
-has project capacity. Its five existing projects are unrelated; do not deploy
-Mahjong migrations into them. A dedicated project still needs to be created.
+Remaining release gates are App Store Connect product creation, sandbox
+purchase and restore, final privacy/accessibility answers, final native QA,
+screenshots, a fresh signed archive above build 2, upload, processing, and
+TestFlight verification.
 
 The Mac keychain currently exposes only `Apple Development: Created via API` to
 command-line signing. Xcode nevertheless produced and uploaded build 2 using
@@ -58,22 +60,15 @@ source.
 ## Resume sequence
 
 1. Approve and merge PR #10, recording the merged SHA.
-2. In the correct Cloudflare account, deploy `apps/marketing/out` as project
-   `mahjong-brain`; verify `/support/` and `/privacy/` over public HTTPS; write
-   those exact URLs into Fastlane metadata.
-3. Identify or create the dedicated Mahjong Brain Supabase project. Verify the
-   target before mutation, apply migrations 0001 through 0003, deploy the
-   `contracts` function, configure its secrets, and run both contract and event
-   smoke tests against the public endpoint.
-4. In App Store Connect app `6800468742`, configure the permanent StoreKit
+2. In App Store Connect app `6800468742`, configure the permanent StoreKit
    product under bundle `com.nihi.mahjong`; set identical server and client
    product IDs. Verify a sandbox purchase and restore before describing contract
    8 as live verified.
-5. Build with the production URLs and product ID, run `npm run preflight`,
+3. Build with the production URLs and product ID, run `npm run preflight`,
    `npm run ios:prepare`, and the full test suite.
-6. Increment the iOS build number above 2, archive the merged SHA, and run
+4. Increment the iOS build number above 2, archive the merged SHA, and run
    `npm run ios:verify-archive -- /path/to/archive.xcarchive`.
-7. Upload the verified archive. Record the archive path, SHA, version, build,
+5. Upload the verified archive. Record the archive path, SHA, version, build,
    Apple upload event, processing result, export-compliance result, internal
    tester availability, and tester-group availability separately.
 

@@ -50,9 +50,10 @@ returns an envelope and knows nothing about Node's `http`. The adapters use
 `fetch` rather than the Supabase SDK, specifically so they run unchanged inside
 an Edge Function.
 
-Deploying is packaging, not a port:
+Build the self-contained Deno module, then deploy it:
 
 ```bash
+npm run build:edge
 npx supabase functions deploy contracts --project-ref <ref>
 ```
 
@@ -79,11 +80,11 @@ npm run smoke:events
 
 ### Hosted project
 
-Supabase credentials are present in the local shell, but the referenced project
-has not been proven to be the dedicated Mahjong Brain target or to contain the
-required tables and function. Treat it as an unidentified existing project, not
-as a blank project and not as production. Verify ownership and current schema
-before applying migrations or deploying functions.
+The dedicated production project is `Mahjong Brain` (`dxtzbidjtkeekthompqb`) in
+the Operator.fyi organization, region `us-west-1`. Migrations 0001 through 0003
+and the `contracts` Edge Function were deployed and verified on 2026-08-13.
+Credentials are stored in the deployment platform and local Keychain, never in
+the repository.
 
 When the hosted project exists, the only change is two environment variables.
 
@@ -93,10 +94,14 @@ The mobile app's public base URL is the deployed function URL:
 VITE_API_BASE_URL=https://<project-ref>.supabase.co/functions/v1/contracts
 ```
 
-Do not point a release build at a project merely because credentials are present
-in the shell. Confirm that the project contains migrations `0001_init.sql`
-through `0003_service_role_grants.sql`, deploy `contracts`, and run the contract
-and event smoke tests against that exact URL first.
+Release builds use:
+
+```bash
+VITE_API_BASE_URL=https://dxtzbidjtkeekthompqb.supabase.co/functions/v1/contracts
+```
+
+Re-run the migration list, contract smoke, and event smoke tests against this
+exact project before each production release.
 
 ## Secrets
 

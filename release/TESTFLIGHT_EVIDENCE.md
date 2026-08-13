@@ -21,14 +21,14 @@ upload, an upload is not processing, and processing is not tester availability.
 
 | Gate | Evidence |
 |---|---|
-| Public support URL returns 200 over HTTPS | PENDING |
-| Public privacy URL returns 200 over HTTPS | PENDING |
-| `VITE_API_BASE_URL` points to the verified production contracts endpoint | PENDING |
+| Public support URL returns 200 over HTTPS | `https://mahjong-brain.pages.dev/support/`, HTTP 200 verified 2026-08-13 |
+| Public privacy URL returns 200 over HTTPS | `https://mahjong-brain.pages.dev/privacy/`, HTTP 200 verified 2026-08-13 |
+| `VITE_API_BASE_URL` points to the verified production contracts endpoint | `https://dxtzbidjtkeekthompqb.supabase.co/functions/v1/contracts` |
 | Server and client StoreKit product IDs match App Store Connect | PENDING |
-| Correct Supabase project ref recorded | PENDING |
-| Migrations 0001-0003 applied to that project | PENDING |
-| Contracts smoke test passed against production | PENDING |
-| Events smoke test passed and rows read back | PENDING |
+| Correct Supabase project ref recorded | `dxtzbidjtkeekthompqb` (`Mahjong Brain`, Operator.fyi, `us-west-1`) |
+| Migrations 0001-0003 applied to that project | Verified by `supabase migration list --linked`, 2026-08-13 |
+| Contracts smoke test passed against production | Passed: settings persistence, unlock, daily retention, analytics, fail-closed receipts |
+| Events smoke test passed and rows read back | Passed: 184/184 rows stored, 38 distinct event names |
 | Sandbox purchase verified by the server | PENDING |
 | Sandbox restore verified on a second clean install | PENDING |
 
