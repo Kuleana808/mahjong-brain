@@ -52,7 +52,7 @@ an Edge Function.
 Deploying is packaging, not a port:
 
 ```bash
-npx supabase functions deploy api --project-ref <ref>
+npx supabase functions deploy contracts --project-ref <ref>
 ```
 
 ### Local stack
@@ -70,7 +70,7 @@ Then point the API at it and run the instrumentation smoke test for real:
 export SUPABASE_URL=http://127.0.0.1:54321
 export SUPABASE_SERVICE_ROLE_KEY=<from `supabase status`>
 export SESSION_SIGNING_KEY=$(openssl rand -hex 32)
-export APPLE_BUNDLE_ID=com.mahjongbrain.game
+export APPLE_BUNDLE_ID=com.nihi.mahjong
 npm run smoke:events
 ```
 
@@ -85,6 +85,17 @@ API and the same migrations, so what remains untested against hosted Supabase is
 networking and key handling, not the schema or the adapters.
 
 When the hosted project exists, the only change is two environment variables.
+
+The mobile app's public base URL is the deployed function URL:
+
+```bash
+VITE_API_BASE_URL=https://<project-ref>.supabase.co/functions/v1/contracts
+```
+
+Do not point a release build at a project merely because credentials are present
+in the shell. Confirm that the project contains migrations `0001_init.sql`
+through `0003_service_role_grants.sql`, deploy `contracts`, and run the contract
+and event smoke tests against that exact URL first.
 
 ## Secrets
 

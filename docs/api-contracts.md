@@ -33,7 +33,7 @@ Contracts 3, 4, 9 and 10 light up completely against an in-process store:
 ```bash
 MAHJONG_BRAIN_DEV_STORE=memory \
 SESSION_SIGNING_KEY=$(openssl rand -hex 32) \
-APPLE_BUNDLE_ID=com.mahjongbrain.game \
+APPLE_BUNDLE_ID=com.nihi.mahjong \
 npm run api
 ```
 
@@ -44,7 +44,7 @@ banner prints exactly which ports came up:
 mahjong-brain contracts API on http://localhost:5185
   store       in-memory (dev)
   session     hs256
-  apple       verifying aud=com.mahjongbrain.game
+  apple       verifying aud=com.nihi.mahjong
   storekit    none — set IAP_PRODUCT_ID, APPLE_BUNDLE_ID
   contracts 1, 2, 5, 6, 7 need none of the above and are always live
 ```
@@ -454,7 +454,7 @@ entitlement but is not written to an account.
 ```jsonc
 {
   "unlocked": true,
-  "productId": "com.mahjongbrain.game.removeads",
+  "productId": "com.nihi.mahjong.removeads",
   "originalTransactionId": "2000000000000001",
   "purchasedAt": "2026-08-09T22:00:00.000Z",
   "environment": "sandbox",
@@ -507,7 +507,7 @@ bundle, and a future-dated purchase.
 | Variable | Where it comes from |
 |---|---|
 | `APPLE_ROOT_CA_G3_BASE64` | [apple.com/certificateauthority](https://www.apple.com/certificateauthority/), base64 of `AppleRootCA-G3.cer` |
-| `IAP_PRODUCT_ID` | `com.mahjongbrain.game.removeads` |
+| `IAP_PRODUCT_ID` | `com.nihi.mahjong.removeads` |
 | `APPLE_BUNDLE_ID` | blocked on D-001 |
 
 **Pin the root; never fetch it at runtime.** A root you download at boot is a

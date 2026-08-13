@@ -128,7 +128,7 @@ function collectEvents(): { events: ClientEvent[]; covered: Set<EventName> } {
     'shuffle_iap_purchased',
     'shuffle_granted',
   ] as const) {
-    push(name, { productId: 'com.mahjongbrain.game.shuffle5' });
+    push(name, { productId: 'com.nihi.mahjong.removeads' });
   }
 
   const won = reduce(flow, { type: 'board_won' });
