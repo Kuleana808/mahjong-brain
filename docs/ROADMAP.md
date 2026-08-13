@@ -18,15 +18,16 @@ the work is findable from where it happens.
 
 ## Done
 
-- **Scaffold** — playable board end to end, 87 tests, iOS builds clean on
+- **Scaffold** — playable board end to end, 306 tests, iOS builds clean on
   Xcode 26.
 - **`packages/core`** — game engine and AI hint routing extracted, runtime-
   agnostic, importable as `@mahjong-brain/core`.
 - **The ten contracts** — shapes, handlers, 5-state envelope, dev server.
 - **The adapters** — Apple identity verification, HMAC sessions, StoreKit 2 JWS
-  with full `x5c` chain validation, a Supabase store over PostgREST, and an
-  in-process dev store. 1, 2, 5, 6, 7 are live; 3, 4, 9, 10 work today against
-  the dev store; 8 fails closed until its root is pinned.
+  with full `x5c` chain validation and Apple Root CA G3 pinning, a Supabase
+  store over PostgREST, and an in-process dev store. The production project and
+  a real sandbox transaction remain release gates; all unconfigured paths fail
+  closed.
 - **The schema** — `supabase/migrations/`, append-only, RLS on, cohort views.
 - **The holder mechanic** (D-015) — `@mahjong-brain/core/play`, the parity loop.
 - **Instrumentation** (contract 11) — closed event catalogue covering every
@@ -65,7 +66,8 @@ at. Free tier.
   the adapters use `fetch`, not the Supabase SDK, so this is packaging, not a
   port.
 
-Blocked on: **D-001** (bundle id) and a Supabase project existing.
+Bundle ID `com.nihi.mahjong` is locked. Blocked on creating and configuring the
+dedicated Supabase project.
 
 ### C2 — Turn on StoreKit verification
 
@@ -80,8 +82,9 @@ permanent product id and a real sandbox transaction.
 - Verify against a real sandbox purchase — that is what moves contract 8 from
   `configured` to `live_verified`.
 
-Blocked on: **D-001** (permanent bundle/product ids) and an App Store Connect
-record. D-005 is settled.
+The App Store record and permanent bundle ID exist. Blocked on creating the
+permanent product ID in App Store Connect and completing a real sandbox
+purchase/restore. D-005 is settled.
 
 ### C3 — Ad reward verification (contract 13)
 
@@ -169,9 +172,9 @@ See [DECISIONS.md](DECISIONS.md).
 
 | | Blocks |
 |---|---|
-| **D-001** final app name | C1, and the App Store record is permanent |
+| **D-001** final app name | Settled: Mahjong Brain / `com.nihi.mahjong` / Apple app `6800468742` |
 | **D-004** domain — both candidates were available, nothing bought | C4 |
-| **D-005** StoreKit bridge | C2 |
+| **D-005** StoreKit bridge | Settled: in-house StoreKit 2 bridge with pinned Apple Root CA G3 |
 
 ---
 

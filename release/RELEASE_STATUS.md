@@ -21,8 +21,8 @@ cannot be mistaken for a shipped build.
 | Earlier archive | verified, stale | Xcode archive `Mahjong Brain 8-11-26, 11.02 AM.xcarchive`, version 1.0 build 2, bundle `com.nihi.mahjong` |
 | Earlier upload | verified, stale | Apple app ID `6800468742`; Xcode distribution record says build 2 uploaded successfully at 2026-08-11T21:05:49Z |
 | Current release archive | missing | Build 2 predates commit `3a3e79d` and its bundled asset hashes differ from current `dist/` |
-| Processing | not verified | No authoritative App Store Connect processing state captured for build 2 or a current build |
-| Internal TestFlight | not verified | No tester-availability evidence captured |
+| Processing | verified, stale | App Store Connect lists build 2 as `Testing`, expiring in 89 days |
+| Internal TestFlight | verified, stale | Build 2 is assigned to `Mahjong Internal`; App Store Connect shows 1 invite, 1 install, and 1 session |
 | External tester group | not verified | No tester-group evidence captured |
 
 Build 1 is not a candidate. Its Xcode upload record failed with Apple error
@@ -40,9 +40,13 @@ resolved.
 4. The shell contains Supabase credentials, but the referenced hosted project has not been proven to contain Mahjong Brain migrations and functions. Do not deploy into it based on credentials alone.
 5. `VITE_API_BASE_URL` is not configured for the production mobile bundle.
 
-Cloudflare Dashboard is signed in in Chrome, but the exact account/project was
-not safely established. The repository's Cloudflare Pages project name is
-`mahjong-brain`; no public production URL has been verified.
+Cloudflare Dashboard account `40a94ba21ef29b197c802c00fc5ffb74` is signed in
+and verified. No `mahjong-brain` Pages project exists yet, and no public
+production URL has been verified.
+
+Supabase organization `Operator.fyi` (`lsolydxvdhifznnkacbg`) is signed in and
+has project capacity. Its five existing projects are unrelated; do not deploy
+Mahjong migrations into them. A dedicated project still needs to be created.
 
 The Mac keychain currently exposes only `Apple Development: Created via API` to
 command-line signing. Xcode nevertheless produced and uploaded build 2 using
