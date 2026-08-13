@@ -21,16 +21,11 @@ export const metadata: Metadata = {
       'Tile matching with a four-slot holder. Tiles big enough to read. Free to play.',
     type: 'website',
   },
-  // No favicon or og:image yet — those are original art, and original art is a
-  // Day 1 decision Brent owns. A borrowed placeholder is the one thing that
-  // must not ship here.
+  icons: { icon: '/favicon.png', apple: '/apple-touch-icon.png' },
 };
 
 export const viewport: Viewport = {
-  themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#EDE8DE' },
-    { media: '(prefers-color-scheme: dark)', color: '#191B1E' },
-  ],
+  themeColor: '#003B32',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

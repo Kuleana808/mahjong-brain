@@ -11,6 +11,7 @@
  */
 const nextConfig = {
   output: 'export',
+  outputFileTracingRoot: new URL('../..', import.meta.url).pathname,
   // Pages serves /path/ as /path/index.html; trailing slashes keep the two agreeing.
   trailingSlash: true,
   images: { unoptimized: true },

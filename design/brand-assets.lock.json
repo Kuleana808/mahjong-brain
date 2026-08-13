@@ -28,6 +28,27 @@
       "height": 180,
       "allowAlpha": false
     },
+    "apps/marketing/public/brand-mark.png": {
+      "sha256": "e2c196dbfb1f2425dd23376a400da8fb4e48e44f58ec9c95f54c99ebc4e928db",
+      "kind": "png",
+      "width": 512,
+      "height": 512,
+      "allowAlpha": false
+    },
+    "apps/marketing/public/favicon.png": {
+      "sha256": "89f0571c9a8f432e63067032f409f9dea77eb5834e7e7bfe91b03b5c45b6a16f",
+      "kind": "png",
+      "width": 180,
+      "height": 180,
+      "allowAlpha": false
+    },
+    "apps/marketing/public/apple-touch-icon.png": {
+      "sha256": "89f0571c9a8f432e63067032f409f9dea77eb5834e7e7bfe91b03b5c45b6a16f",
+      "kind": "png",
+      "width": 180,
+      "height": 180,
+      "allowAlpha": false
+    },
     "ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png": {
       "sha256": "ddb5d6bc55a016fa6f1869d6b4dde3c0ff47a15a53b889e48fcf6fddf4b01d6a",
       "kind": "png",
