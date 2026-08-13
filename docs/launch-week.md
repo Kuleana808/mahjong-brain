@@ -60,8 +60,10 @@ stored.** Eighteen catalogue events were not exercised — abandonment paths,
 permission prompts, settings — which a happy-path script cannot reach. The
 script prints that list rather than hiding it.
 
-Against a real Supabase project it is the same command with two env vars, and it
-exits non-zero if a single event fails to arrive. **That run has not happened.**
+The table above records an observed real-Postgres run on 2026-08-11. The current
+shell credentials have not been proven to identify that same Mahjong Brain
+project, so a release session must re-identify the target and repeat the smoke
+test instead of relying on ambient environment variables.
 
 ### Marketing site
 
@@ -76,13 +78,13 @@ The old `site/index.html` is superseded and can go once Codex has moved in.
 
 ---
 
-## Blocked on Brent
+## Current release gates
 
 | | Blocks | Note |
 |---|---|---|
-| **D-001** permanent product id | contract 8, all purchases | Bridge and Apple Root CA G3 pin are installed; verification still fails closed without the final id |
-| **Bundle id** confirmation | first upload, permanently | See below |
-| **Supabase project** | six contracts to `live_verified`, and instrumentation | Free tier |
+| **StoreKit product id** | contract 8, all purchases | Bundle ID is permanent; product record and sandbox verification remain |
+| **Public support/privacy URLs** | App Store metadata and preflight | Marketing pages exist locally; deployment is unverified |
+| **Production Supabase/API target** | account sync and release instrumentation | Current shell project is not identified as Mahjong Brain |
 | **Ad network** | Revive and Hint revenue | Vendor decision |
 
 ### The bundle id, and a contradiction worth naming
@@ -94,16 +96,10 @@ Two instructions point opposite ways:
 - 2026-08-10: *"no code committed against `com.mahjongbrain.game` without Brent
   confirming bundle ID (App Store record is permanent)."*
 
-The risk being guarded against is real but it lands at **first upload**, not at
-commit. Nothing has been submitted, so nothing is permanent yet.
-
-Resolution: the placeholder stays where it is useful, and `npm run preflight`
-makes submitting with it impossible by accident. It currently exits 1 with three
-blockers. **Run it before any TestFlight upload.**
-
-If the preference is to strip the placeholder from the code anyway, say so and
-it is a five-minute change — but it would leave a dead brand or an empty string
-in its place, which is worse to work against.
+The App Store record now exists with bundle `com.nihi.mahjong` and Apple app ID
+`6800468742`. Xcode successfully uploaded version 1.0 build 2 on 2026-08-11.
+That binary predates the current PR head and is not the release candidate. See
+[`release/RELEASE_STATUS.md`](../release/RELEASE_STATUS.md).
 
 ---
 
@@ -135,7 +131,7 @@ in its place, which is worse to work against.
 ## Commands
 
 ```bash
-npm test                  # 231 tests
+npm test                  # 306 tests
 npm run smoke:events      # instrumentation end to end
 npm run preflight         # pre-submission gate — run before any upload
 npm run api               # contracts dev server, :5185

@@ -4,9 +4,9 @@ Tile-matching solitaire with a four-slot holder, built as a **functional-parity
 clone of the category leader with entirely original art** — then iterated on
 live data.
 
-Name locked 2026-08-09 (D-001). The **bundle id is not** — it becomes the App
-Store record permanently, so it stays on a placeholder until it is chosen. See
-[docs/DECISIONS.md](docs/DECISIONS.md).
+Name locked 2026-08-09 (D-001). Bundle ID `com.nihi.mahjong` and Apple app ID
+`6800468742` are now permanent. See [docs/DECISIONS.md](docs/DECISIONS.md) and
+the current [release status](release/RELEASE_STATUS.md).
 
 ---
 
@@ -89,7 +89,7 @@ npm install
 npm run dev             # the game, :5183
 npm run api             # contracts dev server, :5185
 npm run marketing:dev   # marketing site, :5186
-npm test                # 231 tests
+npm test                # 306 tests
 npm run smoke:events    # instrumentation, end to end
 npm run preflight       # pre-submission gate — run before any upload
 npm run build           # typecheck + production build

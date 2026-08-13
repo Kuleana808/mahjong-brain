@@ -5,12 +5,18 @@ lives under `fastlane/metadata`; this file records answers that App Store Connec
 does not store in the repository automatically. Never replace a pending value
 with a guessed URL, identifier, price, or review credential.
 
+For the current evidence ladder and exact resume procedure, see
+[RELEASE_STATUS.md](RELEASE_STATUS.md). In particular, version 1.0 build 2 was
+uploaded successfully on 2026-08-11 but predates the current gameplay-polish
+commit and is not the release candidate.
+
 ## Product identity
 
 | Field | Release value | Gate |
 |---|---|---|
 | Name | Mahjong Brain | Locked |
 | Bundle ID | `com.nihi.mahjong` | Confirmed 2026-08-11; matches Capacitor, Xcode, Apple audience, and App Store record |
+| Apple app ID | `6800468742` | Verified from the successful Xcode build-2 upload record |
 | SKU | `mahjong-brain-ios-001` | Prepared for the App Store Connect record |
 | Primary category | Games / Board | Confirm in App Store Connect |
 | Secondary category | Games / Puzzle | Confirm in App Store Connect |
@@ -108,3 +114,12 @@ CI also runs `npm run ios:build-simulator` on macOS. That is authoritative proof
 that the committed Swift/SPM/Xcode target compiles for iPhone and iPad without
 signing; it is deliberately not treated as proof of distribution signing,
 archive validation, upload, processing, or TestFlight availability.
+
+### Prior upload evidence
+
+Xcode Organizer contains two version 1.0 archives from 2026-08-11. Build 1's
+upload failed with Apple error 90474 for its iPad orientation declaration.
+Build 2's distribution record reports `Uploaded to Apple` with no errors at
+2026-08-11T21:05:49Z. This proves upload only. It does not prove processing,
+TestFlight availability, or that the binary contains current source. Its web
+asset hashes differ from the current production build.

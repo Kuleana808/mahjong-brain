@@ -19,9 +19,10 @@ npx wrangler pages deploy out --project-name=mahjong-brain
    --production-branch main`.
 3. Point the domain at it in the Pages dashboard.
 
-**Not done in this session.** There is no Cloudflare token here and `wrangler` is
-not installed, so the deploy has never run. Everything up to `out/` is verified —
-the export builds clean and is committed to CI.
+The marketing export builds clean. Chrome is signed into Cloudflare, but the
+correct account, Pages project, deployment, and public URL have not been
+authoritatively verified. Do not infer a deployment from the login state. See
+[`release/RELEASE_STATUS.md`](../release/RELEASE_STATUS.md) for the current gate.
 
 ### Domain
 
@@ -78,11 +79,11 @@ npm run smoke:events
 
 ### Hosted project
 
-**Not created.** It needs a Supabase account login, which this session does not
-have — and creating an account in Brent's name is not something to do on his
-behalf. The local stack above exercises the same Postgres, the same PostgREST
-API and the same migrations, so what remains untested against hosted Supabase is
-networking and key handling, not the schema or the adapters.
+Supabase credentials are present in the local shell, but the referenced project
+has not been proven to be the dedicated Mahjong Brain target or to contain the
+required tables and function. Treat it as an unidentified existing project, not
+as a blank project and not as production. Verify ownership and current schema
+before applying migrations or deploying functions.
 
 When the hosted project exists, the only change is two environment variables.
 
