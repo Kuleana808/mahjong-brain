@@ -94,6 +94,13 @@ Maintain one Storybook-like internal specimen route or deterministic test harnes
 
 For app-level fixtures in a development build, append `?qa=<QA ID>` to the local URL—for example, `?qa=S08-game-three` or `?qa=S12-settings-large`. The accepted IDs are exported by `src/qa/fixtures.ts`, are deterministic, and are removed from production bundles. Invalid IDs are ignored and can never mutate release behavior.
 
+The complete P0 fixture set covers Terms rest/focus; age; loading online/offline;
+all tutorial steps; home new/progress/offline; gameplay holder counts 0–3 plus
+real match, hint, blocked, shuffle, and resume transitions; holder full; board
+complete; settings default/200%/offline; and generic offline/error/maintenance.
+`S00-boot` remains a native cold-launch capture rather than a query fixture, so
+QA proves the actual pre-hydration frame instead of a simulated screen.
+
 | Component | Locked state names |
 |---|---|
 | Primary button | `rest`, `pressed`, `focused`, `disabled`, `loading` |

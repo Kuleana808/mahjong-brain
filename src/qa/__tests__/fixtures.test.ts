@@ -28,4 +28,33 @@ describe('deterministic QA fixtures', () => {
     expect(useGame.getState().holder).toHaveLength(1);
     expect(useGame.getState().announcement).toMatch(/restored/i);
   });
+
+  it('exposes every P0 state that requires deterministic visual evidence', () => {
+    const required = [
+      'S01-terms-rest', 'S01-terms-focus', 'S02-age-rest',
+      'S03-loading', 'S03-loading-offline',
+      'S04-tutorial-match', 'S05-tutorial-edge', 'S06-tutorial-holder',
+      'S07-home-new', 'S07-home-progress', 'S07-home-offline',
+      'S08-game-empty', 'S08-game-one', 'S08-game-two', 'S08-game-three',
+      'S08-game-match', 'S08-game-hint', 'S08-game-blocked', 'S08-game-shuffle', 'S08-game-resume',
+      'S09-holder-full', 'S10-complete',
+      'S12-settings', 'S12-settings-large', 'S12-settings-offline',
+      'S16-generic-offline', 'S17-generic-error', 'S18-maintenance',
+    ] as const;
+    for (const id of required) expect(QA_FIXTURE_IDS).toContain(id);
+  });
+
+  it('creates a real match transition through the public tap action', async () => {
+    await applyQaFixture('S08-game-match');
+    expect(useGame.getState().holder).toHaveLength(1);
+    await new Promise((resolve) => setTimeout(resolve, 560));
+    expect(useGame.getState().holder).toHaveLength(0);
+    expect(useGame.getState().board!.removed).toHaveLength(1);
+  });
+
+  it('keeps offline settings local and visibly honest', async () => {
+    await applyQaFixture('S12-settings-offline');
+    expect(useGame.getState().settingsOpen).toBe(true);
+    expect(useGame.getState().announcement).toMatch(/saved on this device/i);
+  });
 });

@@ -123,6 +123,7 @@ export function AgeScreen() {
 
 export function LoadingScreen() {
   const dispatch = useGame((s) => s.dispatchFlow);
+  const announcement = useGame((s) => s.announcement);
   useEffect(() => {
     if (import.meta.env.DEV && new URLSearchParams(window.location.search).has('qa')) return;
     const id = window.setTimeout(() => dispatch({ type: 'loading_finished' }), 900);
@@ -137,6 +138,7 @@ export function LoadingScreen() {
       <div className="progress-track" aria-label="Loading">
         <span />
       </div>
+      {announcement ? <p className="flow-notice" role="status">{announcement}</p> : null}
     </ScreenFrame>
   );
 }
@@ -251,10 +253,14 @@ export function HomeScreen() {
   const dispatch = useGame((s) => s.dispatchFlow);
   const openSettings = useGame((s) => s.openSettings);
   const progression = useGame((s) => s.progression);
+  const announcement = useGame((s) => s.announcement);
   const [levelsOpen, setLevelsOpen] = useState(false);
   const [themeOpen, setThemeOpen] = useState(false);
   const level = progression.level;
   const progress = progressionFraction(progression.xp);
+  const serviceNotice = /Offline|temporarily unavailable|went wrong while syncing/i.test(announcement)
+    ? announcement
+    : '';
   return (
     <ScreenFrame className="flow-screen--home">
       <BrandHeader />
@@ -265,6 +271,7 @@ export function HomeScreen() {
       <button type="button" className="primary-button primary-button--level" onClick={() => dispatch({ type: 'start_board' })}>
         Level {level}
       </button>
+      {serviceNotice ? <p className="flow-notice flow-notice--home" role="status">{serviceNotice}</p> : null}
       <div className="home-actions">
         <button type="button" className="medallion" aria-label="Levels and profile" onClick={() => setLevelsOpen(true)}><Icon name="profile" /></button>
         <button type="button" className="medallion" aria-label="Change appearance" onClick={() => setThemeOpen(true)}><Icon name="daily" /></button>

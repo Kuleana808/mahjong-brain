@@ -228,6 +228,7 @@ export function SettingsSheet() {
   const purchasePending = useGame((s) => s.purchasePending);
   const accountStatus = useGame((s) => s.accountStatus);
   const accountError = useGame((s) => s.accountError);
+  const announcement = useGame((s) => s.announcement);
   const signIn = useGame((s) => s.signIn);
   const signOut = useGame((s) => s.signOut);
 
@@ -247,6 +248,10 @@ export function SettingsSheet() {
       </div>
 
       <div className="settings-screen__content">
+
+      {announcement.includes('Settings are saved on this device') ? (
+        <p className="flow-notice" role="status">{announcement}</p>
+      ) : null}
 
       <div className="setting">
         <span className="setting__label">Appearance</span>
