@@ -41,4 +41,11 @@ describe('phone board presentation', () => {
     const view = computeView('pyramid', 1024, 1046);
     expect(view.tileW).toBeGreaterThanOrEqual(80);
   });
+
+  it('keeps landscape iPad tiles readable with compact gameplay chrome', () => {
+    // 1024x768 minus the landscape top bar, holder, and bottom dock.
+    for (const layout of ['pyramid', 'turtle', 'dragon'] as const) {
+      expect(computeView(layout, 1024, 559).tileW, layout).toBeGreaterThanOrEqual(70);
+    }
+  });
 });
