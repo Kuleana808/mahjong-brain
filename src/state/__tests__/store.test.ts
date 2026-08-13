@@ -516,6 +516,57 @@ describe('persistence', () => {
     expect(useGame.getState().freeReviveAvailable).toBe(false);
   });
 
+  it('does not count a paused holder-full board before the revive decision', async () => {
+    await useGame.getState().hydrate();
+    const board = useGame.getState().board!;
+    const holder = [...board.remaining].slice(0, 4);
+    const remaining = new Set(board.remaining);
+    for (const id of holder) remaining.delete(id);
+    useGame.setState({
+      board: { ...board, remaining },
+      holder,
+      status: 'holder_full',
+      flow: { ...useGame.getState().flow, screen: 'game_over' },
+      freeReviveAvailable: true,
+    });
+
+    expect(useGame.getState().progression.boardsPlayed).toBe(0);
+    useGame.getState().revive();
+    expect(useGame.getState().progression.boardsPlayed).toBe(0);
+  });
+
+  it('records one loss when a holder-full board is abandoned', async () => {
+    await useGame.getState().hydrate();
+    const board = useGame.getState().board!;
+    useGame.setState({
+      status: 'holder_full',
+      flow: { ...useGame.getState().flow, screen: 'game_over' },
+      board,
+    });
+
+    useGame.getState().dispatchFlow({ type: 'leave_game_over' });
+    expect(useGame.getState().progression.boardsPlayed).toBe(1);
+    expect(useGame.getState().progression.boardsWon).toBe(0);
+
+    // The transition is no longer valid from Home, so repeat taps cannot
+    // duplicate the recorded outcome.
+    useGame.getState().dispatchFlow({ type: 'leave_game_over' });
+    expect(useGame.getState().progression.boardsPlayed).toBe(1);
+  });
+
+  it('records one loss before replacing a holder-full board', async () => {
+    await useGame.getState().hydrate();
+    useGame.setState({
+      status: 'holder_full',
+      flow: { ...useGame.getState().flow, screen: 'game_over' },
+    });
+
+    useGame.getState().dispatchFlow({ type: 'start_board' });
+    expect(useGame.getState().progression.boardsPlayed).toBe(1);
+    expect(useGame.getState().progression.boardsWon).toBe(0);
+    expect(useGame.getState().status).toBe('playing');
+  });
+
   it('returns an onboarded player directly to an active saved board', async () => {
     await useGame.getState().hydrate();
     useGame.getState().dispatchFlow({ type: 'accept_tos', at: '2026-08-10T00:00:00.000Z' });

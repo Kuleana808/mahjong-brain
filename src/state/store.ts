@@ -314,6 +314,18 @@ export const useGame = create<GameStore>((set, get) => {
       const after = reduceFlow(before, action);
       if (after === before) return;
 
+      // Filling the holder pauses the attempt and offers a revive; it is not a
+      // final loss yet. Only record the loss when the player declines that
+      // revive by leaving or starting over. This keeps a revived board from
+      // being counted once as a loss and again as a later win.
+      if (
+        before.screen === 'game_over' &&
+        get().status === 'holder_full' &&
+        (action.type === 'start_board' || action.type === 'leave_game_over')
+      ) {
+        finishBoard(false);
+      }
+
       // The flow machine owns sequencing and its closed event catalogue keeps
       // UI screens from silently shipping without instrumentation.
       for (const name of eventsFor(action, before, after)) {
@@ -615,7 +627,6 @@ export const useGame = create<GameStore>((set, get) => {
         get().dispatchFlow({ type: 'board_won' });
       } else if (nextStatus === 'holder_full') {
         playSound('holder-full', settings.sounds);
-        finishBoard(false);
         get().dispatchFlow({ type: 'holder_full' });
       }
       persist();
