@@ -19,6 +19,7 @@ import { computeView, tileRect, paintOrder, type View } from '../render/geometry
 import { render, type TileMotion } from '../render/boardRenderer';
 import { paletteFor } from '../render/palette';
 import { useGame } from '../state/store';
+import { paintInitialFrame } from './paintLifecycle';
 import { TileFaceCanvas } from './TileFaceCanvas';
 
 interface TileFlight {
@@ -158,7 +159,7 @@ export function BoardView() {
     // Paint the initial frame immediately. WKWebView can defer the first rAF
     // while the native app is moving from hidden to visible, which otherwise
     // leaves a live board with an empty canvas until the next interaction.
-    paint(startedAt);
+    paintInitialFrame(paint, startedAt);
     previousBoardRef.current = board;
 
     return () => {
