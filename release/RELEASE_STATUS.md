@@ -13,7 +13,7 @@ cannot be mistaken for a shipped build.
 | Local source | verified | Branch `codex/build-mobile-shell`; monetization candidate is build 4 and passes the release checks listed below |
 | Committed | verified | `9732925` contains the build-4 AdMob, purchase-trigger, privacy, and telemetry candidate |
 | Pushed | verified | Branch was pushed through release-evidence commit `2fa31d1`; feature commit `9732925` is on GitHub |
-| Pull request | open | PR #10; its checks passed on the prior pushed SHA and must rerun on `9732925`; external review is still required |
+| Pull request | open | PR #10; `check`, `native-ios`, and `original-art` passed on head `210e487`; external review is still required |
 | Merged | not verified | PR #10 remains open and blocked on review |
 | Simulator build | verified | Build 4 compiles with Google Mobile Ads 13.7.0 and Google User Messaging Platform 3.1.0; production web and marketing builds pass |
 | Native iPhone QA | verified | Build installed and launched into gameplay on iPhone 17 Pro simulator; 144-tile board rendered |
@@ -68,10 +68,11 @@ Production monetization work verified on 2026-08-14:
   simulator compilation passed;
 - the AdMob account is still under Google's account verification, so production
   fill and payout are not live-verified;
-- the corrected advertising privacy policy builds locally, but Cloudflare
-  deployment is blocked because this non-interactive shell has no
-  `CLOUDFLARE_API_TOKEN`. The existing public page still describes the older
-  no-ad binary and must be updated before App Review submission.
+- the corrected advertising privacy policy was uploaded through the authenticated
+  Cloudflare dashboard and deployed to production. The public URL returned HTTP
+  200 and live text includes the 2026-08-14 effective date, Google Mobile Ads,
+  non-personalized treatment, disabled publisher first-party identifier, and
+  the in-app Ad privacy choices path.
 
 An environment audit found shell-global Supabase variables belonging to the
 unrelated `signalmarket` project (`qynsncdqxdqiloxnrizj`). They must never be
@@ -80,8 +81,8 @@ Migrations 0001-0004 and one event smoke batch were inadvertently also applied
 to that unrelated project; cleanup requires explicit approval and is not part
 of Mahjong Brain release evidence.
 
-Remaining release gates are deploying the corrected privacy policy, completing
-the App Store privacy answers for Google Mobile Ads, attaching IAP review
+Remaining release gates are completing the App Store privacy answers for Google
+Mobile Ads, attaching IAP review
 screenshots, sandbox purchase/restore and rewarded-ad QA, final native QA,
 screenshots, review/merge of PR #10, a fresh signed build-4 archive, upload,
 processing, TestFlight verification, and App Review submission.
