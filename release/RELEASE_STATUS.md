@@ -12,7 +12,7 @@ cannot be mistaken for a shipped build.
 |---|---|---|
 | Local source | verified | Branch `codex/build-mobile-shell`; monetization candidate is build 4 and passes the release checks listed below |
 | Committed | verified | `9732925` contains the build-4 AdMob, purchase-trigger, privacy, and telemetry candidate |
-| Pushed | pending | `9732925` has not yet been pushed at the time of this evidence update |
+| Pushed | verified | Branch was pushed through release-evidence commit `2fa31d1`; feature commit `9732925` is on GitHub |
 | Pull request | open | PR #10; its checks passed on the prior pushed SHA and must rerun on `9732925`; external review is still required |
 | Merged | not verified | PR #10 remains open and blocked on review |
 | Simulator build | verified | Build 4 compiles with Google Mobile Ads 13.7.0 and Google User Messaging Platform 3.1.0; production web and marketing builds pass |
