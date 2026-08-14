@@ -339,8 +339,8 @@ function createStoreKitPort(options) {
   if (!options.appleRootCaG3Base64) {
     throw new Error("createStoreKitPort: appleRootCaG3Base64 is required");
   }
-  if (!options.expectedProductId || !options.expectedBundleId) {
-    throw new Error("createStoreKitPort: expectedProductId and expectedBundleId are required");
+  if (options.expectedProductIds.length === 0 || !options.expectedBundleId) {
+    throw new Error("createStoreKitPort: expectedProductIds and expectedBundleId are required");
   }
   const rootSpki = parseCertificate(base64ToBytes(options.appleRootCaG3Base64)).spki;
   const now = options.now ?? (() => Date.now());
@@ -355,9 +355,11 @@ function createStoreKitPort(options) {
       if (payload.bundleId !== options.expectedBundleId) {
         throw new Error("Transaction is for a different app");
       }
-      if (payload.productId !== options.expectedProductId) {
-        throw new Error(`Transaction is for ${String(payload.productId)}, not our product`);
+      if (!payload.productId || !options.expectedProductIds.includes(payload.productId)) {
+        throw new Error(`Transaction is for ${String(payload.productId)}, not an approved product`);
       }
+      const transactionId = payload.transactionId;
+      if (!transactionId) throw new Error("Transaction has no individual identifier");
       const originalTransactionId = payload.originalTransactionId ?? payload.transactionId;
       if (!originalTransactionId) throw new Error("Transaction has no identifier");
       const purchasedMs = payload.originalPurchaseDate ?? payload.purchaseDate;
@@ -365,6 +367,7 @@ function createStoreKitPort(options) {
       if (purchasedMs > now() + 6e4) throw new Error("Transaction is dated in the future");
       return {
         productId: payload.productId,
+        transactionId: String(transactionId),
         originalTransactionId: String(originalTransactionId),
         purchasedAt: new Date(purchasedMs).toISOString(),
         environment: payload.environment ?? "Production",
@@ -377,6 +380,9 @@ function createStoreKitPort(options) {
 }
 
 // apps/api/src/adapters/supabaseStore.ts
+function consumableGrant(row) {
+  return { accountId: row.account_id, transactionId: row.transaction_id, productId: row.product_id, kind: row.kind, quantity: row.quantity, purchasedAt: row.purchased_at, environment: row.environment, grantedAt: row.granted_at };
+}
 function createSupabaseStore(options) {
   if (!options.url || !options.serviceRoleKey) {
     throw new Error("createSupabaseStore: url and serviceRoleKey are required");
@@ -505,6 +511,20 @@ function createSupabaseStore(options) {
           streak_days: record.streakDays
         })
       });
+    },
+    async getConsumableGrant(transactionId) {
+      const rows = await request(
+        `/consumable_grants?transaction_id=eq.${encode(transactionId)}&select=*&limit=1`
+      );
+      return rows[0] ? consumableGrant(rows[0]) : null;
+    },
+    async putConsumableGrant(record) {
+      const rows = await request("/consumable_grants?on_conflict=transaction_id", {
+        method: "POST",
+        headers: { prefer: "resolution=ignore-duplicates,return=representation" },
+        body: JSON.stringify({ account_id: record.accountId, transaction_id: record.transactionId, product_id: record.productId, kind: record.kind, quantity: record.quantity, purchased_at: record.purchasedAt, environment: record.environment, granted_at: record.grantedAt })
+      });
+      return rows.length === 1;
     }
   };
 }
@@ -546,20 +566,20 @@ function createEdgePorts(readEnvironment) {
   } else {
     lines2.push("apple       DISABLED \u2014 set APPLE_BUNDLE_ID");
   }
-  const productId = env("IAP_PRODUCT_ID");
-  if (productId && bundleId) {
+  const productIds = (env("IAP_PRODUCT_IDS") ?? env("IAP_PRODUCT_ID") ?? "").split(",").map((value) => value.trim()).filter(Boolean);
+  if (productIds.length > 0 && bundleId) {
     try {
       ports2.storekit = createStoreKitPort({
         appleRootCaG3Base64: env("APPLE_ROOT_CA_G3_BASE64") ?? APPLE_ROOT_CA_G3_BASE64,
-        expectedProductId: productId,
+        expectedProductIds: productIds,
         expectedBundleId: bundleId
       });
-      lines2.push(`storekit    verifying ${productId}`);
+      lines2.push(`storekit    verifying ${productIds.join(", ")}`);
     } catch (cause) {
       lines2.push(`storekit    DISABLED \u2014 ${cause.message}`);
     }
   } else {
-    lines2.push("storekit    DISABLED \u2014 set APPLE_BUNDLE_ID + IAP_PRODUCT_ID");
+    lines2.push("storekit    DISABLED \u2014 set APPLE_BUNDLE_ID + IAP_PRODUCT_IDS");
   }
   return { ports: ports2, lines: lines2 };
 }
@@ -2177,6 +2197,36 @@ async function claimDailyReward(sessionToken, request, ports2 = {}) {
   );
 }
 
+// packages/core/src/contracts/handlers/consumables.ts
+var CONTRACT7 = "api/consumables/validate";
+var SHUFFLE_PRODUCT = "com.nihi.mahjong.shuffle5";
+var SHUFFLE_QUANTITY = 5;
+async function validateConsumable(request, sessionToken, ports2 = {}) {
+  const now = nowOf(ports2);
+  if (typeof request.signedTransaction !== "string" || request.signedTransaction.split(".").length !== 3) {
+    return fail(CONTRACT7, CONTRACT_VERSION, { code: "invalid_request", message: "Expected a StoreKit 2 signed transaction.", field: "signedTransaction" }, { now });
+  }
+  const missing = [!ports2.storekit && "APPLE_ROOT_CA_G3_BASE64 + IAP_PRODUCT_IDS + APPLE_BUNDLE_ID", !ports2.store && "SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY", !ports2.session && "SESSION_SIGNING_KEY"].filter(Boolean);
+  if (missing.length) return notConfigured(CONTRACT7, CONTRACT_VERSION, missing, { now });
+  const accountId = await ports2.session.verify(sessionToken);
+  if (!accountId) return fail(CONTRACT7, CONTRACT_VERSION, { code: "unauthenticated", message: "Sign in with Apple before buying a Shuffle pack." }, { now, state: "configured" });
+  let verified;
+  try {
+    verified = await ports2.storekit.verifySignedTransaction(request.signedTransaction);
+  } catch (cause) {
+    return fail(CONTRACT7, CONTRACT_VERSION, { code: "unverified_transaction", message: "That purchase could not be verified." }, { now, state: "configured", fallbackReason: `StoreKit transaction rejected: ${cause.message}` });
+  }
+  if (verified.productId !== SHUFFLE_PRODUCT || verified.revoked) {
+    return fail(CONTRACT7, CONTRACT_VERSION, { code: "wrong_product", message: "That transaction is not an active Shuffle pack." }, { now, state: "configured" });
+  }
+  const inserted = await ports2.store.putConsumableGrant({ accountId, transactionId: verified.transactionId, productId: verified.productId, kind: "shuffle", quantity: SHUFFLE_QUANTITY, purchasedAt: verified.purchasedAt, environment: verified.environment, grantedAt: now });
+  const existing = inserted ? null : await ports2.store.getConsumableGrant(verified.transactionId);
+  if (!inserted && existing?.accountId !== accountId) {
+    return fail(CONTRACT7, CONTRACT_VERSION, { code: "transaction_claimed", message: "That transaction belongs to another account." }, { now, state: "configured" });
+  }
+  return ok(CONTRACT7, CONTRACT_VERSION, { productId: verified.productId, transactionId: verified.transactionId, kind: "shuffle", quantityGranted: existing?.quantity ?? SHUFFLE_QUANTITY, alreadyGranted: !inserted, purchasedAt: verified.purchasedAt, environment: verified.environment }, { now, state: "configured" });
+}
+
 // apps/api/src/router.ts
 var num = (value) => {
   if (value === null || value === "") return void 0;
@@ -2247,6 +2297,7 @@ async function handle(request, ports2) {
       if (method === "GET") return getDailyReward(bearer, query.get("localDate") ?? "", ports2);
       if (method === "POST") return claimDailyReward(bearer, unvalidated(body), ports2);
     }
+    if (method === "POST" && path === "/api/consumables/validate") return validateConsumable(unvalidated(body), bearer, ports2);
     return fail("api/unknown", "1", {
       code: "not_found",
       message: `No contract at ${method} ${path}.`

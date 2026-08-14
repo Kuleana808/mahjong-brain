@@ -46,20 +46,20 @@ export function createEdgePorts(readEnvironment: EnvironmentReader): ConfigRepor
     lines.push('apple       DISABLED — set APPLE_BUNDLE_ID');
   }
 
-  const productId = env('IAP_PRODUCT_ID');
-  if (productId && bundleId) {
+  const productIds = (env('IAP_PRODUCT_IDS') ?? env('IAP_PRODUCT_ID') ?? '').split(',').map((value) => value.trim()).filter(Boolean);
+  if (productIds.length > 0 && bundleId) {
     try {
       ports.storekit = createStoreKitPort({
         appleRootCaG3Base64: env('APPLE_ROOT_CA_G3_BASE64') ?? APPLE_ROOT_CA_G3_BASE64,
-        expectedProductId: productId,
+        expectedProductIds: productIds,
         expectedBundleId: bundleId,
       });
-      lines.push(`storekit    verifying ${productId}`);
+      lines.push(`storekit    verifying ${productIds.join(', ')}`);
     } catch (cause) {
       lines.push(`storekit    DISABLED — ${(cause as Error).message}`);
     }
   } else {
-    lines.push('storekit    DISABLED — set APPLE_BUNDLE_ID + IAP_PRODUCT_ID');
+    lines.push('storekit    DISABLED — set APPLE_BUNDLE_ID + IAP_PRODUCT_IDS');
   }
 
   return { ports, lines };

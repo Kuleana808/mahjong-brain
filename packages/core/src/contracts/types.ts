@@ -218,6 +218,21 @@ export interface ReceiptValidateResponse {
   readonly revoked: boolean;
 }
 
+export interface ConsumableValidateRequest {
+  readonly signedTransaction: string;
+}
+
+export interface ConsumableValidateResponse {
+  readonly productId: string;
+  readonly transactionId: string;
+  readonly kind: 'shuffle';
+  /** The verified pack quantity. Clients must dedupe locally by transactionId. */
+  readonly quantityGranted: number;
+  readonly alreadyGranted: boolean;
+  readonly purchasedAt: string;
+  readonly environment: string;
+}
+
 // --- 9. GET /api/unlock-status ---------------------------------------------
 
 export interface UnlockStatusResponse {

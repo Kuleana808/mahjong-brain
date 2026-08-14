@@ -114,4 +114,4 @@ the repo:
 | `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` | contracts 3, 4, 9, 10, 11, 12. **Service-role bypasses RLS — server-side only, never shipped to a client** |
 | `SESSION_SIGNING_KEY` | session tokens |
 | `APPLE_BUNDLE_ID` | contract 3's audience check |
-| `APPLE_ROOT_CA_G3_BASE64`, `IAP_PRODUCT_ID` | contract 8 |
+| `APPLE_ROOT_CA_G3_BASE64`, `IAP_PRODUCT_IDS` | receipt and consumable verification; include `com.nihi.mahjong.removeads,com.nihi.mahjong.shuffle5` |

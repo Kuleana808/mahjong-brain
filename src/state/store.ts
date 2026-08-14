@@ -49,7 +49,7 @@ import {
   type PlaySession,
 } from '../../packages/core/src/play/session';
 import { faceName } from '../../packages/core/src/game/tiles';
-import { purchases, purchasesConfigured } from '../iap';
+import { consumablePurchases, purchases, purchasesConfigured } from '../iap';
 import { playSound } from '../audio/sounds';
 import {
   appleSignInAvailable,
@@ -128,6 +128,7 @@ interface GameStore {
 
   settings: Settings;
   inventory: Inventory;
+  appliedConsumableTransactions: readonly string[];
   profile: SkillProfile;
   progression: Progression;
   boardsCompleted: number;
@@ -159,6 +160,7 @@ interface GameStore {
   useRevive(): void;
   updateSettings(patch: Partial<Settings>): void;
   grantInventory(kind: GrantKind, quantity: number): void;
+  purchaseShuffles(): Promise<void>;
   openSettings(open: boolean): void;
   closePaywall(): void;
   buy(): Promise<void>;
@@ -264,6 +266,7 @@ export const useGame = create<GameStore>((set, get) => {
         deviceUnlocked: s.deviceUnlocked,
         unlocked: s.unlocked,
         inventory: s.inventory,
+        appliedConsumableTransactions: s.appliedConsumableTransactions,
       },
       resume: s.board
         ? {
@@ -304,6 +307,7 @@ export const useGame = create<GameStore>((set, get) => {
 
     settings: DEFAULT_SETTINGS,
     inventory: DEFAULT_INVENTORY,
+    appliedConsumableTransactions: [],
     profile: INITIAL_PROFILE,
     progression: INITIAL_PROGRESSION,
     boardsCompleted: 0,
@@ -376,6 +380,7 @@ export const useGame = create<GameStore>((set, get) => {
         deviceUnlocked?: boolean;
         unlocked?: boolean;
         inventory?: Partial<Inventory>;
+        appliedConsumableTransactions?: string[];
       };
 
       // Older snapshots did not distinguish an account unlock from a StoreKit
@@ -397,6 +402,7 @@ export const useGame = create<GameStore>((set, get) => {
         deviceUnlocked: cachedDeviceEntitlement,
         unlocked: cachedDeviceEntitlement,
         inventory: { ...DEFAULT_INVENTORY, ...(progress.inventory ?? {}) },
+        appliedConsumableTransactions: Array.isArray(progress.appliedConsumableTransactions) ? progress.appliedConsumableTransactions.filter((id): id is string => typeof id === 'string').slice(-100) : [],
         accountStatus: appleSignInAvailable() ? 'signed_out' : 'unavailable',
         accountId: null,
       });
@@ -795,6 +801,24 @@ export const useGame = create<GameStore>((set, get) => {
       if (!['hint', 'shuffle', 'revive'].includes(kind) || !Number.isSafeInteger(quantity) || quantity <= 0) return;
       set((state) => ({ inventory: { ...state.inventory, [kind]: state.inventory[kind as keyof Inventory] + quantity } }));
       persist();
+    },
+
+    async purchaseShuffles() {
+      if (get().purchasePending) return;
+      set({ purchasePending: 'buying', announcement: 'Contacting Apple…' });
+      try {
+        const result = await consumablePurchases().purchase();
+        if (result.status === 'purchased' && result.transactionId && result.quantity) {
+          if (!get().appliedConsumableTransactions.includes(result.transactionId)) {
+            set((state) => ({
+              inventory: { ...state.inventory, shuffle: state.inventory.shuffle + result.quantity! },
+              appliedConsumableTransactions: [...state.appliedConsumableTransactions, result.transactionId!].slice(-100),
+              announcement: `${result.quantity} Shuffles added.`,
+            }));
+            persist();
+          }
+        } else if (result.status !== 'cancelled') set({ announcement: result.message ?? 'Purchase could not be completed.' });
+      } finally { set({ purchasePending: null }); }
     },
 
     openSettings(open) {

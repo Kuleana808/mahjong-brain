@@ -18,6 +18,7 @@ import { recordSessionAnalytics } from '../handlers/analytics';
 import { logPlayPattern, nextBoard } from '../handlers/difficulty';
 import { generateBoard, validateMove } from '../handlers/game';
 import { generateHint } from '../handlers/hints';
+import { validateConsumable } from '../handlers/consumables';
 import { unlockStatus, validateReceipt } from '../handlers/purchases';
 import { getSettings, patchSettings, DEFAULT_SYNCED_SETTINGS } from '../handlers/settings';
 import { CONTRACT_REGISTRY } from '../index';
@@ -53,7 +54,49 @@ describe('the envelope', () => {
       expect(entry.id).toMatch(/^(game|api)\//);
       expect(entry.path.startsWith('/api/')).toBe(true);
     }
-    expect(CONTRACT_REGISTRY).toHaveLength(12);
+    expect(CONTRACT_REGISTRY).toHaveLength(13);
+  });
+});
+
+describe('api/consumables/validate', () => {
+  const transaction = {
+    productId: 'com.nihi.mahjong.shuffle5',
+    transactionId: 'tx_shuffle_1',
+    originalTransactionId: 'original_shuffle_1',
+    purchasedAt: NOW,
+    environment: 'Sandbox',
+    revoked: false,
+  } as const;
+
+  function consumablePorts(store = stubStore()): Ports {
+    return {
+      ...fixed,
+      store,
+      session: { async issue() { return { token: 'token', expiresAt: NOW }; }, async verify(token) { return token === 'token' ? 'acct_1' : null; } },
+      storekit: { async verifySignedTransaction() { return transaction; } },
+    };
+  }
+
+  it('grants one verified Shuffle pack and returns the same recoverable quantity on replay', async () => {
+    const grants = new Map<string, import('../ports').ConsumableGrantRecord>();
+    const store = stubStore();
+    store.getConsumableGrant = async (id) => grants.get(id) ?? null;
+    store.putConsumableGrant = async (record) => {
+      if (grants.has(record.transactionId)) return false;
+      grants.set(record.transactionId, record);
+      return true;
+    };
+    const first = await validateConsumable({ signedTransaction: 'a.b.c' }, 'token', consumablePorts(store));
+    const replay = await validateConsumable({ signedTransaction: 'a.b.c' }, 'token', consumablePorts(store));
+    expect(first.data).toMatchObject({ quantityGranted: 5, alreadyGranted: false, transactionId: 'tx_shuffle_1' });
+    expect(replay.data).toMatchObject({ quantityGranted: 5, alreadyGranted: true, transactionId: 'tx_shuffle_1' });
+    expect(grants).toHaveLength(1);
+  });
+
+  it('requires sign-in and rejects the wrong product', async () => {
+    expect((await validateConsumable({ signedTransaction: 'a.b.c' }, null, consumablePorts())).error?.code).toBe('unauthenticated');
+    const ports: Ports = { ...consumablePorts(), storekit: { async verifySignedTransaction() { return { ...transaction, productId: 'com.nihi.mahjong.removeads' }; } } };
+    expect((await validateConsumable({ signedTransaction: 'a.b.c' }, 'token', ports)).error?.code).toBe('wrong_product');
   });
 });
 
@@ -333,6 +376,7 @@ describe('purchases fail closed', () => {
       storekit: {
         verifySignedTransaction: async () => ({
           productId: 'com.mahjongbrain.game.removeads',
+          transactionId: 'tx_1',
           originalTransactionId: '2000000000000001',
           purchasedAt: NOW,
           environment: 'sandbox',
@@ -352,6 +396,7 @@ describe('purchases fail closed', () => {
       storekit: {
         verifySignedTransaction: async () => ({
           productId: 'com.mahjongbrain.game.removeads',
+          transactionId: 'tx_1',
           originalTransactionId: '2000000000000001',
           purchasedAt: NOW,
           environment: 'production',
@@ -519,6 +564,8 @@ function stubStore(): StorePort {
       return null;
     },
     async putDailyReward() {},
+    async getConsumableGrant() { return null; },
+    async putConsumableGrant() { return true; },
   };
 }
 

@@ -45,7 +45,7 @@ mahjong-brain contracts API on http://localhost:5185
   store       in-memory (dev)
   session     hs256
   apple       verifying aud=com.nihi.mahjong
-  storekit    none — set IAP_PRODUCT_ID, APPLE_BUNDLE_ID
+  storekit    none — set IAP_PRODUCT_IDS, APPLE_BUNDLE_ID
   contracts 1, 2, 5, 6, 7 need none of the above and are always live
 ```
 
@@ -507,7 +507,7 @@ bundle, and a future-dated purchase.
 | Variable | Where it comes from |
 |---|---|
 | `APPLE_ROOT_CA_G3_BASE64` | [apple.com/certificateauthority](https://www.apple.com/certificateauthority/), base64 of `AppleRootCA-G3.cer` |
-| `IAP_PRODUCT_ID` | `com.nihi.mahjong.removeads` |
+| `IAP_PRODUCT_IDS` | `com.nihi.mahjong.removeads,com.nihi.mahjong.shuffle5` |
 | `APPLE_BUNDLE_ID` | blocked on D-001 |
 
 **Pin the root; never fetch it at runtime.** A root you download at boot is a

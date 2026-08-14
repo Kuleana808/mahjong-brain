@@ -212,7 +212,7 @@ describe('StoreKit 2 transactions', () => {
   const port = () =>
     createStoreKitPort({
       appleRootCaG3Base64: rootBase64,
-      expectedProductId: PRODUCT_ID,
+      expectedProductIds: [PRODUCT_ID],
       expectedBundleId: BUNDLE_ID,
       now: () => NOW_MS,
     });
@@ -220,6 +220,7 @@ describe('StoreKit 2 transactions', () => {
   const payload = (over: Record<string, unknown> = {}) => ({
     bundleId: BUNDLE_ID,
     productId: PRODUCT_ID,
+    transactionId: '3000000000000001',
     originalTransactionId: '2000000000000001',
     originalPurchaseDate: NOW_MS - 86_400_000,
     environment: 'Sandbox',
@@ -287,7 +288,7 @@ describe('StoreKit 2 transactions', () => {
 
   it('refuses a genuine transaction for a different product', async () => {
     const jws = await signEs256(payload({ productId: 'com.someone.else.coins' }), leafKeys, chain());
-    await expect(port().verifySignedTransaction(jws)).rejects.toThrow(/not our product/i);
+    await expect(port().verifySignedTransaction(jws)).rejects.toThrow(/not an approved product/i);
   });
 
   it('refuses a genuine transaction for a different app', async () => {
@@ -325,7 +326,7 @@ describe('StoreKit 2 transactions', () => {
     expect(() =>
       createStoreKitPort({
         appleRootCaG3Base64: btoa('not a certificate'),
-        expectedProductId: PRODUCT_ID,
+        expectedProductIds: [PRODUCT_ID],
         expectedBundleId: BUNDLE_ID,
       }),
     ).toThrow();

@@ -83,21 +83,21 @@ export function createPorts(readEnvironment: EnvironmentReader = nodeEnvironment
 
   // --- storekit ------------------------------------------------------------
   const appleRoot = env('APPLE_ROOT_CA_G3_BASE64') ?? APPLE_ROOT_CA_G3_BASE64;
-  const productId = env('IAP_PRODUCT_ID');
-  if (appleRoot && productId && bundleId) {
+  const productIds = (env('IAP_PRODUCT_IDS') ?? env('IAP_PRODUCT_ID') ?? '').split(',').map((value) => value.trim()).filter(Boolean);
+  if (appleRoot && productIds.length > 0 && bundleId) {
     try {
       ports.storekit = createStoreKitPort({
         appleRootCaG3Base64: appleRoot,
-        expectedProductId: productId,
+        expectedProductIds: productIds,
         expectedBundleId: bundleId,
       });
-      lines.push(`storekit    verifying ${productId}`);
+      lines.push(`storekit    verifying ${productIds.join(', ')}`);
     } catch (cause) {
       lines.push(`storekit    DISABLED — ${(cause as Error).message}`);
     }
   } else {
     const missing = [
-      !productId && 'IAP_PRODUCT_ID',
+      productIds.length === 0 && 'IAP_PRODUCT_IDS',
       !bundleId && 'APPLE_BUNDLE_ID',
     ].filter(Boolean);
     lines.push(`storekit    none — set ${missing.join(', ')}`);

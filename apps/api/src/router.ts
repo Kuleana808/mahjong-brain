@@ -23,6 +23,7 @@ import {
   unlockStatus,
   validateMove,
   validateReceipt,
+  validateConsumable,
   type ContractEnvelope,
   type Ports,
 } from '@mahjong-brain/core/contracts';
@@ -144,6 +145,7 @@ export async function handle(request: ApiRequest, ports: Ports): Promise<ApiResp
       if (method === 'GET') return getDailyReward(bearer, query.get('localDate') ?? '', ports);
       if (method === 'POST') return claimDailyReward(bearer, unvalidated(body), ports);
     }
+    if (method === 'POST' && path === '/api/consumables/validate') return validateConsumable(unvalidated(body), bearer, ports);
 
     return fail('api/unknown', '1', {
       code: 'not_found',

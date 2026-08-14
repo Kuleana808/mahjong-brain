@@ -62,7 +62,7 @@ beforeAll(async () => {
     }),
     storekit: createStoreKitPort({
       appleRootCaG3Base64: root.base64,
-      expectedProductId: PRODUCT_ID,
+      expectedProductIds: [PRODUCT_ID],
       expectedBundleId: BUNDLE_ID,
       now: () => NOW_MS,
     }),
@@ -206,6 +206,7 @@ describe('contracts 8 and 9 — purchase and unlock status', () => {
   const transaction = (over: Record<string, unknown> = {}) => ({
     bundleId: BUNDLE_ID,
     productId: PRODUCT_ID,
+    transactionId: `3000000000000${Math.floor(Math.random() * 900 + 100)}`,
     originalTransactionId: `2000000000000${Math.floor(Math.random() * 900 + 100)}`,
     originalPurchaseDate: NOW_MS - 86_400_000,
     environment: 'Sandbox',

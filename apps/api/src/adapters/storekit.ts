@@ -27,7 +27,7 @@ export interface StoreKitOptions {
    * it at runtime, because a root you fetch is a root an attacker can serve.
    */
   readonly appleRootCaG3Base64: string;
-  readonly expectedProductId: string;
+  readonly expectedProductIds: readonly string[];
   readonly expectedBundleId: string;
   readonly now?: () => number;
 }
@@ -49,8 +49,8 @@ export function createStoreKitPort(options: StoreKitOptions): StoreKitPort {
   if (!options.appleRootCaG3Base64) {
     throw new Error('createStoreKitPort: appleRootCaG3Base64 is required');
   }
-  if (!options.expectedProductId || !options.expectedBundleId) {
-    throw new Error('createStoreKitPort: expectedProductId and expectedBundleId are required');
+  if (options.expectedProductIds.length === 0 || !options.expectedBundleId) {
+    throw new Error('createStoreKitPort: expectedProductIds and expectedBundleId are required');
   }
 
   // Parsed once at construction, so a malformed pin fails at boot rather than
@@ -73,11 +73,13 @@ export function createStoreKitPort(options: StoreKitOptions): StoreKitPort {
       if (payload.bundleId !== options.expectedBundleId) {
         throw new Error('Transaction is for a different app');
       }
-      if (payload.productId !== options.expectedProductId) {
+      if (!payload.productId || !options.expectedProductIds.includes(payload.productId)) {
         // Verified, genuine, and not ours.
-        throw new Error(`Transaction is for ${String(payload.productId)}, not our product`);
+        throw new Error(`Transaction is for ${String(payload.productId)}, not an approved product`);
       }
 
+      const transactionId = payload.transactionId;
+      if (!transactionId) throw new Error('Transaction has no individual identifier');
       const originalTransactionId = payload.originalTransactionId ?? payload.transactionId;
       if (!originalTransactionId) throw new Error('Transaction has no identifier');
 
@@ -87,6 +89,7 @@ export function createStoreKitPort(options: StoreKitOptions): StoreKitPort {
 
       return {
         productId: payload.productId,
+        transactionId: String(transactionId),
         originalTransactionId: String(originalTransactionId),
         purchasedAt: new Date(purchasedMs).toISOString(),
         environment: payload.environment ?? 'Production',

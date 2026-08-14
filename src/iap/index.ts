@@ -15,13 +15,14 @@
 
 import { Capacitor, registerPlugin } from '@capacitor/core';
 
-import type { ReceiptValidateResponse } from '../../packages/core/src/contracts/types';
+import type { ConsumableValidateResponse, ReceiptValidateResponse } from '../../packages/core/src/contracts/types';
 import { loadAccountSession } from '../auth/apple';
 import { apiConfigured, apiRequest } from '../services/api';
 
 // Permanent StoreKit namespace confirmed with the app bundle id on 2026-08-11.
 // PRODUCT_CATALOGUE in @mahjong-brain/core remains the source of truth.
 export const PRODUCT_ID = 'com.nihi.mahjong.removeads';
+export const SHUFFLE_PRODUCT_ID = 'com.nihi.mahjong.shuffle5';
 
 export interface PurchaseProduct {
   readonly productId: string;
@@ -103,6 +104,16 @@ interface NativeStoreKit {
   currentEntitlement(options: { productId: string }): Promise<NativeStoreKitResult>;
   restore(options: { productId: string }): Promise<NativeStoreKitResult>;
   finish(options: { transactionId: string }): Promise<void>;
+}
+
+export interface ConsumablePurchaseResult extends PurchaseResult {
+  readonly transactionId?: string;
+  readonly quantity?: number;
+}
+
+export interface ConsumablePurchases {
+  product(): Promise<PurchaseProduct | null>;
+  purchase(): Promise<ConsumablePurchaseResult>;
 }
 
 const storeKitGlobal = globalThis as typeof globalThis & { __mahjongStoreKit?: NativeStoreKit };
@@ -189,8 +200,50 @@ class VerifiedStoreKitPurchases implements Purchases {
   }
 }
 
+class UnavailableConsumables implements ConsumablePurchases {
+  async product(): Promise<null> { return null; }
+  async purchase(): Promise<ConsumablePurchaseResult> { return { status: 'unavailable', message: 'Shuffle packs are not available in this build.' }; }
+}
+
+class VerifiedStoreKitConsumables implements ConsumablePurchases {
+  private readonly productId: string;
+  constructor(productId: string) { this.productId = productId; }
+
+  async product(): Promise<PurchaseProduct | null> {
+    try {
+      const result = await NativeStoreKit.productInfo({ productId: this.productId });
+      return result.status === 'ready' && result.productId === this.productId && result.displayPrice
+        ? { productId: result.productId, displayPrice: result.displayPrice }
+        : null;
+    } catch { return null; }
+  }
+
+  async purchase(): Promise<ConsumablePurchaseResult> {
+    try {
+      const result = await NativeStoreKit.purchase({ productId: this.productId });
+      if (result.status === 'cancelled') return { status: 'cancelled' };
+      if (result.status === 'pending') return { status: 'unavailable', message: 'The purchase is waiting for approval.' };
+      if (!result.signedTransaction || !result.transactionId || result.productId !== this.productId) {
+        return { status: 'error', message: 'Apple returned an incomplete transaction.' };
+      }
+      const session = await loadAccountSession();
+      if (!session) return { status: 'unavailable', message: 'Sign in with Apple before buying a Shuffle pack.' };
+      const envelope = await apiRequest<ConsumableValidateResponse>('/api/consumables/validate', {
+        method: 'POST', bearer: session.token, body: { signedTransaction: result.signedTransaction },
+      });
+      const grant = envelope.data;
+      if (!grant || grant.productId !== this.productId || grant.transactionId !== result.transactionId || grant.quantityGranted <= 0) {
+        return { status: 'error', message: 'Apple confirmed the purchase, but secure verification is unavailable.' };
+      }
+      await NativeStoreKit.finish({ transactionId: result.transactionId });
+      return { status: 'purchased', transactionId: grant.transactionId, quantity: grant.quantityGranted };
+    } catch { return { status: 'error', message: 'The Shuffle pack could not be completed.' }; }
+  }
+}
+
 let active: Purchases = new UnavailablePurchases();
 let configured = false;
+let activeConsumables: ConsumablePurchases = new UnavailableConsumables();
 
 export function purchases(): Purchases {
   return active;
@@ -204,6 +257,8 @@ export function setPurchases(implementation: Purchases): void {
   active = implementation;
   configured = true;
 }
+
+export function consumablePurchases(): ConsumablePurchases { return activeConsumables; }
 
 /** Configures the native bridge only when every security boundary is present. */
 export function configureNativePurchases(): void {
@@ -219,4 +274,6 @@ export function configureNativePurchases(): void {
     return;
   }
   setPurchases(new VerifiedStoreKitPurchases(productId));
+  const shuffleProductId = import.meta.env.VITE_SHUFFLE_PRODUCT_ID?.trim();
+  if (shuffleProductId === SHUFFLE_PRODUCT_ID) activeConsumables = new VerifiedStoreKitConsumables(shuffleProductId);
 }

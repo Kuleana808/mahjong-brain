@@ -1,3 +1,5 @@
+import { useEffect, useState } from 'react';
+import { consumablePurchases } from '../iap';
 import { useGame } from '../state/store';
 import { Icon } from './Icon';
 
@@ -10,10 +12,15 @@ export function BottomDock() {
   const undo = useGame((s) => s.undo);
   const inventory = useGame((s) => s.inventory);
   const playing = status === 'playing';
+  const purchaseShuffles = useGame((s) => s.purchaseShuffles);
+  const purchasePending = useGame((s) => s.purchasePending);
+  const [shopOpen, setShopOpen] = useState(false);
+  const [price, setPrice] = useState<string | null>(null);
+  useEffect(() => { if (shopOpen) void consumablePurchases().product().then((product) => setPrice(product?.displayPrice ?? null)); }, [shopOpen]);
 
-  return (
+  return (<>
     <nav className="bottom-dock" aria-label="Game tools">
-      <button type="button" className="tool-medallion" aria-label={`Shuffle, ${inventory.shuffle} available`} onClick={shuffleBoard} disabled={!playing}>
+      <button type="button" className="tool-medallion" aria-label={`Shuffle, ${inventory.shuffle} available`} onClick={() => inventory.shuffle > 0 ? shuffleBoard() : setShopOpen(true)} disabled={!playing}>
         <span className="tool-medallion__face"><Icon name="shuffle" /></span>
         <span>Shuffle <small>{inventory.shuffle}</small></span>
       </button>
@@ -26,5 +33,6 @@ export function BottomDock() {
         <span>Undo</span>
       </button>
     </nav>
-  );
+    {shopOpen ? <div className="overlay" role="dialog" aria-modal="true" aria-labelledby="shuffle-pack-title"><div className="card consumable-card"><h2 id="shuffle-pack-title">5 Shuffles</h2><p>Rearrange a board when you want a fresh set of choices.</p><strong className="card__price">{price ?? 'Store unavailable'}</strong><button type="button" className="button" disabled={!price || purchasePending !== null} onClick={async () => { await purchaseShuffles(); setShopOpen(false); }}>{purchasePending === 'buying' ? 'Contacting Apple…' : price ? `Buy for ${price}` : 'Try again later'}</button><button type="button" className="button button--quiet" disabled={purchasePending !== null} onClick={() => setShopOpen(false)}>Not now</button></div></div> : null}
+  </>);
 }
