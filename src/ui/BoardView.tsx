@@ -34,6 +34,10 @@ interface MatchCelebration {
   readonly origins: readonly DOMRect[];
 }
 
+export function shouldAnimateTileToHolder(isFree: boolean, flightActive: boolean, reduceMotion: boolean): boolean {
+  return isFree && !flightActive && !reduceMotion;
+}
+
 const SHARDS = Array.from({ length: 18 }, (_, index) => ({
   x: ((index * 43) % 132) - 66,
   y: -38 - ((index * 29) % 76),
@@ -180,8 +184,11 @@ export function BoardView() {
     };
   }, [board, palette, selectedId, hint, settings.dimBlocked, settings.reduceMotion, box, flight]);
 
-  const takeTile = useCallback((tile: Tile, source: HTMLElement) => {
-    if (flight || settings.reduceMotion) {
+  const takeTile = useCallback((tile: Tile, source: HTMLElement, isFree: boolean) => {
+    if (!shouldAnimateTileToHolder(isFree, Boolean(flight), settings.reduceMotion)) {
+      // Blocked tiles still reach the store so players get concise visual,
+      // spoken, and sound feedback, but they must never appear to enter the
+      // holder. An active flight remains a strict interaction lock.
       if (!flight) tapTile(tile.id);
       return;
     }
@@ -251,7 +258,7 @@ export function BoardView() {
                   ? `${faceName(tile.face)}, free on the ${sides.join(' and ')}`
                   : `${faceName(tile.face)}, blocked`
               }
-              onClick={(event) => takeTile(tile, event.currentTarget)}
+              onClick={(event) => takeTile(tile, event.currentTarget, isFree)}
               onKeyDown={(event) => {
                 const map = {
                   ArrowUp: 'up',
