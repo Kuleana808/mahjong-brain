@@ -49,8 +49,15 @@ import {
   type PlaySession,
 } from '../../packages/core/src/play/session';
 import { faceName } from '../../packages/core/src/game/tiles';
-import { consumablePurchases, purchases, purchasesConfigured } from '../iap';
+import {
+  consumablePurchases,
+  PRODUCT_ID,
+  purchases,
+  purchasesConfigured,
+  SHUFFLE_PRODUCT_ID,
+} from '../iap';
 import { playSound } from '../audio/sounds';
+import { ads } from '../ads';
 import {
   appleSignInAvailable,
   restoreAccount,
@@ -157,11 +164,13 @@ interface GameStore {
   dismissHint(): void;
   undo(): void;
   shuffleBoard(): void;
-  useRevive(): void;
+  useRevive(): Promise<void>;
+  continueAfterBoard(): Promise<void>;
   updateSettings(patch: Partial<Settings>): void;
   grantInventory(kind: GrantKind, quantity: number): void;
   purchaseShuffles(): Promise<void>;
   openSettings(open: boolean): void;
+  openPaywall(): void;
   closePaywall(): void;
   buy(): Promise<void>;
   restore(): Promise<void>;
@@ -669,12 +678,20 @@ export const useGame = create<GameStore>((set, get) => {
       const { board, holder, status, unlocked, hintPending, settings, inventory } = get();
       if (!board || hintPending) return;
 
+      void track('hint_tapped', { layout: board.layoutId, seed: board.seed });
+
       if (inventory.hint <= 0) {
-        set({ announcement: 'No Hints available. Collect a daily reward or choose a rewarded Hint when that service is available.' });
-        return;
+        set({ hintPending: true, announcement: 'Loading a short ad for one Hint…' });
+        void track('hint_ad_started', { placement: 'hint' });
+        const result = await ads().showRewarded('hint');
+        if (result.status !== 'completed') {
+          set({ hintPending: false, announcement: result.status === 'dismissed' ? 'Ad closed. No Hint was used.' : 'No Hints available. A rewarded Hint is unavailable right now.' });
+          return;
+        }
+        void track('hint_ad_completed', { placement: 'hint' });
+        set((state) => ({ inventory: { ...state.inventory, hint: state.inventory.hint + 1 } }));
       }
 
-      void track('hint_tapped', { layout: board.layoutId, seed: board.seed });
       set({ hintPending: true });
       const safePair = holderHintPair(playSessionFromState(board, holder, status));
       if (!safePair) {
@@ -762,13 +779,23 @@ export const useGame = create<GameStore>((set, get) => {
       persist();
     },
 
-    useRevive() {
-      const { board, holder, status, inventory, settings } = get();
+    async useRevive() {
+      let { board, holder, status, inventory, settings } = get();
       if (!board || status !== 'holder_full') return;
+      void track('revive_tapped', { placement: 'revive' });
       if (inventory.revive <= 0) {
-        set({ announcement: 'No Revives available. Restart or return home.' });
-        return;
+        set({ announcement: 'Loading a short ad to revive this board…' });
+        void track('revive_ad_started', { placement: 'revive' });
+        const result = await ads().showRewarded('revive');
+        if (result.status !== 'completed') {
+          set({ announcement: result.status === 'dismissed' ? 'Ad closed. The board is still paused.' : 'A rewarded Revive is unavailable right now.' });
+          return;
+        }
+        void track('revive_ad_completed', { placement: 'revive' });
+        set((state) => ({ inventory: { ...state.inventory, revive: state.inventory.revive + 1 } }));
+        ({ board, holder, status, inventory, settings } = get());
       }
+      if (!board) return;
       const revived = revivePlaySession(playSessionFromState(board, holder, status));
       if (revived.status !== 'playing') return;
       playSound('shuffle', settings.sounds);
@@ -784,6 +811,19 @@ export const useGame = create<GameStore>((set, get) => {
       }));
       get().dispatchFlow({ type: 'revive' });
       persist();
+    },
+
+    async continueAfterBoard() {
+      const { boardsCompleted, status, unlocked } = get();
+      if (status === 'complete' && !unlocked && boardsCompleted >= 3 && boardsCompleted % 3 === 0) {
+        void track('interstitial_ad_started', { placement: 'between_rounds' });
+        const result = await ads().showInterstitial();
+        void track(result.status === 'completed' ? 'interstitial_ad_completed' : 'interstitial_ad_skipped', {
+          placement: 'between_rounds',
+          reason: result.status,
+        });
+      }
+      get().dispatchFlow({ type: 'leave_game_over' });
     },
 
     updateSettings(patch) {
@@ -805,6 +845,7 @@ export const useGame = create<GameStore>((set, get) => {
 
     async purchaseShuffles() {
       if (get().purchasePending) return;
+      void track('iap_purchase_started', { productId: SHUFFLE_PRODUCT_ID });
       set({ purchasePending: 'buying', announcement: 'Contacting Apple…' });
       try {
         const result = await consumablePurchases().purchase();
@@ -817,7 +858,14 @@ export const useGame = create<GameStore>((set, get) => {
             }));
             persist();
           }
-        } else if (result.status !== 'cancelled') set({ announcement: result.message ?? 'Purchase could not be completed.' });
+          void track('shuffle_iap_purchased', { productId: SHUFFLE_PRODUCT_ID });
+          void track('iap_purchase_completed', { productId: SHUFFLE_PRODUCT_ID });
+        } else if (result.status === 'cancelled') {
+          void track('shuffle_iap_cancelled', { productId: SHUFFLE_PRODUCT_ID });
+        } else {
+          void track('iap_purchase_failed', { productId: SHUFFLE_PRODUCT_ID });
+          set({ announcement: result.message ?? 'Purchase could not be completed.' });
+        }
       } finally { set({ purchasePending: null }); }
     },
 
@@ -826,19 +874,29 @@ export const useGame = create<GameStore>((set, get) => {
       set({ settingsOpen: open });
     },
 
+    openPaywall() {
+      const { unlocked, purchaseDisplayPrice } = get();
+      if (unlocked || !purchasesConfigured() || purchaseDisplayPrice === null) return;
+      void track('store_shown');
+      set({ settingsOpen: false, paywallOpen: true });
+    },
+
     closePaywall() {
       set({ paywallOpen: false });
     },
 
     async buy() {
       if (get().purchasePending) return;
+      void track('iap_purchase_started', { productId: PRODUCT_ID });
       set({ purchasePending: 'buying', announcement: 'Contacting Apple…' });
       try {
         const result = await purchases().purchase();
         if (result.status === 'purchased' || result.status === 'restored') {
           set({ deviceUnlocked: true, unlocked: true, paywallOpen: false, announcement: 'Unlocked. Thank you.' });
+          void track('iap_purchase_completed', { productId: PRODUCT_ID });
           persist();
         } else if (result.status !== 'cancelled') {
+          void track('iap_purchase_failed', { productId: PRODUCT_ID });
           set({ announcement: result.message ?? 'Purchase could not be completed.' });
         }
       } finally {
@@ -848,6 +906,7 @@ export const useGame = create<GameStore>((set, get) => {
 
     async restore() {
       if (get().purchasePending) return;
+      void track('iap_restore_tapped', { productId: PRODUCT_ID });
       set({ purchasePending: 'restoring', announcement: 'Checking with Apple…' });
       try {
         const result = await purchases().restore();
@@ -942,19 +1001,22 @@ export const useGame = create<GameStore>((set, get) => {
       elapsedSeconds: (Date.now() - session.startedAt) / 1000,
     });
 
+    const shouldOpenPaywall =
+      purchasesConfigured() &&
+      purchaseDisplayPrice !== null &&
+      !unlocked &&
+      completed &&
+      total === PAYWALL_AFTER_BOARDS;
+
     set({
       profile: nextProfile,
       progression: nextProgression,
       boardsCompleted: total,
       // Once, after the third finished board, and never for someone who has
       // already paid. Not before a board, not mid-board, not on a timer.
-      paywallOpen:
-        purchasesConfigured() &&
-        purchaseDisplayPrice !== null &&
-        !unlocked &&
-        completed &&
-        total === PAYWALL_AFTER_BOARDS,
+      paywallOpen: shouldOpenPaywall,
     });
+    if (shouldOpenPaywall) void track('store_shown');
   }
 });
 

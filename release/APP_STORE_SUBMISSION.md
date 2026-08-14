@@ -39,13 +39,20 @@ Answer from the release candidate, not from planned features.
 | Gameplay content (board/session state) | Anonymous session summaries only | No | No | Analytics and app functionality |
 | Product interaction | Anonymous event names/properties | No | No | Analytics |
 | Email address | No | — | No | — |
-| Advertising data | No | — | No | — |
-| Device ID for advertising | No | — | No | — |
+| Coarse location (IP-derived) | Yes, by Google Mobile Ads | No | No | Third-party advertising, analytics, fraud prevention |
+| Advertising data | Yes, by Google Mobile Ads | No | No | Third-party advertising and analytics |
+| Product interaction (ad views/interactions) | Yes, by Google Mobile Ads | No | No | Third-party advertising and analytics |
+| Diagnostics and performance data | Yes, by Google Mobile Ads | No | No | App functionality, analytics, and advertising |
+| Device ID (app- or developer-bounded) | Yes, by Google Mobile Ads | No | No | Third-party advertising, analytics, fraud prevention |
+| Apple advertising identifier (IDFA) | No; the app does not request ATT access | — | No | — |
 
 The analytics schema intentionally has no account column. Do not label anonymous
 session analytics as linked merely because optional account features exist in the
 same app. Conversely, do not describe Apple account or verified purchase records
-as anonymous.
+as anonymous. The release config disables ad personalization and Google's
+publisher first-party identifier. Recheck the exact Google Mobile Ads privacy
+manifest in the submitted archive before answering App Store Connect because
+SDK disclosures can change between versions.
 
 ## Encryption and export compliance
 

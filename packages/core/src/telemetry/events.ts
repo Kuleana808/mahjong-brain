@@ -66,6 +66,9 @@ export const EVENT_NAMES = [
   'hint_ad_completed',
   'hint_ad_abandoned',
   'hint_shown',
+  'interstitial_ad_started',
+  'interstitial_ad_completed',
+  'interstitial_ad_skipped',
   'shuffle_tapped',
   'shuffle_iap_shown',
   'shuffle_iap_purchased',
@@ -121,7 +124,7 @@ export interface EventProperties {
   readonly elapsedMs?: number;
   readonly productId?: string;
   /** Which placement an ad was requested for. */
-  readonly placement?: 'revive' | 'hint';
+  readonly placement?: 'revive' | 'hint' | 'between_rounds';
   /** Why something was refused or abandoned. Enumerated, never free text. */
   readonly reason?: string;
   /** Setting key for `setting_changed`. Never the value. */

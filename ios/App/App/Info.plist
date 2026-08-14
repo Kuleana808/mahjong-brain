@@ -26,6 +26,14 @@
 	<true/>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<key>GADApplicationIdentifier</key>
+	<string>$(ADMOB_APP_ID)</string>
+	<key>ADMOB_REWARDED_HINT_ID</key>
+	<string>$(ADMOB_REWARDED_HINT_ID)</string>
+	<key>ADMOB_REWARDED_REVIVE_ID</key>
+	<string>$(ADMOB_REWARDED_REVIVE_ID)</string>
+	<key>ADMOB_INTERSTITIAL_ID</key>
+	<string>$(ADMOB_INTERSTITIAL_ID)</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

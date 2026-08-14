@@ -922,6 +922,7 @@ a:focus-visible {
 .settings-row-action small { color: var(--ink-soft); font-size: .88rem; }
 .settings-row-action > span:last-child { color: var(--bronze-700); font: 700 2rem/1 var(--font-display); transition: transform var(--duration-micro) var(--ease-move); }
 .settings-row-action:active > span:last-child { transform: translateX(4px); }
+.settings-row-action--upgrade strong { color: var(--bronze-700); }
 .how-to-play__steps { display: grid; gap: 14px; padding-top: 18px; }
 .how-to-play__steps section { display: grid; grid-template-columns: 44px 1fr; gap: 13px; align-items: start; padding: 14px; border: 1px solid rgba(185,138,62,.36); border-radius: 14px; background: rgba(255,249,233,.64); text-align: left; }
 .how-to-play__number { width: 40px; height: 40px; display: grid; place-items: center; border: 2px solid var(--bronze-500); border-radius: 50%; background: var(--jade-800); color: var(--cream-50); font: 700 1.15rem/1 var(--font-display); box-shadow: 0 3px 0 var(--bronze-700); }

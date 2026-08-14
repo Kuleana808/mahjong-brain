@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
-import { consumablePurchases } from '../iap';
+import { consumablePurchases, SHUFFLE_PRODUCT_ID } from '../iap';
 import { useGame } from '../state/store';
+import { track } from '../telemetry/client';
 import { Icon } from './Icon';
 
 export function BottomDock() {
@@ -20,7 +21,13 @@ export function BottomDock() {
 
   return (<>
     <nav className="bottom-dock" aria-label="Game tools">
-      <button type="button" className="tool-medallion" aria-label={`Shuffle, ${inventory.shuffle} available`} onClick={() => inventory.shuffle > 0 ? shuffleBoard() : setShopOpen(true)} disabled={!playing}>
+      <button type="button" className="tool-medallion" aria-label={`Shuffle, ${inventory.shuffle} available`} onClick={() => {
+        if (inventory.shuffle > 0) shuffleBoard();
+        else {
+          void track('shuffle_iap_shown', { productId: SHUFFLE_PRODUCT_ID });
+          setShopOpen(true);
+        }
+      }} disabled={!playing}>
         <span className="tool-medallion__face"><Icon name="shuffle" /></span>
         <span>Shuffle <small>{inventory.shuffle}</small></span>
       </button>

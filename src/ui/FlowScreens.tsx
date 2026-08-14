@@ -300,7 +300,8 @@ export function ResultScreen() {
   const status = useGame((s) => s.status);
   const isFull = status === 'holder_full';
   const inventory = useGame((s) => s.inventory);
-  const useRevive = useGame((s) => s.useRevive);
+  const reviveRound = useGame((s) => s.useRevive);
+  const continueAfterBoard = useGame((s) => s.continueAfterBoard);
   return (
     <ScreenFrame className="flow-screen--result">
       <div className="result-card">
@@ -315,7 +316,7 @@ export function ResultScreen() {
               : `${completed} boards complete.`}
         </p>
         {isFull && inventory.revive > 0 ? (
-          <button type="button" className="primary-button" onClick={useRevive}>
+          <button type="button" className="primary-button" onClick={() => void reviveRound()}>
             Revive · {inventory.revive} available
           </button>
         ) : isFull ? (
@@ -323,7 +324,7 @@ export function ResultScreen() {
             Restart
           </button>
         ) : (
-          <button type="button" className="primary-button" onClick={() => dispatch({ type: 'leave_game_over' })}>
+          <button type="button" className="primary-button" onClick={() => void continueAfterBoard()}>
             Continue
           </button>
         )}

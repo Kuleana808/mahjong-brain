@@ -9,6 +9,7 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 
 import { levelProgress, xpForLevel } from '../../packages/core/src/progression/progression';
+import { ads } from '../ads';
 import { purchasesConfigured } from '../iap';
 import { useGame, type Settings } from '../state/store';
 import { Icon } from './Icon';
@@ -223,8 +224,10 @@ export function SettingsSheet() {
   const openSettings = useGame((s) => s.openSettings);
   const newBoard = useGame((s) => s.newBoard);
   const unlocked = useGame((s) => s.unlocked);
+  const openPaywall = useGame((s) => s.openPaywall);
   const restore = useGame((s) => s.restore);
   const purchasePending = useGame((s) => s.purchasePending);
+  const purchaseDisplayPrice = useGame((s) => s.purchaseDisplayPrice);
   const accountStatus = useGame((s) => s.accountStatus);
   const accountError = useGame((s) => s.accountError);
   const announcement = useGame((s) => s.announcement);
@@ -345,6 +348,24 @@ export function SettingsSheet() {
 
       <button type="button" className="settings-row-action" onClick={() => setHelpOpen(true)}>
         <span><strong>How to play</strong><small>Holder rules, matching, and game tools</small></span>
+        <span aria-hidden="true">›</span>
+      </button>
+
+      {!unlocked && purchasesConfigured() && purchaseDisplayPrice ? (
+        <button type="button" className="settings-row-action settings-row-action--upgrade" onClick={openPaywall}>
+          <span>
+            <strong>Remove interruption ads</strong>
+            <small>One-time purchase · {purchaseDisplayPrice}</small>
+          </span>
+          <span aria-hidden="true">›</span>
+        </button>
+      ) : null}
+
+      <button type="button" className="settings-row-action" onClick={() => void ads().showPrivacyOptions()}>
+        <span>
+          <strong>Ad privacy choices</strong>
+          <small>Review or change choices for optional and round-boundary ads</small>
+        </span>
         <span aria-hidden="true">›</span>
       </button>
 

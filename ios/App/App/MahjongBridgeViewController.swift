@@ -76,5 +76,6 @@ final class MahjongBridgeViewController: CAPBridgeViewController {
         bridge?.registerPluginInstance(AccessibilityPreferencesPlugin())
         bridge?.registerPluginInstance(AppleSignInPlugin())
         bridge?.registerPluginInstance(StoreKitPlugin())
+        bridge?.registerPluginInstance(AdMobPlugin())
     }
 }

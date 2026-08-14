@@ -36,6 +36,7 @@ vi.mock('../../render/boardRenderer', () => ({
 const { availableMoves, freeTiles } = await import('../../../packages/core/src/game/board');
 const { createRng } = await import('../../../packages/core/src/game/rng');
 const { MockPurchases, setPurchases } = await import('../../iap');
+const { MockAds, setAds } = await import('../../ads');
 const { flushPersisted } = await import('../persist');
 const { PAYWALL_AFTER_BOARDS, useGame, DEFAULT_SETTINGS } = await import('../store');
 
@@ -51,6 +52,7 @@ async function reset() {
   // The purchases provider is a module singleton, so an unlock bought in one
   // test would otherwise be owned by the next one.
   setPurchases(new MockPurchases());
+  setAds(new MockAds());
   useGame.setState({
     ...initial,
     board: null,
@@ -323,6 +325,22 @@ describe('paywall timing', () => {
     expect(useGame.getState().paywallOpen).toBe(true);
   });
 
+  it('can be opened intentionally from an upgrade trigger when StoreKit has a price', async () => {
+    await useGame.getState().hydrate();
+    expect(useGame.getState().purchaseDisplayPrice).toBe('$4.99');
+
+    useGame.getState().openPaywall();
+    expect(useGame.getState().paywallOpen).toBe(true);
+  });
+
+  it('does not open an upgrade prompt after the entitlement is active', async () => {
+    await useGame.getState().hydrate();
+    useGame.setState({ unlocked: true, paywallOpen: false });
+
+    useGame.getState().openPaywall();
+    expect(useGame.getState().paywallOpen).toBe(false);
+  });
+
   it('never appears for someone who already paid', async () => {
     await useGame.getState().hydrate();
     useGame.setState({ unlocked: true });
@@ -543,6 +561,33 @@ describe('persistence', () => {
     for (const id of holder) expect(useGame.getState().board!.remaining.has(id)).toBe(false);
   });
 
+  it('grants a Hint only after a rewarded ad completes', async () => {
+    const adProvider = new MockAds();
+    adProvider.rewardedResult = { status: 'completed' };
+    setAds(adProvider);
+    await useGame.getState().hydrate();
+    useGame.setState({ inventory: { hint: 0, shuffle: 0, revive: 0 } });
+
+    await useGame.getState().requestHint();
+
+    expect(adProvider.rewardedCalls).toEqual(['hint']);
+    expect(useGame.getState().hint).not.toBeNull();
+    expect(useGame.getState().inventory.hint).toBe(0);
+  });
+
+  it('does not grant a Hint when a rewarded ad is dismissed', async () => {
+    const adProvider = new MockAds();
+    adProvider.rewardedResult = { status: 'dismissed' };
+    setAds(adProvider);
+    await useGame.getState().hydrate();
+    useGame.setState({ inventory: { hint: 0, shuffle: 0, revive: 0 } });
+
+    await useGame.getState().requestHint();
+
+    expect(useGame.getState().hint).toBeNull();
+    expect(useGame.getState().inventory.hint).toBe(0);
+  });
+
   it('consumes an earned Revive and restores held tiles to their original positions', async () => {
     await useGame.getState().hydrate();
     const board = useGame.getState().board!;
@@ -562,6 +607,44 @@ describe('persistence', () => {
     expect(useGame.getState().holder).toEqual([]);
     expect(useGame.getState().inventory.revive).toBe(0);
     for (const id of holder) expect(useGame.getState().board!.remaining.has(id)).toBe(true);
+  });
+
+  it('earns and immediately uses a rewarded Revive', async () => {
+    const adProvider = new MockAds();
+    adProvider.rewardedResult = { status: 'completed' };
+    setAds(adProvider);
+    await useGame.getState().hydrate();
+    const board = useGame.getState().board!;
+    const holder = [...board.remaining].slice(0, 4);
+    const remaining = new Set(board.remaining);
+    for (const id of holder) remaining.delete(id);
+    useGame.setState({
+      board: { ...board, remaining }, holder, status: 'holder_full',
+      inventory: { hint: 0, shuffle: 0, revive: 0 },
+      flow: { ...useGame.getState().flow, screen: 'game_over' },
+    });
+
+    await useGame.getState().useRevive();
+
+    expect(adProvider.rewardedCalls).toEqual(['revive']);
+    expect(useGame.getState().status).toBe('playing');
+    expect(useGame.getState().inventory.revive).toBe(0);
+  });
+
+  it('shows an interruption ad only at the third completed-board boundary', async () => {
+    const adProvider = new MockAds();
+    adProvider.interstitialResult = { status: 'completed' };
+    setAds(adProvider);
+    await useGame.getState().hydrate();
+    useGame.setState({
+      status: 'complete', boardsCompleted: 3, unlocked: false,
+      flow: { ...useGame.getState().flow, screen: 'game_over' },
+    });
+
+    await useGame.getState().continueAfterBoard();
+
+    expect(adProvider.interstitialCalls).toBe(1);
+    expect(useGame.getState().flow.screen).toBe('home');
   });
 
   it('does not count a paused holder-full board before the player chooses restart or home', async () => {
