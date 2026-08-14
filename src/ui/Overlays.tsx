@@ -115,7 +115,6 @@ export function Paywall() {
 
       <ul className="card__list">
         <li>Removes automatic ads between rounds</li>
-        <li>Optional rewarded ads for Hint or Revive remain your choice</li>
         <li>Restore this purchase on another Apple device</li>
       </ul>
 

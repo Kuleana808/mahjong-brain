@@ -12,7 +12,7 @@ upload, an upload is not processing, and processing is not tester availability.
 | Build number | `3` |
 | Bundle ID | `com.nihi.mahjong` |
 | Apple app ID | `6800468742` |
-| Git commit | `9a063a9` candidate SHA; PR #10 remains review-required and unmerged |
+| Git commit | `628f4ee` pushed checkpoint; PR #10 remains review-required and unmerged |
 | Working tree clean | PENDING |
 | Archive path | `/tmp/MahjongBrain-build3.xcarchive` |
 | Archive verification command/output | `npm run ios:verify-archive -- /tmp/MahjongBrain-build3.xcarchive` passed: identity, version/build, iPhone+iPad, privacy and brand assets |
@@ -23,12 +23,12 @@ upload, an upload is not processing, and processing is not tester availability.
 |---|---|
 | Public support URL returns 200 over HTTPS | `https://mahjong-brain.pages.dev/support/`, HTTP 200 verified 2026-08-13 |
 | Public privacy URL returns 200 over HTTPS | `https://mahjong-brain.pages.dev/privacy/`, HTTP 200 verified 2026-08-13 |
-| `VITE_API_BASE_URL` points to the verified production contracts endpoint | `https://dxtzbidjtkeekthompqb.supabase.co/functions/v1/contracts` |
+| `VITE_API_BASE_URL` points to the verified production contracts endpoint | `https://dxtzbidjtkeekthompqb.supabase.co/functions/v1/contracts`; HTTP 200 `live_verified` after current deploy |
 | Server and client StoreKit product IDs match App Store Connect | PENDING |
 | Correct Supabase project ref recorded | `dxtzbidjtkeekthompqb` (`Mahjong Brain`, Operator.fyi, `us-west-1`) |
-| Migrations 0001-0003 applied to that project | Verified by `supabase migration list --linked`, 2026-08-13 |
+| Migrations 0001-0004 applied to that project | Verified by `supabase migration list --linked`, 2026-08-13 |
 | Contracts smoke test passed against production | Passed: settings persistence, unlock, daily retention, analytics, fail-closed receipts |
-| Events smoke test passed and rows read back | Passed: 184/184 rows stored, 38 distinct event names |
+| Events smoke test passed and rows read back | Passed against dedicated Mahjong Brain project: 184/184 rows stored, 38 distinct event names |
 | Sandbox purchase verified by the server | PENDING |
 | Sandbox restore verified on a second clean install | PENDING |
 
@@ -36,10 +36,10 @@ upload, an upload is not processing, and processing is not tester availability.
 
 | Check | Evidence |
 |---|---|
-| `npm test` | 307 passed, 2026-08-13 |
+| `npm test` | 313 passed, 2026-08-13 |
 | `npm run build` | passed, production bundle generated |
 | `npm run preflight` | passed with production Supabase/API and StoreKit IDs configured |
-| `npm run check:design-drift` | Design lock v4 passed |
+| `npm run check:design-drift` | Design lock v5 passed |
 | `npm run check:brand-assets` | Brand assets v2 passed |
 | `npm run ios:prepare` | passed; native web assets verified byte-for-byte |
 | PR checks | `check`, `native-ios`, and `original-art` passed on `4a9b0df`; build-3 SHA checks pending after push |

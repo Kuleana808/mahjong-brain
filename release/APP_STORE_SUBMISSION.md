@@ -25,8 +25,8 @@ the current-candidate evidence requirement.
 | Primary category | Games / Board | Confirm in App Store Connect |
 | Secondary category | Games / Puzzle | Confirm in App Store Connect |
 | Age rating | Complete questionnaire from shipped content | No gambling, chat, UGC, or unrestricted web access |
-| Support URL | `PENDING_SUPPORT_URL` | Must resolve publicly over HTTPS |
-| Privacy URL | `PENDING_PRIVACY_POLICY_URL` | Must resolve publicly over HTTPS and match the labels below |
+| Support URL | `https://mahjong-brain.pages.dev/support/` | HTTP 200 verified 2026-08-13 |
+| Privacy URL | `https://mahjong-brain.pages.dev/privacy/` | HTTP 200 verified 2026-08-13; must match the submitted binary |
 
 ## App privacy answers
 

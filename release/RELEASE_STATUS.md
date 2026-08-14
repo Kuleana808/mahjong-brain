@@ -11,9 +11,9 @@ cannot be mistaken for a shipped build.
 | Stage | State | Evidence |
 |---|---|---|
 | Local source | verified | Branch `codex/build-mobile-shell`; clean worktree before this documentation update |
-| Committed | verified | `6d8d220` deploys the production Edge Function bundle and hosted-path fix |
+| Committed | verified | `628f4ee` is the current pushed candidate source checkpoint |
 | Pushed | verified | Local HEAD matched its upstream branch |
-| Pull request | open | PR #10; `check`, `native-ios`, and `original-art` passed on `959c0fc`; review is still required |
+| Pull request | open | PR #10; `check`, `native-ios`, and `original-art` passed on `628f4ee`; review is still required |
 | Merged | not verified | PR #10 remains open and blocked on review |
 | Simulator build | verified | The production web bundle was copied into the Capacitor target and verified byte-for-byte; Xcode simulator build succeeded |
 | Native iPhone QA | verified | Build installed and launched into gameplay on iPhone 17 Pro simulator; 144-tile board rendered |
@@ -34,7 +34,7 @@ resolved.
 
 The public marketing, support, and privacy site is live at
 `https://mahjong-brain.pages.dev/`. The dedicated Supabase project is
-`Mahjong Brain` (`dxtzbidjtkeekthompqb`): migrations 0001-0003 are applied and
+`Mahjong Brain` (`dxtzbidjtkeekthompqb`): migrations 0001-0004 are applied and
 the public contracts function is deployed.
 
 Production verification on 2026-08-13 established:
@@ -43,7 +43,18 @@ Production verification on 2026-08-13 established:
 - unsigned settings access returned the expected `401` boundary;
 - contract smoke covered settings persistence, unlock status, retention,
   analytics, and fail-closed receipt handling;
-- event smoke persisted all 184 emitted rows across 38 event names.
+- event smoke persisted all 184 emitted rows across 38 event names;
+- the consumable grant ledger is deployed and the server allow-list contains
+  `com.nihi.mahjong.removeads` and `com.nihi.mahjong.shuffle5`;
+- the public board endpoint returned HTTP 200, `live_verified`, 144 tiles, and
+  nine opening moves after the 2026-08-13 deployment.
+
+An environment audit found shell-global Supabase variables belonging to the
+unrelated `signalmarket` project (`qynsncdqxdqiloxnrizj`). They must never be
+used for this release. The repository-linked project above is authoritative.
+Migrations 0001-0004 and one event smoke batch were inadvertently also applied
+to that unrelated project; cleanup requires explicit approval and is not part
+of Mahjong Brain release evidence.
 
 Remaining release gates are App Store Connect product creation, sandbox
 purchase and restore, final privacy/accessibility answers, final native QA,
