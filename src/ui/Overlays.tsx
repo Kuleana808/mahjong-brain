@@ -24,7 +24,7 @@ import {
   type GameCenterStatus,
 } from '../gamecenter';
 
-function Overlay({ label, children }: { label: string; children: ReactNode }) {
+function Overlay({ label, children, cardClassName = '' }: { label: string; children: ReactNode; cardClassName?: string }) {
   const ref = useRef<HTMLDivElement>(null);
 
   // Move focus into the card so a keyboard or screen-reader user is not left
@@ -39,7 +39,7 @@ function Overlay({ label, children }: { label: string; children: ReactNode }) {
 
   return (
     <div className="overlay" role="dialog" aria-modal="true" aria-label={label}>
-      <div className="card" ref={ref}>
+      <div className={`card ${cardClassName}`.trim()} ref={ref}>
         {children}
       </div>
     </div>
@@ -198,7 +198,7 @@ export function ThemeSheet({ onClose, initialTab = 'tiles' }: { onClose: () => v
   const [tab, setTab] = useState<'tiles' | 'background'>(initialTab);
 
   return (
-    <Overlay label="Theme">
+    <Overlay label="Theme" cardClassName="theme-card">
       <div className="sheet-titlebar">
         <h2>Theme</h2>
         <button type="button" className="sheet-close" aria-label="Close theme" onClick={onClose}><Icon name="close" /></button>
@@ -207,28 +207,30 @@ export function ThemeSheet({ onClose, initialTab = 'tiles' }: { onClose: () => v
         <button type="button" role="tab" aria-selected={tab === 'tiles'} onClick={() => setTab('tiles')}>Tiles</button>
         <button type="button" role="tab" aria-selected={tab === 'background'} onClick={() => setTab('background')}>Background</button>
       </div>
-      {tab === 'tiles' ? (
-        <div className="theme-options">
-          {TILE_STYLES.map((style) => (
-            <button key={style.id} type="button" className="theme-option" aria-pressed={settings.tileStyle === style.id} onClick={() => update({ tileStyle: style.id })}>
-              <span className={`theme-swatch theme-swatch--${style.id}`} aria-hidden="true">
-                <i><TileFaceCanvas face={{ suit: 'dragon', rank: 1 }} palette={paletteFor(settings.theme, style.id)} /></i>
-                <i><TileFaceCanvas face={{ suit: 'circle', rank: 4 }} palette={paletteFor(settings.theme, style.id)} /></i>
-                <i><TileFaceCanvas face={{ suit: 'bamboo', rank: 3 }} palette={paletteFor(settings.theme, style.id)} /></i>
-              </span>
-              <strong>{style.label}</strong>
-            </button>
-          ))}
-        </div>
-      ) : (
-        <div className="background-options">
-          {THEMES.map((theme) => (
-            <button key={theme.id} type="button" className={`background-swatch background-swatch--${theme.id}`} aria-label={theme.label} aria-pressed={settings.theme === theme.id} onClick={() => update({ theme: theme.id })}>
-              <span>{theme.label}</span>
-            </button>
-          ))}
-        </div>
-      )}
+      <div className="theme-picker">
+        {tab === 'tiles' ? (
+          <div className="theme-options">
+            {TILE_STYLES.map((style) => (
+              <button key={style.id} type="button" className="theme-option" aria-pressed={settings.tileStyle === style.id} onClick={() => update({ tileStyle: style.id })}>
+                <span className={`theme-swatch theme-swatch--${style.id}`} aria-hidden="true">
+                  <i><TileFaceCanvas face={{ suit: 'dragon', rank: 1 }} palette={paletteFor(settings.theme, style.id)} /></i>
+                  <i><TileFaceCanvas face={{ suit: 'circle', rank: 4 }} palette={paletteFor(settings.theme, style.id)} /></i>
+                  <i><TileFaceCanvas face={{ suit: 'bamboo', rank: 3 }} palette={paletteFor(settings.theme, style.id)} /></i>
+                </span>
+                <strong>{style.label}</strong>
+              </button>
+            ))}
+          </div>
+        ) : (
+          <div className="background-options">
+            {THEMES.map((theme) => (
+              <button key={theme.id} type="button" className={`background-swatch background-swatch--${theme.id}`} aria-label={theme.label} aria-pressed={settings.theme === theme.id} onClick={() => update({ theme: theme.id })}>
+                <span>{theme.label}</span>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
       <button type="button" className="button" onClick={onClose}>Confirm</button>
     </Overlay>
   );
