@@ -122,7 +122,7 @@ export async function applyQaFixture(id: QaFixtureId): Promise<void> {
       useGame.setState((state) => ({
         boardsCompleted: 6,
         flow: { ...state.flow, progress: { ...state.flow.progress, boardsCompleted: 6 } },
-        progression: { xp: 310, level: 2, iq: 112, boardsPlayed: 7, boardsWon: 6 },
+        progression: { xp: 300, level: 2, iq: 112, boardsPlayed: 7, boardsWon: 6 },
       }));
     }
     if (id === 'S07-home-offline') {
