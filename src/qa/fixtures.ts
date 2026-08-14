@@ -26,6 +26,7 @@ export const QA_FIXTURE_IDS = [
   'S08-game-hint',
   'S08-game-blocked',
   'S08-game-shuffle',
+  'S08-game-shuffle-empty',
   'S08-game-resume',
   'S09-holder-full',
   'S10-complete',
@@ -67,6 +68,7 @@ function gameplay(holderCount = 0): void {
     settingsOpen: false,
     paywallOpen: false,
     announcement: '',
+    settings: { ...useGame.getState().settings, sounds: false },
   });
 
   for (let index = 0; index < holderCount; index++) {
@@ -145,6 +147,10 @@ export async function applyQaFixture(id: QaFixtureId): Promise<void> {
   if (id === 'S08-game-shuffle') {
     gameplay(2);
     useGame.getState().shuffleBoard();
+  }
+  if (id === 'S08-game-shuffle-empty') {
+    gameplay(0);
+    useGame.setState((state) => ({ inventory: { ...state.inventory, shuffle: 0 } }));
   }
   if (id === 'S08-game-resume') {
     gameplay(1);

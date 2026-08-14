@@ -14,6 +14,12 @@ describe('deterministic QA fixtures', () => {
     for (const id of QA_FIXTURE_IDS) await expect(applyQaFixture(id)).resolves.toBeUndefined();
   });
 
+  it('exposes the zero-Shuffle storefront trigger without disabling play', async () => {
+    await applyQaFixture('S08-game-shuffle-empty');
+    expect(useGame.getState().inventory.shuffle).toBe(0);
+    expect(useGame.getState().status).toBe('playing');
+  });
+
   it('creates exact holder occupancy states', async () => {
     for (const count of [0, 1, 2, 3, 4]) {
       const id = (count === 4 ? 'S09-holder-full' : `S08-game-${['empty', 'one', 'two', 'three'][count]}`) as Parameters<typeof applyQaFixture>[0];
