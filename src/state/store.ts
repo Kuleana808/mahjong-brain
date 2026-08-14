@@ -28,6 +28,7 @@ import { LAYOUTS, type LayoutId } from '../../packages/core/src/game/layouts';
 import { randomSeed } from '../../packages/core/src/game/rng';
 import {
   INITIAL_PROGRESSION,
+  normalizeProgression,
   recordBoard,
   type Progression,
 } from '../../packages/core/src/progression/progression';
@@ -417,7 +418,7 @@ export const useGame = create<GameStore>((set, get) => {
         flow: initialFlowState(reconciledFlow),
         settings,
         profile: progress.profile ?? INITIAL_PROFILE,
-        progression: progress.progression ?? INITIAL_PROGRESSION,
+        progression: normalizeProgression(progress.progression ?? INITIAL_PROGRESSION),
         boardsCompleted: storedBoardsCompleted,
         deviceUnlocked: cachedDeviceEntitlement,
         unlocked: cachedDeviceEntitlement,
