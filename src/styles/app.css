@@ -838,6 +838,7 @@ a:focus-visible {
   transition: transform var(--duration-micro) var(--ease-move), box-shadow var(--duration-micro) var(--ease-move);
 }
 .tool-medallion__face svg { width: 34px; height: 34px; filter: drop-shadow(0 2px 0 rgba(52, 16, 2, 0.72)); }
+.tool-medallion__face .icon--undo { transform: translate(1.5px, .5px); }
 .tool-medallion > span:last-child { font-size: 0.96rem; font-weight: 650; line-height: 1; letter-spacing: 0; text-shadow: 0 2px 3px rgba(0, 8, 7, 0.72); }
 .inventory-badge {
   position: absolute;
