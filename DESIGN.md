@@ -136,3 +136,4 @@ All product assets derive from the same materials: deep emerald field, warm bone
 | 2026-08-10 | Garden Steps replaces the rectangular starter silhouette | Tapered rows and three elevations make the board read as a physical arrangement while retaining the 10 x 8 footprint needed for 66-point phone tiles. |
 | 2026-08-10 | Gameplay controls keep identical anchors on phone and iPad | The approved mockups establish top-corner navigation, a centered holder, and a bottom utility dock; tablet space increases scale, not control relocation. |
 | 2026-08-10 | Machine lock plus state matrix required | QA needs pass/fail evidence, not subjective recollection. |
+| 2026-08-14 | Horizontal board step widened from 0.38 to 0.46 tile widths | More of each lower tile face remains visible, improving symbol recognition without shrinking the canonical phone tile size. |

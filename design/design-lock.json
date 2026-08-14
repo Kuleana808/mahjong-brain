@@ -40,7 +40,7 @@
     "typePx": { "caption": 13, "body": 19, "button": 20, "title": 32, "display": 52 },
     "controlMinHeight": 48,
     "primaryControlHeight": 64,
-    "cellStepX": 0.38,
+    "cellStepX": 0.46,
     "cellStepY": 0.45,
     "holderSlots": 4,
     "tileMinimumPhoneWidth": 66,
