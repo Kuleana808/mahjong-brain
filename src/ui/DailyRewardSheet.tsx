@@ -7,7 +7,7 @@ import { Icon } from './Icon';
 
 const LABEL: Record<GrantKind, string> = { hint: 'Hint', shuffle: 'Shuffle', revive: 'Revive', remove_ads: 'Ad removal' };
 
-export function DailyRewardSheet({ onClose }: { onClose: () => void }) {
+export function DailyRewardSheet({ onClose, onOpenSettings }: { onClose: () => void; onOpenSettings?: () => void }) {
   const accountStatus = useGame((state) => state.accountStatus);
   const grantInventory = useGame((state) => state.grantInventory);
   const [reward, setReward] = useState<DailyRewardState | null>(null);
@@ -59,7 +59,15 @@ export function DailyRewardSheet({ onClose }: { onClose: () => void }) {
         {status === 'ready' ? <button type="button" className="button" onClick={() => void claim()}>Collect</button> : null}
         {status === 'claiming' ? <button type="button" className="button" disabled>Collecting…</button> : null}
         {status === 'claimed' ? <button type="button" className="button" onClick={onClose}>Done</button> : null}
-        {status === 'error' ? <button type="button" className="button button--quiet" onClick={onClose}>Close</button> : null}
+        {status === 'error' ? (
+          <button
+            type="button"
+            className="button"
+            onClick={accountStatus === 'signed_in' || !onOpenSettings ? onClose : onOpenSettings}
+          >
+            {accountStatus === 'signed_in' || !onOpenSettings ? 'Done' : 'Open Settings'}
+          </button>
+        ) : null}
       </section>
     </div>
   );

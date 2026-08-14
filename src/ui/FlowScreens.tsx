@@ -283,7 +283,15 @@ export function HomeScreen() {
         <button type="button" className="medallion" aria-label="Settings" onClick={() => openSettings(true)}><Icon name="settings" /></button>
       </div>
       {levelsOpen ? <LevelsSheet onClose={() => setLevelsOpen(false)} /> : null}
-      {dailyOpen ? <DailyRewardSheet onClose={() => setDailyOpen(false)} /> : null}
+      {dailyOpen ? (
+        <DailyRewardSheet
+          onClose={() => setDailyOpen(false)}
+          onOpenSettings={() => {
+            setDailyOpen(false);
+            openSettings(true);
+          }}
+        />
+      ) : null}
       {themeOpen ? (
         <ThemeSheet
           onClose={() => setThemeOpen(false)}
