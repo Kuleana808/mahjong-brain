@@ -120,12 +120,22 @@ export function circleMotifGeometry(rank: number, area: { w: number; h: number }
 // suit motifs
 
 /** A dot: outer ring with a filled core. Reads at small sizes. */
-function drawCircleMark(ctx: Ctx, cx: number, cy: number, r: number, colour: string, accent: string): void {
+function drawCircleMark(ctx: Ctx, cx: number, cy: number, r: number, colour: string, accent: string, style: Palette['tileStyle']): void {
+  if (style === 'porcelain') {
+    ctx.strokeStyle = colour;
+    ctx.lineWidth = Math.max(1.5, r * 0.26);
+    dot(ctx, cx, cy, r * 0.82);
+    ctx.stroke();
+    ctx.fillStyle = accent;
+    dot(ctx, cx, cy, r * 0.34);
+    ctx.fill();
+    return;
+  }
   ctx.fillStyle = colour;
   dot(ctx, cx, cy, r);
   ctx.fill();
   ctx.fillStyle = accent;
-  dot(ctx, cx, cy, r * 0.46);
+  dot(ctx, cx, cy, r * (style === 'jade-edge' ? 0.36 : 0.46));
   ctx.fill();
   ctx.save();
   ctx.globalCompositeOperation = 'destination-out';
@@ -135,19 +145,26 @@ function drawCircleMark(ctx: Ctx, cx: number, cy: number, r: number, colour: str
 }
 
 /** A bamboo stalk: a rounded segment with two node bands and a leaf notch. */
-function drawBambooMark(ctx: Ctx, cx: number, cy: number, w: number, h: number, colour: string): void {
+function drawBambooMark(ctx: Ctx, cx: number, cy: number, w: number, h: number, colour: string, style: Palette['tileStyle']): void {
   ctx.fillStyle = colour;
   ctx.strokeStyle = colour;
 
   roundRect(ctx, cx - w / 2, cy - h / 2, w, h, w * 0.42);
-  ctx.fill();
+  if (style === 'porcelain') {
+    ctx.lineWidth = Math.max(1.5, w * 0.24);
+    ctx.stroke();
+  } else {
+    ctx.fill();
+  }
 
   // Two small shoulders make each stalk read as a carved bamboo segment rather
   // than a generic rounded bar at phone scale.
-  ctx.beginPath();
-  ctx.ellipse(cx - w * 0.34, cy - h * 0.34, w * 0.26, h * 0.13, -0.5, 0, Math.PI * 2);
-  ctx.ellipse(cx + w * 0.34, cy + h * 0.34, w * 0.26, h * 0.13, -0.5, 0, Math.PI * 2);
-  ctx.fill();
+  if (style !== 'porcelain') {
+    ctx.beginPath();
+    ctx.ellipse(cx - w * 0.34, cy - h * 0.34, w * 0.26, h * 0.13, -0.5, 0, Math.PI * 2);
+    ctx.ellipse(cx + w * 0.34, cy + h * 0.34, w * 0.26, h * 0.13, -0.5, 0, Math.PI * 2);
+    ctx.fill();
+  }
 
   // Node bands, knocked out so they read on any background.
   ctx.save();
@@ -254,6 +271,26 @@ function drawSeasonMark(ctx: Ctx, cx: number, cy: number, s: number, rank: numbe
   }
 }
 
+function drawBrainSignature(ctx: Ctx, box: Box): void {
+  const x = box.w * 0.81;
+  const y = box.h * 0.14;
+  const r = Math.max(2.2, box.w * 0.045);
+  ctx.save();
+  ctx.fillStyle = '#12A66B';
+  ctx.beginPath();
+  ctx.arc(x - r * 0.62, y, r, Math.PI * 0.45, Math.PI * 1.55);
+  ctx.arc(x + r * 0.62, y, r, Math.PI * 1.45, Math.PI * 0.55);
+  ctx.closePath();
+  ctx.fill();
+  ctx.strokeStyle = '#E38A16';
+  ctx.lineWidth = Math.max(1, box.w * 0.012);
+  ctx.beginPath();
+  ctx.moveTo(x, y - r * 0.88);
+  ctx.lineTo(x, y + r * 0.88);
+  ctx.stroke();
+  ctx.restore();
+}
+
 /**
  * Draws one tile face into the box (0, 0, box.w, box.h). The caller has already
  * drawn the tile body and clipped.
@@ -269,9 +306,9 @@ export function drawFace(ctx: Ctx, face: TileFace, box: Box, palette: Palette): 
   switch (face.suit) {
     case 'circle': {
       const { points, radius } = circleMotifGeometry(face.rank, motif);
-      const accents = ['#E13A36', '#1556B0', '#079452'];
+      const accents = palette.tileStyle === 'brain' ? ['#79F2C0', '#F0A51B', '#18B77A'] : ['#E13A36', '#1556B0', '#079452'];
       for (const [index, p] of points.entries()) {
-        drawCircleMark(ctx, motif.x + p.x * motif.w, motif.y + p.y * motif.h, radius, colour, accents[(index + face.rank) % accents.length]);
+        drawCircleMark(ctx, motif.x + p.x * motif.w, motif.y + p.y * motif.h, radius, colour, accents[(index + face.rank) % accents.length], palette.tileStyle);
       }
       break;
     }
@@ -290,25 +327,26 @@ export function drawFace(ctx: Ctx, face: TileFace, box: Box, palette: Palette): 
       const w = Math.min(cell.w * 0.48, cell.h * 0.42);
       const h = cell.h * 0.82;
       for (const p of points) {
-        drawBambooMark(ctx, motif.x + p.x * motif.w, motif.y + p.y * motif.h, w, h, colour);
+        drawBambooMark(ctx, motif.x + p.x * motif.w, motif.y + p.y * motif.h, w, h, colour, palette.tileStyle);
       }
       break;
     }
 
     case 'character': {
       const numeral = ['一', '二', '三', '四', '五', '六', '七', '八', '九'][face.rank - 1];
-      ctx.font = `900 ${box.h * 0.35}px "PingFang TC", "Hiragino Sans", serif`;
+      const faceFont = palette.tileStyle === 'jade-edge' ? '"Kaiti TC", "STKaiti", serif' : palette.tileStyle === 'porcelain' ? '"PingFang TC", sans-serif' : '"PingFang TC", "Hiragino Sans", serif';
+      ctx.font = `${palette.tileStyle === 'porcelain' ? 760 : 900} ${box.h * 0.35}px ${faceFont}`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillText(numeral, box.w / 2, box.h * 0.34);
-      ctx.font = `900 ${box.h * 0.34}px "PingFang TC", "Hiragino Sans", serif`;
+      ctx.font = `${palette.tileStyle === 'porcelain' ? 760 : 900} ${box.h * 0.34}px ${faceFont}`;
       ctx.fillText('萬', box.w / 2, box.h * 0.69);
       break;
     }
 
     case 'wind': {
       const initial = ['東', '南', '西', '北'][face.rank - 1];
-      ctx.font = `900 ${box.h * 0.54}px "PingFang TC", "Hiragino Sans", ui-rounded, system-ui, sans-serif`;
+      ctx.font = `${palette.tileStyle === 'jade-edge' ? 800 : 900} ${box.h * 0.54}px ${palette.tileStyle === 'jade-edge' ? '"Kaiti TC", "STKaiti", serif' : '"PingFang TC", "Hiragino Sans", ui-rounded, system-ui, sans-serif'}`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillText(initial, box.w / 2, box.h * 0.5);
@@ -336,6 +374,8 @@ export function drawFace(ctx: Ctx, face: TileFace, box: Box, palette: Palette): 
       break;
     }
   }
+
+  if (palette.tileStyle === 'brain') drawBrainSignature(ctx, box);
 
   ctx.restore();
 }

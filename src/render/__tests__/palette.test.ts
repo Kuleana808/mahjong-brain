@@ -11,10 +11,14 @@ describe('tile material choices', () => {
     const ivory = paletteFor('calm', 'ivory');
     const jade = paletteFor('calm', 'jade-edge');
     const porcelain = paletteFor('calm', 'porcelain');
+    const brain = paletteFor('calm', 'brain');
 
     expect(jade.felt).toBe(ivory.felt);
     expect(jade.tileSide).not.toBe(ivory.tileSide);
     expect(porcelain.tileFace).not.toBe(ivory.tileFace);
+    expect(brain.tileStyle).toBe('brain');
+    expect(brain.tileSide).not.toBe(jade.tileSide);
+    expect(brain.suits.circle).not.toBe(ivory.suits.circle);
   });
 
   it('preserves accessibility palettes over cosmetic materials', () => {

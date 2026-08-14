@@ -21,6 +21,7 @@
 		A17F2D052FEA100100A11C01 /* MahjongBridgeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A17F2D042FEA100100A11C01 /* MahjongBridgeViewController.swift */; };
 		A17F2D082FEA100100A11C01 /* StoreKitPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = A17F2D072FEA100100A11C01 /* StoreKitPlugin.swift */; };
 		A17F2D0A2FEA100100A11C01 /* AdMobPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = A17F2D092FEA100100A11C01 /* AdMobPlugin.swift */; };
+		A17F2D0C2FEA100100A11C01 /* GameCenterPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = A17F2D0B2FEA100100A11C01 /* GameCenterPlugin.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -42,6 +43,7 @@
 		A17F2D062FEA100100A11C01 /* App.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = App.entitlements; sourceTree = "<group>"; };
 		A17F2D072FEA100100A11C01 /* StoreKitPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreKitPlugin.swift; sourceTree = "<group>"; };
 		A17F2D092FEA100100A11C01 /* AdMobPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdMobPlugin.swift; sourceTree = "<group>"; };
+		A17F2D0B2FEA100100A11C01 /* GameCenterPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameCenterPlugin.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -82,6 +84,7 @@
 				A17F2D042FEA100100A11C01 /* MahjongBridgeViewController.swift */,
 				A17F2D072FEA100100A11C01 /* StoreKitPlugin.swift */,
 				A17F2D092FEA100100A11C01 /* AdMobPlugin.swift */,
+				A17F2D0B2FEA100100A11C01 /* GameCenterPlugin.swift */,
 				9582B6822FE993A50072D4E8 /* SceneDelegate.swift */,
 				50379B222058CBB4000EE86E /* capacitor.config.json */,
 				504EC3071FED79650016851F /* AppDelegate.swift */,
@@ -182,6 +185,7 @@
 				A17F2D052FEA100100A11C01 /* MahjongBridgeViewController.swift in Sources */,
 				A17F2D082FEA100100A11C01 /* StoreKitPlugin.swift in Sources */,
 				A17F2D0A2FEA100100A11C01 /* AdMobPlugin.swift in Sources */,
+				A17F2D0C2FEA100100A11C01 /* GameCenterPlugin.swift in Sources */,
 				504EC3081FED79650016851F /* AppDelegate.swift in Sources */,
 				9582B6832FE993A70072D4E8 /* SceneDelegate.swift in Sources */,
 			);

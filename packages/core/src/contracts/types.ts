@@ -95,7 +95,7 @@ export interface AppleAuthResponse {
 
 // --- 4. GET /api/settings, PATCH /api/settings ------------------------------
 
-export type ThemePreference = 'calm' | 'calm-dark' | 'high-contrast' | 'system';
+export type ThemePreference = 'calm' | 'bamboo' | 'plum' | 'calm-dark' | 'high-contrast' | 'system';
 
 export interface SyncedSettings {
   readonly theme: ThemePreference;
@@ -104,6 +104,9 @@ export interface SyncedSettings {
   readonly dimBlocked: boolean;
   readonly haptics: boolean;
   readonly sounds: boolean;
+  readonly music: boolean;
+  readonly voice: boolean;
+  readonly autoComplete: boolean;
   /**
    * Player override for the silent difficulty model. 'auto' is the default and
    * the only value the game itself ever sets.

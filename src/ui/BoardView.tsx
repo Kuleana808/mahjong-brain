@@ -15,6 +15,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProp
 
 import { freeTiles, openSides, type Tile } from '../../packages/core/src/game/board';
 import { faceName, matchGroup } from '../../packages/core/src/game/tiles';
+import { hintPair as holderHintPair } from '../../packages/core/src/play/session';
 import { computeView, tileRect, paintOrder, type View } from '../render/geometry';
 import { render, type TileMotion } from '../render/boardRenderer';
 import { paletteFor } from '../render/palette';
@@ -95,7 +96,9 @@ function MatchCelebrationLayer({ celebration }: { celebration: MatchCelebration 
 export function BoardView() {
   const board = useGame((s) => s.board);
   const selectedId = useGame((s) => s.selectedId);
+  const holder = useGame((s) => s.holder);
   const hint = useGame((s) => s.hint);
+  const announcement = useGame((s) => s.announcement);
   const settings = useGame((s) => s.settings);
   const tapTile = useGame((s) => s.tapTile);
 
@@ -107,6 +110,20 @@ export function BoardView() {
   const [box, setBox] = useState({ w: 0, h: 0 });
   const [flight, setFlight] = useState<TileFlight | null>(null);
   const [celebration, setCelebration] = useState<MatchCelebration | null>(null);
+  const [blockedId, setBlockedId] = useState<number | null>(null);
+  const [boardTransition, setBoardTransition] = useState<'shuffle' | 'undo' | null>(null);
+
+  useEffect(() => {
+    const kind = announcement === 'Tiles reshuffled.'
+      ? 'shuffle'
+      : announcement === 'Move undone.'
+        ? 'undo'
+        : null;
+    if (!kind || settings.reduceMotion) return;
+    setBoardTransition(kind);
+    const timeout = window.setTimeout(() => setBoardTransition(null), kind === 'shuffle' ? 520 : 360);
+    return () => window.clearTimeout(timeout);
+  }, [announcement, settings.reduceMotion]);
 
   // Track the available box rather than reading layout during paint.
   useLayoutEffect(() => {
@@ -162,13 +179,18 @@ export function BoardView() {
         palette,
         selectedId,
         hintedIds: hint ? [hint.pair[0].id, hint.pair[1].id] : [],
+        hintPulse: hint && !settings.reduceMotion
+          ? (Math.sin((now - startedAt) / 230) + 1) / 2
+          : 0.5,
         freeIds: new Set(freeTiles(board).map((t) => t.id)),
         dimBlocked: settings.dimBlocked,
         motion,
       });
       setView(nextView);
 
-      if (animateMatch && progress < 1) animationRef.current = requestAnimationFrame(paint);
+      if ((animateMatch && progress < 1) || (Boolean(hint) && !settings.reduceMotion)) {
+        animationRef.current = requestAnimationFrame(paint);
+      }
       else animationRef.current = null;
     };
 
@@ -189,7 +211,13 @@ export function BoardView() {
       // Blocked tiles still reach the store so players get concise visual,
       // spoken, and sound feedback, but they must never appear to enter the
       // holder. An active flight remains a strict interaction lock.
-      if (!flight) tapTile(tile.id);
+      if (!flight) {
+        tapTile(tile.id);
+        if (!isFree && !settings.reduceMotion) {
+          setBlockedId(tile.id);
+          window.setTimeout(() => setBlockedId((active) => active === tile.id ? null : active), 360);
+        }
+      }
       return;
     }
 
@@ -201,6 +229,29 @@ export function BoardView() {
     }
     setFlight({ id: tile.id, face: tile.face, from: source.getBoundingClientRect(), to: destination.getBoundingClientRect() });
   }, [flight, settings.reduceMotion, tapTile]);
+
+  useEffect(() => {
+    if (!settings.autoComplete || settings.reduceMotion || flight || !board || board.remaining.size === 0 || board.remaining.size > 12) return;
+    const free = freeTiles(board);
+    if (free.length !== board.remaining.size) return;
+    const safe = holderHintPair({
+      board,
+      holder,
+      status: 'playing',
+      cleared: board.removed.length * 2,
+      revivesUsed: 0,
+      shufflesUsed: 0,
+      hintsUsed: 0,
+    });
+    if (!safe) return;
+    const next = safe.find((tile) => board.remaining.has(tile.id));
+    if (!next) return;
+    const timeout = window.setTimeout(() => {
+      const source = document.getElementById(`tile-${next.id}`);
+      if (source) takeTile(next, source, true);
+    }, holder.length === 0 ? 520 : 360);
+    return () => window.clearTimeout(timeout);
+  }, [board, flight, holder, settings.autoComplete, settings.reduceMotion, takeTile]);
 
   const moveFocus = useCallback(
     (from: Tile, direction: 'up' | 'down' | 'left' | 'right') => {
@@ -233,7 +284,7 @@ export function BoardView() {
   const activeView = view ?? computeView(board.layoutId, box.w || 1, box.h || 1);
 
   return (
-    <div className="board" ref={wrapRef}>
+    <div className={`board${boardTransition ? ` board--${boardTransition}` : ''}`} ref={wrapRef}>
       <canvas ref={canvasRef} className="board__canvas" aria-hidden="true" />
 
       <div role="grid" aria-label={`Mahjong board, ${live.length} tiles remaining`}>
@@ -247,7 +298,7 @@ export function BoardView() {
               key={tile.id}
               id={`tile-${tile.id}`}
               type="button"
-              className={`board__hit${isFree ? ' board__hit--free' : ''}${hintedIds.includes(tile.id) ? ' board__hit--hinted' : ''}`}
+              className={`board__hit${isFree ? ' board__hit--free' : ''}${hintedIds.includes(tile.id) ? ' board__hit--hinted' : ''}${blockedId === tile.id ? ' board__hit--blocked-recoil' : ''}`}
               style={{ left: rect.x, top: rect.y, width: rect.w, height: rect.h }}
               tabIndex={isFree ? 0 : -1}
               aria-disabled={!isFree || Boolean(flight)}

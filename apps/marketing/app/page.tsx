@@ -10,7 +10,7 @@ const HOW_IT_PLAYS = [
 const READABILITY = [
   'Large, high-contrast tile faces',
   'Three comfortable text sizes',
-  'Light, dark, and high-contrast backgrounds',
+  'Five original background choices',
   'Reduced-motion and blocked-tile controls',
   'VoiceOver labels and generous touch targets',
 ];

@@ -23,6 +23,8 @@ export interface RenderState {
   readonly palette: Palette;
   readonly selectedId: number | null;
   readonly hintedIds: readonly number[];
+  /** 0..1 pulse phase for the precise, canvas-painted hint treatment. */
+  readonly hintPulse?: number;
   /** Ids to draw dimmed — everything that cannot be picked up right now. */
   readonly freeIds: ReadonlySet<number>;
   readonly dimBlocked: boolean;
@@ -152,6 +154,35 @@ function drawRing(
   ctx.lineWidth = Math.max(2, w * 0.035);
   ctx.beginPath();
   ctx.roundRect(x + inset, y + inset, w - inset * 2, h - inset * 2, w * 0.1);
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawHintWash(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  colour: string,
+  pulse = 0.5,
+): void {
+  const gradient = ctx.createLinearGradient(x, y, x + w, y + h);
+  const washAlpha = 0.22 + pulse * 0.18;
+  gradient.addColorStop(0, `rgba(176, 255, 231, ${washAlpha})`);
+  gradient.addColorStop(0.58, `rgba(60, 234, 191, ${0.12 + pulse * 0.12})`);
+  gradient.addColorStop(1, 'rgba(15, 136, 107, 0.08)');
+  ctx.save();
+  ctx.beginPath();
+  ctx.roundRect(x + w * 0.025, y + w * 0.025, w * 0.95, h - w * 0.05, w * 0.1);
+  ctx.clip();
+  ctx.fillStyle = gradient;
+  ctx.fillRect(x, y, w, h);
+  ctx.strokeStyle = colour;
+  ctx.globalAlpha = 0.58 + pulse * 0.34;
+  ctx.shadowColor = colour;
+  ctx.shadowBlur = w * (0.06 + pulse * 0.1);
+  ctx.lineWidth = Math.max(2, w * (0.022 + pulse * 0.012));
   ctx.stroke();
   ctx.restore();
 }
@@ -305,6 +336,7 @@ export function render(canvas: HTMLCanvasElement, state: RenderState): View {
     );
     ctx.restore();
     drawCeramicGlaze(ctx, drawX, drawY, drawW, drawH);
+    if (isHinted) drawHintWash(ctx, drawX, drawY, drawW, drawH, state.palette.hinted, state.hintPulse);
     if (isFree && !isSelected && !isHinted) {
       drawFreeTileGlint(ctx, drawX, drawY, drawW, drawH);
     }

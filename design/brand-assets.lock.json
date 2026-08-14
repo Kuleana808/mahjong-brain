@@ -1,10 +1,10 @@
 {
-  "version": 2,
-  "approvedReference": "Energetic emerald and amber match-burst icon used consistently as the app icon, in-app logo, favicon, and splash identity",
+  "version": 3,
+  "approvedReference": "Original emerald brain-tile and amber match-burst icon used consistently as the app icon, in-app logo, favicon, splash identity, and App Store signature",
   "palette": ["#075a49", "#00483c", "#003b32", "#fff9e9", "#f5ecd5", "#b98a3e", "#745022"],
   "files": {
     "design/assets/app-icon-generated-source.png": {
-      "sha256": "7ddb553af2eed405cb2db7a2c7d99eb4e539a70240365c724810fb27f6e81044",
+      "sha256": "cc6236dbb2db6e7e5f74c1095ca9e6a49977dd0a8db88a776d51803d1fbafbad",
       "kind": "png",
       "width": 1254,
       "height": 1254,
@@ -15,63 +15,63 @@
       "kind": "source"
     },
     "public/brand-mark.png": {
-      "sha256": "e2c196dbfb1f2425dd23376a400da8fb4e48e44f58ec9c95f54c99ebc4e928db",
+      "sha256": "4736e3c1c76d0e24ff202546c645fde0c260113cf79000506e80a4ac5d4e7054",
       "kind": "png",
       "width": 512,
       "height": 512,
       "allowAlpha": false
     },
     "public/favicon.png": {
-      "sha256": "89f0571c9a8f432e63067032f409f9dea77eb5834e7e7bfe91b03b5c45b6a16f",
+      "sha256": "a4fd638785c9f1e5aec53ffdb13e123d9b9b391e5d8d455aa9d31f131fe9096d",
       "kind": "png",
       "width": 180,
       "height": 180,
       "allowAlpha": false
     },
     "apps/marketing/public/brand-mark.png": {
-      "sha256": "e2c196dbfb1f2425dd23376a400da8fb4e48e44f58ec9c95f54c99ebc4e928db",
+      "sha256": "4736e3c1c76d0e24ff202546c645fde0c260113cf79000506e80a4ac5d4e7054",
       "kind": "png",
       "width": 512,
       "height": 512,
       "allowAlpha": false
     },
     "apps/marketing/public/favicon.png": {
-      "sha256": "89f0571c9a8f432e63067032f409f9dea77eb5834e7e7bfe91b03b5c45b6a16f",
+      "sha256": "a4fd638785c9f1e5aec53ffdb13e123d9b9b391e5d8d455aa9d31f131fe9096d",
       "kind": "png",
       "width": 180,
       "height": 180,
       "allowAlpha": false
     },
     "apps/marketing/public/apple-touch-icon.png": {
-      "sha256": "89f0571c9a8f432e63067032f409f9dea77eb5834e7e7bfe91b03b5c45b6a16f",
+      "sha256": "a4fd638785c9f1e5aec53ffdb13e123d9b9b391e5d8d455aa9d31f131fe9096d",
       "kind": "png",
       "width": 180,
       "height": 180,
       "allowAlpha": false
     },
     "ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png": {
-      "sha256": "ddb5d6bc55a016fa6f1869d6b4dde3c0ff47a15a53b889e48fcf6fddf4b01d6a",
+      "sha256": "87316f430b2f28bea190400fae52e6efd44161fbf2e160275d43bac719e04d84",
       "kind": "png",
       "width": 1024,
       "height": 1024,
       "allowAlpha": false
     },
     "ios/App/App/Assets.xcassets/Splash.imageset/splash-2732x2732.png": {
-      "sha256": "2d9c78c9069413a3c35e9bb94cab9700668c62b448601caa1b1ed30cb54cdfba",
+      "sha256": "11fe8865ec07464260e90fa3b740aee82c98f9ba7bd8747ac6ead8e29e64db92",
       "kind": "png",
       "width": 2732,
       "height": 2732,
       "allowAlpha": false
     },
     "ios/App/App/Assets.xcassets/Splash.imageset/splash-2732x2732-1.png": {
-      "sha256": "2d9c78c9069413a3c35e9bb94cab9700668c62b448601caa1b1ed30cb54cdfba",
+      "sha256": "11fe8865ec07464260e90fa3b740aee82c98f9ba7bd8747ac6ead8e29e64db92",
       "kind": "png",
       "width": 2732,
       "height": 2732,
       "allowAlpha": false
     },
     "ios/App/App/Assets.xcassets/Splash.imageset/splash-2732x2732-2.png": {
-      "sha256": "2d9c78c9069413a3c35e9bb94cab9700668c62b448601caa1b1ed30cb54cdfba",
+      "sha256": "11fe8865ec07464260e90fa3b740aee82c98f9ba7bd8747ac6ead8e29e64db92",
       "kind": "png",
       "width": 2732,
       "height": 2732,

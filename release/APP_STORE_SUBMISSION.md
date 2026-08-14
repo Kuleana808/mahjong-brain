@@ -76,6 +76,9 @@ Use this factual outline and update it for the submitted build:
    the release build.
 6. No review account is required for local gameplay. If account/purchase features
    ship in the submitted build, provide a real sandbox review path here.
+7. Game Center is optional. Open Settings, then Game Center, to authenticate and
+   view the two leaderboards and five achievements documented in
+   `release/GAME_CENTER_SETUP.md`.
 
 ## Screenshot set
 

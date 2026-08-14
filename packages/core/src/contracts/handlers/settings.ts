@@ -29,10 +29,13 @@ export const DEFAULT_SYNCED_SETTINGS: SyncedSettings = {
   dimBlocked: true,
   haptics: true,
   sounds: true,
+  music: true,
+  voice: false,
+  autoComplete: true,
   difficultyPreference: 'auto',
 };
 
-const THEMES = new Set(['calm', 'calm-dark', 'high-contrast', 'system']);
+const THEMES = new Set(['calm', 'bamboo', 'plum', 'calm-dark', 'high-contrast', 'system']);
 const DIFFICULTIES = new Set(['auto', 'gentle', 'standard', 'demanding']);
 
 /** Rejects anything outside the contract rather than coercing it. */
@@ -48,7 +51,7 @@ function validate(patch: SettingsPatchRequest): string | null {
       return 'fontScale';
     }
   }
-  for (const key of ['reduceMotion', 'dimBlocked', 'haptics', 'sounds'] as const) {
+  for (const key of ['reduceMotion', 'dimBlocked', 'haptics', 'sounds', 'music', 'voice', 'autoComplete'] as const) {
     if (patch[key] !== undefined && typeof patch[key] !== 'boolean') return key;
   }
   return null;

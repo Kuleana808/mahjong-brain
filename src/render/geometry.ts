@@ -31,7 +31,10 @@ const LAYER_SHIFT_Y = 0.16;
  * than the game coordinates) preserves every blocking rule while giving each
  * face a comfortably larger drawing and hit target.
  */
-export const CELL_STEP_X = 0.38;
+// Preserve roughly half of every neighboring face. The earlier 0.38/0.45
+// compression made the stack dramatic, but hid too much information on the
+// iPad and read as one dense tower rather than a layered board.
+export const CELL_STEP_X = 0.46;
 export const CELL_STEP_Y = 0.45;
 
 /** Extruded side thickness, as a fraction of tile width. */

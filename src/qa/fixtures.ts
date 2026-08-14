@@ -164,6 +164,8 @@ export async function applyQaFixture(id: QaFixtureId): Promise<void> {
       board: state.board ? { ...state.board, remaining: new Set(), removed: [] } : null,
       holder: [],
       status: 'complete',
+      boardsCompleted: 1,
+      progression: { ...state.progression, boardsPlayed: 1, boardsWon: 1, xp: 120, iq: 104 },
     }));
   }
   if (id === 'S12-settings' || id === 'S12-settings-large' || id === 'S12-settings-offline') {

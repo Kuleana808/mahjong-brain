@@ -1,6 +1,6 @@
 {
-  "version": 5,
-  "approvedReference": "Dark felt, bright glossy ivory faces, high-separation jade sidewalls, compact carved-walnut controls, and synchronized jade-mint hint pulses approved 2026-08-13",
+  "version": 6,
+  "approvedReference": "Dark felt, bright 3D tiles, carved-walnut controls, jade-mint hint pulses, an original brain-tile identity, and four genuinely distinct face-art themes approved 2026-08-14",
   "cssTokens": {
     "--jade-950": "#001b18",
     "--jade-900": "#002b26",
@@ -86,7 +86,8 @@
     "secondaryButton": ["rest", "pressed", "focused", "disabled"],
     "iconButton": ["rest", "pressed", "focused", "disabled", "selected"],
     "tile": ["free", "blocked", "pressed", "hinted", "matched", "removing", "flying-to-holder"],
-    "tileDesign": ["ivory", "jade-edge", "porcelain"],
+    "tileDesign": ["modern-bold", "classic-calligraphic", "porcelain-geometric", "brain-signature"],
+    "backgroundDesign": ["emerald", "bamboo", "plum", "midnight", "high-contrast"],
     "holder": ["empty-hairline-slots", "one", "two", "warning-three", "full-four", "matching", "clearing"],
     "matchCelebration": ["two-origin-flash", "ceramic-shards", "reduced-motion-dissolve"],
     "panel": ["standard", "dialog", "warning", "success", "offline", "error"],

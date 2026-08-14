@@ -13,6 +13,7 @@
 
 export interface Palette {
   readonly name: ThemeName;
+  readonly tileStyle: TileStyleName;
   readonly felt: string;
   readonly feltEdge: string;
   readonly tileFace: string;
@@ -32,8 +33,8 @@ export interface Palette {
   readonly suits: Readonly<Record<SuitKey, string>>;
 }
 
-export type ThemeName = 'calm' | 'calm-dark' | 'high-contrast';
-export type TileStyleName = 'ivory' | 'jade-edge' | 'porcelain';
+export type ThemeName = 'calm' | 'bamboo' | 'plum' | 'calm-dark' | 'high-contrast';
+export type TileStyleName = 'ivory' | 'jade-edge' | 'porcelain' | 'brain';
 
 export type SuitKey =
   | 'bamboo'
@@ -49,6 +50,7 @@ export type SuitKey =
 export const PALETTES: Readonly<Record<ThemeName, Palette>> = {
   calm: {
     name: 'calm',
+    tileStyle: 'ivory',
     felt: '#002B26',
     feltEdge: '#001B18',
     tileFace: '#F6EEDB',
@@ -73,8 +75,27 @@ export const PALETTES: Readonly<Record<ThemeName, Palette>> = {
       season: '#9A6812',
     },
   },
+  bamboo: {
+    name: 'bamboo',
+    tileStyle: 'ivory',
+    felt: '#315C35',
+    feltEdge: '#173A24',
+    tileFace: '#F6EEDB', tileFaceTop: '#FFFDF4', tileSide: '#15934D', tileEdge: '#064629',
+    tileShadow: 'rgba(0, 10, 8, 0.72)', ink: '#143E34', inkSoft: '#526158', selected: '#E07A0B', hinted: '#75F0C1', dimAlpha: 0.93,
+    suits: { bamboo: '#087A43', character: '#C42E2E', circle: '#174F9B', wind: '#194A86', dragonRed: '#C9282D', dragonGreen: '#087A43', dragonWhite: '#325D82', flower: '#A62A68', season: '#9A6812' },
+  },
+  plum: {
+    name: 'plum',
+    tileStyle: 'ivory',
+    felt: '#642A45',
+    feltEdge: '#351626',
+    tileFace: '#FFF0DF', tileFaceTop: '#FFF9EF', tileSide: '#9B3D63', tileEdge: '#542137',
+    tileShadow: 'rgba(28, 4, 17, 0.72)', ink: '#4A2532', inkSoft: '#765364', selected: '#E38A16', hinted: '#F4B8D3', dimAlpha: 0.92,
+    suits: { bamboo: '#147A57', character: '#B72D37', circle: '#28519A', wind: '#4A3C79', dragonRed: '#C12B35', dragonGreen: '#147A57', dragonWhite: '#49657A', flower: '#9E2D68', season: '#9B6815' },
+  },
   'calm-dark': {
     name: 'calm-dark',
+    tileStyle: 'ivory',
     felt: '#191B1E',
     feltEdge: '#131518',
     tileFace: '#2A2D31',
@@ -101,6 +122,7 @@ export const PALETTES: Readonly<Record<ThemeName, Palette>> = {
   },
   'high-contrast': {
     name: 'high-contrast',
+    tileStyle: 'ivory',
     felt: '#FFFFFF',
     feltEdge: '#E8E8E8',
     tileFace: '#FFFFFF',
@@ -132,10 +154,33 @@ export function paletteFor(theme: ThemeName, tileStyle: TileStyleName): Palette 
   const base = PALETTES[theme];
   if (theme !== 'calm' || tileStyle === 'ivory') return base;
   if (tileStyle === 'jade-edge') {
-    return { ...base, tileSide: '#0B6035', tileEdge: '#033E25', tileShadow: 'rgba(0, 9, 5, 0.76)' };
+    return { ...base, tileStyle, tileSide: '#0B6035', tileEdge: '#033E25', tileShadow: 'rgba(0, 9, 5, 0.76)' };
+  }
+  if (tileStyle === 'brain') {
+    return {
+      ...base,
+      tileStyle,
+      tileFace: '#FFF6DC',
+      tileFaceTop: '#FFFFFF',
+      tileSide: '#00A467',
+      tileEdge: '#004B35',
+      selected: '#F0A51B',
+      hinted: '#79F2C0',
+      suits: {
+        ...base.suits,
+        bamboo: '#007C52',
+        character: '#C64A25',
+        circle: '#087A63',
+        wind: '#075D4B',
+        dragonRed: '#D84B2D',
+        dragonGreen: '#007C52',
+        dragonWhite: '#2B6B78',
+      },
+    };
   }
   return {
     ...base,
+    tileStyle,
     tileFace: '#F1EFE7',
     tileFaceTop: '#FFFDF7',
     tileSide: '#C9C2AF',

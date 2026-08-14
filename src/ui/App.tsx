@@ -14,6 +14,7 @@ import {
   type NativeAccessibilityPreferences,
 } from '../accessibility/native';
 import { configureNativePurchases } from '../iap';
+import { setAmbientMusicEnabled } from '../audio/sounds';
 import { flushPersisted } from '../state/persist';
 import { useGame } from '../state/store';
 import { startTelemetryLifecycle } from '../telemetry/client';
@@ -87,6 +88,11 @@ export function App() {
     root.style.setProperty('--font-scale', String(settings.fontScale * nativeAccessibility.textScale));
     root.style.colorScheme = settings.theme === 'calm-dark' ? 'dark' : 'light';
   }, [settings.theme, settings.tileStyle, settings.fontScale, nativeAccessibility.textScale]);
+
+  useEffect(() => {
+    setAmbientMusicEnabled(settings.music);
+    return () => setAmbientMusicEnabled(false);
+  }, [settings.music]);
 
   if (!hydrated) {
     return (

@@ -108,7 +108,8 @@ QA proves the actual pre-hydration frame instead of a simulated screen.
 | Secondary button | `rest`, `pressed`, `focused`, `disabled` |
 | Icon button | `rest`, `pressed`, `focused`, `disabled`, `selected` |
 | Tile | `free`, `blocked`, `pressed`, `hinted`, `matched`, `removing`, `flying-to-holder` |
-| Tile design | `ivory`, `jade-edge`, `porcelain` |
+| Tile design | `modern-bold` (`ivory`), `classic-calligraphic` (`jade-edge`), `porcelain-geometric` (`porcelain`), `brain-signature` (`brain`) |
+| Background design | `emerald` (`calm`), `bamboo`, `plum`, `midnight` (`calm-dark`), `high-contrast` |
 | Holder | `empty-hairline-slots`, `one`, `two`, `warning-three`, `full-four`, `matching`, `clearing` |
 | Match celebration | `two-origin-flash`, `ceramic-shards`, `reduced-motion-dissolve` |
 | Panel | `standard`, `dialog`, `warning`, `success`, `offline`, `error` |

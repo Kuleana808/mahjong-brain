@@ -28,12 +28,12 @@ export function BottomDock() {
           setShopOpen(true);
         }
       }} disabled={!playing}>
-        <span className="tool-medallion__face"><Icon name="shuffle" /></span>
-        <span>Shuffle <small>{inventory.shuffle}</small></span>
+        <span className="tool-medallion__face"><Icon name="shuffle" /><small className="inventory-badge">{inventory.shuffle}</small></span>
+        <span>Shuffle</span>
       </button>
       <button type="button" className="tool-medallion" aria-label={hintPending ? 'Looking for a hint' : `Hint, ${inventory.hint} available`} onClick={() => void requestHint()} disabled={!playing || hintPending}>
-        <span className="tool-medallion__face"><Icon name="hint" /></span>
-        <span>{hintPending ? 'Looking…' : <>Hint <small>{inventory.hint}</small></>}</span>
+        <span className="tool-medallion__face"><Icon name="hint" /><small className="inventory-badge">{inventory.hint}</small></span>
+        <span>{hintPending ? 'Looking…' : 'Hint'}</span>
       </button>
       <button type="button" className="tool-medallion" aria-label="Undo" onClick={undo} disabled={tapHistory.length === 0}>
         <span className="tool-medallion__face"><Icon name="undo" /></span>

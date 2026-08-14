@@ -57,6 +57,7 @@ import {
   SHUFFLE_PRODUCT_ID,
 } from '../iap';
 import { playSound } from '../audio/sounds';
+import { speakCoach } from '../audio/voice';
 import { ads } from '../ads';
 import {
   appleSignInAvailable,
@@ -70,6 +71,7 @@ import { PALETTES, type ThemeName, type TileStyleName } from '../render/palette'
 import { track } from '../telemetry/client';
 import type { GrantKind } from '../../packages/core/src/contracts/types';
 import { flushPersisted, loadPersisted, savePersisted } from './persist';
+import { reportGameCenterProgress } from '../gamecenter';
 
 /** The paywall appears once, after the third completed board. Never before. */
 export const PAYWALL_AFTER_BOARDS = 3;
@@ -84,6 +86,9 @@ export interface Settings {
   readonly dimBlocked: boolean;
   readonly haptics: boolean;
   readonly sounds: boolean;
+  readonly music: boolean;
+  readonly voice: boolean;
+  readonly autoComplete: boolean;
 }
 
 export interface Inventory {
@@ -102,6 +107,9 @@ export const DEFAULT_SETTINGS: Settings = {
   dimBlocked: true,
   haptics: true,
   sounds: true,
+  music: true,
+  voice: false,
+  autoComplete: true,
 };
 
 interface SessionStats {
@@ -231,6 +239,9 @@ const syncedSettings = (settings: Settings) => ({
   dimBlocked: settings.dimBlocked,
   haptics: settings.haptics,
   sounds: settings.sounds,
+  music: settings.music,
+  voice: settings.voice,
+  autoComplete: settings.autoComplete,
   difficultyPreference: 'auto' as const,
 });
 
@@ -657,10 +668,12 @@ export const useGame = create<GameStore>((set, get) => {
 
       if (nextStatus === 'complete') {
         playSound('win', settings.sounds);
+        speakCoach('Board complete.', settings.voice);
         finishBoard(true);
         get().dispatchFlow({ type: 'board_won' });
       } else if (nextStatus === 'holder_full') {
         playSound('holder-full', settings.sounds);
+        speakCoach('The holder is full.', settings.voice);
         get().dispatchFlow({ type: 'holder_full' });
       }
       persist();
@@ -717,6 +730,7 @@ export const useGame = create<GameStore>((set, get) => {
             tier: 'offline',
           };
       if (hint) playSound('hint', settings.sounds);
+      if (hint) speakCoach(hint.summary, settings.voice);
       if (hint) void track('hint_shown', { layout: board.layoutId, seed: board.seed });
       set((s) => ({
         hint,
@@ -1016,6 +1030,14 @@ export const useGame = create<GameStore>((set, get) => {
       // already paid. Not before a board, not mid-board, not on a timer.
       paywallOpen: shouldOpenPaywall,
     });
+    if (completed) {
+      void reportGameCenterProgress({
+        boardsCleared: total,
+        brainIq: nextProgression.iq,
+        hintsUsed: session.hintsUsed,
+        shufflesUsed: session.shufflesUsed ?? 0,
+      });
+    }
     if (shouldOpenPaywall) void track('store_shown');
   }
 });

@@ -19,6 +19,9 @@ export type GameSound =
   | 'holder-full';
 
 let context: AudioContext | null = null;
+let musicEnabled = false;
+let musicNodes: { oscillators: OscillatorNode[]; gain: GainNode } | null = null;
+let gestureListenerInstalled = false;
 
 function audioContext(): AudioContext | null {
   if (typeof window === 'undefined') return null;
@@ -27,6 +30,60 @@ function audioContext(): AudioContext | null {
   context ??= new AudioContextClass();
   if (context.state === 'suspended') void context.resume();
   return context;
+}
+
+function stopAmbientMusic(): void {
+  if (!musicNodes) return;
+  const active = musicNodes;
+  musicNodes = null;
+  const now = context?.currentTime ?? 0;
+  active.gain.gain.cancelScheduledValues(now);
+  active.gain.gain.setTargetAtTime(0.0001, now, 0.18);
+  window.setTimeout(() => active.oscillators.forEach((oscillator) => oscillator.stop()), 900);
+}
+
+function startAmbientMusic(): void {
+  if (!musicEnabled || musicNodes || document.visibilityState === 'hidden') return;
+  const ctx = audioContext();
+  if (!ctx || ctx.state !== 'running') return;
+
+  const gain = ctx.createGain();
+  const filter = ctx.createBiquadFilter();
+  filter.type = 'lowpass';
+  filter.frequency.value = 920;
+  gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.012, ctx.currentTime + 1.8);
+  gain.connect(filter).connect(ctx.destination);
+
+  const oscillators = [146.83, 220, 293.66].map((frequency, index) => {
+    const oscillator = ctx.createOscillator();
+    oscillator.type = index === 1 ? 'triangle' : 'sine';
+    oscillator.frequency.value = frequency;
+    oscillator.detune.value = index === 2 ? -7 : index === 0 ? 4 : 0;
+    oscillator.connect(gain);
+    oscillator.start();
+    return oscillator;
+  });
+  musicNodes = { oscillators, gain };
+}
+
+export function setAmbientMusicEnabled(enabled: boolean): void {
+  musicEnabled = enabled;
+  if (!enabled) {
+    stopAmbientMusic();
+    return;
+  }
+  if (!gestureListenerInstalled && typeof window !== 'undefined') {
+    gestureListenerInstalled = true;
+    const unlock = () => startAmbientMusic();
+    window.addEventListener('pointerdown', unlock, { passive: true });
+    window.addEventListener('keydown', unlock);
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'hidden') stopAmbientMusic();
+      else startAmbientMusic();
+    });
+  }
+  startAmbientMusic();
 }
 
 function tone(

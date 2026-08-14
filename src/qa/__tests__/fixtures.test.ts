@@ -35,6 +35,12 @@ describe('deterministic QA fixtures', () => {
     expect(useGame.getState().announcement).toMatch(/restored/i);
   });
 
+  it('shows truthful completed progress in the completion fixture', async () => {
+    await applyQaFixture('S10-complete');
+    expect(useGame.getState().boardsCompleted).toBe(1);
+    expect(useGame.getState().progression.boardsWon).toBe(1);
+  });
+
   it('exposes every P0 state that requires deterministic visual evidence', () => {
     const required = [
       'S01-terms-rest', 'S01-terms-focus', 'S02-age-rest',

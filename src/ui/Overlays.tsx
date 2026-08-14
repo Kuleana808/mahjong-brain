@@ -13,6 +13,16 @@ import { ads } from '../ads';
 import { purchasesConfigured } from '../iap';
 import { useGame, type Settings } from '../state/store';
 import { Icon } from './Icon';
+import { TileFaceCanvas } from './TileFaceCanvas';
+import { paletteFor } from '../render/palette';
+import {
+  connectGameCenter,
+  gameCenterAvailable,
+  gameCenterStatus,
+  openGameCenter,
+  reportGameCenterProgress,
+  type GameCenterStatus,
+} from '../gamecenter';
 
 function Overlay({ label, children }: { label: string; children: ReactNode }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -162,15 +172,18 @@ function Switch({
 }
 
 const THEMES: { id: Settings['theme']; label: string }[] = [
-  { id: 'calm', label: 'Light' },
-  { id: 'calm-dark', label: 'Dark' },
+  { id: 'calm', label: 'Emerald' },
+  { id: 'bamboo', label: 'Bamboo' },
+  { id: 'plum', label: 'Plum' },
+  { id: 'calm-dark', label: 'Midnight' },
   { id: 'high-contrast', label: 'High contrast' },
 ];
 
 const TILE_STYLES: { id: Settings['tileStyle']; label: string }[] = [
-  { id: 'ivory', label: 'Ivory' },
-  { id: 'jade-edge', label: 'Jade edge' },
+  { id: 'ivory', label: 'Modern' },
+  { id: 'jade-edge', label: 'Classic' },
   { id: 'porcelain', label: 'Porcelain' },
+  { id: 'brain', label: 'Brain' },
 ];
 
 const SIZES: { value: number; label: string }[] = [
@@ -198,7 +211,11 @@ export function ThemeSheet({ onClose, initialTab = 'tiles' }: { onClose: () => v
         <div className="theme-options">
           {TILE_STYLES.map((style) => (
             <button key={style.id} type="button" className="theme-option" aria-pressed={settings.tileStyle === style.id} onClick={() => update({ tileStyle: style.id })}>
-              <span className={`theme-swatch theme-swatch--${style.id}`}><i>中</i><i>●●<br />●●</i><i>發</i></span>
+              <span className={`theme-swatch theme-swatch--${style.id}`} aria-hidden="true">
+                <i><TileFaceCanvas face={{ suit: 'dragon', rank: 1 }} palette={paletteFor(settings.theme, style.id)} /></i>
+                <i><TileFaceCanvas face={{ suit: 'circle', rank: 4 }} palette={paletteFor(settings.theme, style.id)} /></i>
+                <i><TileFaceCanvas face={{ suit: 'bamboo', rank: 3 }} palette={paletteFor(settings.theme, style.id)} /></i>
+              </span>
               <strong>{style.label}</strong>
             </button>
           ))}
@@ -219,6 +236,9 @@ export function ThemeSheet({ onClose, initialTab = 'tiles' }: { onClose: () => v
 
 export function SettingsSheet() {
   const [helpOpen, setHelpOpen] = useState(false);
+  const [gameCenter, setGameCenter] = useState<GameCenterStatus | null>(null);
+  const [gameCenterPending, setGameCenterPending] = useState(false);
+  const [gameCenterError, setGameCenterError] = useState<string | null>(null);
   const settings = useGame((s) => s.settings);
   const update = useGame((s) => s.updateSettings);
   const openSettings = useGame((s) => s.openSettings);
@@ -233,6 +253,33 @@ export function SettingsSheet() {
   const announcement = useGame((s) => s.announcement);
   const signIn = useGame((s) => s.signIn);
   const signOut = useGame((s) => s.signOut);
+  const boardsCompleted = useGame((s) => s.boardsCompleted);
+  const progression = useGame((s) => s.progression);
+
+  useEffect(() => {
+    if (!gameCenterAvailable()) return;
+    void gameCenterStatus().then(setGameCenter);
+  }, []);
+
+  const handleGameCenter = async () => {
+    setGameCenterPending(true);
+    setGameCenterError(null);
+    try {
+      if (gameCenter?.authenticated) {
+        await openGameCenter();
+      } else {
+        const status = await connectGameCenter();
+        setGameCenter(status);
+        if (status.authenticated) {
+          await reportGameCenterProgress({ boardsCleared: boardsCompleted, brainIq: progression.iq });
+        }
+      }
+    } catch (cause) {
+      setGameCenterError(cause instanceof Error ? cause.message : 'Game Center is unavailable right now.');
+    } finally {
+      setGameCenterPending(false);
+    }
+  };
 
   if (helpOpen) {
     return (
@@ -335,21 +382,53 @@ export function SettingsSheet() {
         onChange={(reduceMotion) => update({ reduceMotion })}
       />
       <Switch
+        label="Music"
+        hint="A quiet original ambient bed"
+        checked={settings.music}
+        onChange={(music) => update({ music })}
+      />
+      <Switch
         label="Sounds"
         hint="Quiet tile and game feedback"
         checked={settings.sounds}
         onChange={(sounds) => update({ sounds })}
       />
       <Switch
+        label="Voice"
+        hint="Optional short spoken hints and round results"
+        checked={settings.voice}
+        onChange={(voice) => update({ voice })}
+      />
+      <Switch
         label="Vibration"
         checked={settings.haptics}
         onChange={(haptics) => update({ haptics })}
+      />
+      <Switch
+        label="Auto Complete"
+        hint="Finishes the final exposed pairs for you"
+        checked={settings.autoComplete}
+        onChange={(autoComplete) => update({ autoComplete })}
       />
 
       <button type="button" className="settings-row-action" onClick={() => setHelpOpen(true)}>
         <span><strong>How to play</strong><small>Holder rules, matching, and game tools</small></span>
         <span aria-hidden="true">›</span>
       </button>
+
+      {gameCenterAvailable() ? (
+        <button type="button" className="settings-row-action" disabled={gameCenterPending} onClick={() => void handleGameCenter()}>
+          <span>
+            <strong>Game Center</strong>
+            <small>
+              {gameCenter?.authenticated
+                ? `${gameCenter.displayName || 'Connected'} · leaderboards and achievements`
+                : gameCenterError ?? 'Optional leaderboards and achievements'}
+            </small>
+          </span>
+          <span aria-hidden="true">›</span>
+        </button>
+      ) : null}
 
       {!unlocked && purchasesConfigured() && purchaseDisplayPrice ? (
         <button type="button" className="settings-row-action settings-row-action--upgrade" onClick={openPaywall}>
