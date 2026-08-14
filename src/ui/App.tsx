@@ -47,7 +47,10 @@ export function App() {
       if (import.meta.env.DEV) {
         const { applyQaFixture, qaFixtureFromLocation } = await import('../qa/fixtures');
         const fixture = qaFixtureFromLocation();
-        if (fixture) await applyQaFixture(fixture);
+        if (fixture) {
+          await applyQaFixture(fixture);
+          document.documentElement.dataset.qaFixtureReady = fixture;
+        }
       }
     });
   }, [hydrate]);
