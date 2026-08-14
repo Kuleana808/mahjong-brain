@@ -118,13 +118,19 @@ if (types.includes(PLACEHOLDER_BUNDLE_ID)) {
   blockers.push('PRODUCT_CATALOGUE still carries placeholder product ids derived from the bundle id.');
 }
 
-const configuredProductId = process.env.IAP_PRODUCT_ID;
+const configuredProductIds = (process.env.IAP_PRODUCT_IDS ?? process.env.IAP_PRODUCT_ID ?? '').split(',').map((value) => value.trim()).filter(Boolean);
+const configuredProductId = configuredProductIds.find((id) => id.endsWith('.removeads'));
 const configuredClientProductId = process.env.VITE_IAP_PRODUCT_ID;
 if (configuredProductId && configuredClientProductId && configuredProductId !== configuredClientProductId) {
   blockers.push('IAP_PRODUCT_ID and VITE_IAP_PRODUCT_ID disagree. The client and verifier must name the same product.');
 }
 if (configuredProductId && capacitorBundleId && !configuredProductId.startsWith(`${capacitorBundleId}.`)) {
   blockers.push(`IAP_PRODUCT_ID (${configuredProductId}) is not namespaced under ${capacitorBundleId}.`);
+}
+const configuredShuffleId = configuredProductIds.find((id) => id.endsWith('.shuffle5'));
+const configuredClientShuffleId = process.env.VITE_SHUFFLE_PRODUCT_ID;
+if (configuredShuffleId && configuredClientShuffleId && configuredShuffleId !== configuredClientShuffleId) {
+  blockers.push('The server and client Shuffle product ids disagree.');
 }
 
 const infoPlist = read('ios/App/App/Info.plist');
@@ -188,7 +194,7 @@ if (!assetIsApproved(icon, iconMaster) || !assetIsApproved(splash, splashMaster)
   );
 }
 
-if (!process.env.IAP_PRODUCT_ID || !process.env.VITE_IAP_PRODUCT_ID) {
+if (!configuredProductId || !configuredShuffleId || !configuredClientProductId || !configuredClientShuffleId) {
   blockers.push(
     'The StoreKit 2 bridge and Apple Root CA G3 pin are installed, but server and\n' +
       '    client product ids are not configured. Purchases therefore remain hidden.',

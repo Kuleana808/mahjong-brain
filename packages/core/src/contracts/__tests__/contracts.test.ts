@@ -98,6 +98,13 @@ describe('api/consumables/validate', () => {
     const ports: Ports = { ...consumablePorts(), storekit: { async verifySignedTransaction() { return { ...transaction, productId: 'com.nihi.mahjong.removeads' }; } } };
     expect((await validateConsumable({ signedTransaction: 'a.b.c' }, 'token', ports)).error?.code).toBe('wrong_product');
   });
+
+  it('does not let a transaction already claimed by another account grant inventory', async () => {
+    const store = stubStore();
+    store.putConsumableGrant = async () => false;
+    store.getConsumableGrant = async () => ({ accountId: 'acct_other', transactionId: transaction.transactionId, productId: transaction.productId, kind: 'shuffle', quantity: 5, purchasedAt: NOW, environment: 'Sandbox', grantedAt: NOW });
+    expect((await validateConsumable({ signedTransaction: 'a.b.c' }, 'token', consumablePorts(store))).error?.code).toBe('transaction_claimed');
+  });
 });
 
 // --- 1. board generate -----------------------------------------------------
