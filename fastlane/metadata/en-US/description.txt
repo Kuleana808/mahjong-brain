@@ -1,4 +1,4 @@
-Mahjong Brain is a calm tile-matching game built around clarity, comfort, and satisfying play.
+Mahjong Brain is a tile-matching game built around clarity, comfort, and satisfying play.
 
 Choose matching free tiles and keep an eye on the four-slot holder. Matching pairs clear automatically. If four unmatched tiles fill the holder, the round ends—so each move matters.
 

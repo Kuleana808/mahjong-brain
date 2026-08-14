@@ -289,11 +289,13 @@ v0.1 ships at **functional parity with the incumbent**, not as our own take.
 Differentiation is a right earned after parity with cohort data, not a design
 preference exercised before it.
 
-**Copied until parity is proven:** onboarding beat for beat (age gate, TOS
+**Matched functionally until parity is proven:** onboarding beat for beat (age gate, TOS
 modal, loading quote, progressive tutorial with confetti on first pair),
 monetisation (ads on Revive, rewarded video for Hint, IAP for Shuffle),
 retention loops (daily reward, streaks, seasonal events), social hooks,
 live-ops cadence, tutorial pacing, difficulty curve, UI patterns, error states.
+Parity means equivalent player capability and understandable states, not copied
+art, copy, trademarks, layouts, icons, or other protected expression.
 
 **Original from day one, non-negotiable:** tile art, any mascot, brand — name,
 logo, wordmark, palette — and all marketing copy. This is both the

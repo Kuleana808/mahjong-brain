@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { levelProgress as progressionFraction } from '../../packages/core/src/progression/progression';
 import { useGame } from '../state/store';
 import { Icon } from './Icon';
+import { DailyRewardSheet } from './DailyRewardSheet';
 import { LevelsSheet, ThemeSheet } from './Overlays';
 
 function BrandMark({ compact = false }: { compact?: boolean }) {
@@ -49,13 +50,13 @@ function LegalDocumentDialog({ document, onClose }: { document: LegalDocument; o
         <h2 ref={titleRef} id="legal-title" tabIndex={-1}>{isPrivacy ? 'Privacy Policy' : 'Terms of Service'}</h2>
         {isPrivacy ? (
           <>
-            <p>Mahjong Brain is designed to work without advertising profiles. We do not store your email address.</p>
+            <p>Mahjong Brain stores the minimum information needed for game progress, optional account features, purchases, and product analytics. We do not store your email address.</p>
             <h3>Information we use</h3>
             <p>We save game progress and settings on your device. If you choose Sign in with Apple, the service receives the Apple account identifier needed to protect your unlock status. Anonymous session events may be used to understand crashes and game completion; those events do not include an account identifier.</p>
             <h3>Purchases</h3>
             <p>Apple processes payments. We verify purchase records only to restore the unlock to the correct account and prevent one purchase from unlocking multiple accounts.</p>
             <h3>Your choices</h3>
-            <p>You can play without personalized advertising. Device permissions remain under your control in iOS Settings.</p>
+            <p>If advertising is enabled, the App Store privacy disclosure and this policy will identify the provider and data use before release. Device permissions remain under your control in iOS Settings.</p>
           </>
         ) : (
           <>
@@ -255,6 +256,7 @@ export function HomeScreen() {
   const progression = useGame((s) => s.progression);
   const announcement = useGame((s) => s.announcement);
   const [levelsOpen, setLevelsOpen] = useState(false);
+  const [dailyOpen, setDailyOpen] = useState(false);
   const qaTheme = import.meta.env.DEV
     ? new URLSearchParams(window.location.search).get('qa')
     : null;
@@ -277,10 +279,11 @@ export function HomeScreen() {
       {serviceNotice ? <p className="flow-notice flow-notice--home" role="status">{serviceNotice}</p> : null}
       <div className="home-actions">
         <button type="button" className="medallion" aria-label="Levels and profile" onClick={() => setLevelsOpen(true)}><Icon name="profile" /></button>
-        <button type="button" className="medallion" aria-label="Change appearance" onClick={() => setThemeOpen(true)}><Icon name="daily" /></button>
+        <button type="button" className="medallion" aria-label="Daily reward" onClick={() => setDailyOpen(true)}><Icon name="daily" /></button>
         <button type="button" className="medallion" aria-label="Settings" onClick={() => openSettings(true)}><Icon name="settings" /></button>
       </div>
       {levelsOpen ? <LevelsSheet onClose={() => setLevelsOpen(false)} /> : null}
+      {dailyOpen ? <DailyRewardSheet onClose={() => setDailyOpen(false)} /> : null}
       {themeOpen ? (
         <ThemeSheet
           onClose={() => setThemeOpen(false)}
@@ -296,6 +299,8 @@ export function ResultScreen() {
   const completed = useGame((s) => s.boardsCompleted);
   const status = useGame((s) => s.status);
   const isFull = status === 'holder_full';
+  const inventory = useGame((s) => s.inventory);
+  const useRevive = useGame((s) => s.useRevive);
   return (
     <ScreenFrame className="flow-screen--result">
       <div className="result-card">
@@ -309,7 +314,11 @@ export function ResultScreen() {
               ? 'Your first board is complete.'
               : `${completed} boards complete.`}
         </p>
-        {isFull ? (
+        {isFull && inventory.revive > 0 ? (
+          <button type="button" className="primary-button" onClick={useRevive}>
+            Revive · {inventory.revive} available
+          </button>
+        ) : isFull ? (
           <button type="button" className="primary-button" onClick={() => dispatch({ type: 'start_board' })}>
             Restart
           </button>
@@ -319,9 +328,10 @@ export function ResultScreen() {
           </button>
         )}
         {isFull ? (
-          <button type="button" className="text-button" onClick={() => dispatch({ type: 'leave_game_over' })}>
-            Back to home
-          </button>
+          <>
+            {inventory.revive > 0 ? <button type="button" className="text-button" onClick={() => dispatch({ type: 'start_board' })}>Restart instead</button> : null}
+            <button type="button" className="text-button" onClick={() => dispatch({ type: 'leave_game_over' })}>Back to home</button>
+          </>
         ) : null}
       </div>
     </ScreenFrame>

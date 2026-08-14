@@ -135,7 +135,9 @@ are views over it, not new logic.
 - **The holder** (D-015). A four-slot tray, tiles animating into it, the fill
   state, the loss state, and the Revive offer at the moment the fourth slot
   fills. `@mahjong-brain/core/play` gives you the whole state machine.
-- **Level and IQ surfaces** — `@mahjong-brain/core/progression`.
+- **Level and progress surfaces** — `@mahjong-brain/core/progression`. Do not
+  present the internal legacy `iq` field as a health, intelligence, or outcome
+  claim in player-facing copy.
 - **Ad and IAP surfaces** — Revive prompt, Hint rewarded-video prompt, Shuffle
   store. `PRODUCT_CATALOGUE` in `@mahjong-brain/core/contracts` is the source of truth.
 - **Daily reward and streak UI** against contract 12.

@@ -62,7 +62,7 @@ Record device, OS, clean-install status, result, and screenshot/video path.
 | Hint, shuffle, and undo states | PENDING | PENDING |
 | Theme and tile-style switching | PENDING | PENDING |
 | Settings persistence | PENDING | PENDING |
-| Game win, IQ, and next level | PENDING | PENDING |
+| Game win, progress score, and next level | PENDING | PENDING |
 | Relaunch/resume without redeal | PENDING | PENDING |
 | Dynamic Type / VoiceOver / Reduce Motion | PENDING | PENDING |
 | Offline queue and reconnect flush | PENDING | PENDING |

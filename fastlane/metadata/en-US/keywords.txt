@@ -1,1 +1,1 @@
-mahjong,matching,tiles,puzzle,brain,calm,relaxing,solitaire,logic,senior
+mahjong,matching,tiles,puzzle,brain,solitaire,logic,large,readable,classic

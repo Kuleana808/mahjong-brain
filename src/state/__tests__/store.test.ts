@@ -225,6 +225,39 @@ describe('session flow', () => {
     expect(useGame.getState().holder).toEqual([]);
   });
 
+  it('grants and consumes persisted Hint and Shuffle inventory', async () => {
+    await useGame.getState().hydrate();
+    useGame.setState({ inventory: { hint: 0, shuffle: 0, revive: 0 } });
+
+    useGame.getState().grantInventory('hint', 2);
+    useGame.getState().grantInventory('shuffle', 1);
+    expect(useGame.getState().inventory).toEqual({ hint: 2, shuffle: 1, revive: 0 });
+
+    await useGame.getState().requestHint();
+    expect(useGame.getState().inventory.hint).toBe(1);
+    useGame.getState().shuffleBoard();
+    expect(useGame.getState().inventory.shuffle).toBe(0);
+    await Promise.resolve();
+
+    useGame.setState({ ...initial, board: null, hydrated: false, settings: DEFAULT_SETTINGS });
+    await useGame.getState().hydrate();
+    expect(useGame.getState().inventory).toEqual({ hint: 1, shuffle: 0, revive: 0 });
+  });
+
+  it('does not perform Hint or Shuffle when inventory is empty', async () => {
+    await useGame.getState().hydrate();
+    useGame.setState({ inventory: { hint: 0, shuffle: 0, revive: 0 } });
+    const seed = useGame.getState().board!.seed;
+
+    await useGame.getState().requestHint();
+    expect(useGame.getState().hint).toBeNull();
+    expect(useGame.getState().announcement).toMatch(/no hints/i);
+
+    useGame.getState().shuffleBoard();
+    expect(useGame.getState().board!.seed).toBe(seed);
+    expect(useGame.getState().announcement).toMatch(/no shuffles/i);
+  });
+
   it('only offers holder-aware hints that are safe with three occupied slots', async () => {
     const { startSession, tapTile, tappableTiles } = await import(
       '../../../packages/core/src/play/session'
@@ -490,7 +523,7 @@ describe('persistence', () => {
     expect(useGame.getState().board!.tiles.map((tile) => tile.face)).toEqual(faces);
   });
 
-  it('fails closed instead of exposing an unverified client-side revive', async () => {
+  it('fails closed when no verified or earned Revive exists', async () => {
     await useGame.getState().hydrate();
     const board = useGame.getState().board!;
     const holder = [...board.remaining].slice(0, 4);
@@ -503,10 +536,32 @@ describe('persistence', () => {
       flow: { ...useGame.getState().flow, screen: 'game_over' },
     });
 
-    expect('revive' in useGame.getState()).toBe(false);
+    useGame.setState({ inventory: { hint: 0, shuffle: 0, revive: 0 } });
+    useGame.getState().useRevive();
     expect(useGame.getState().status).toBe('holder_full');
     expect(useGame.getState().holder).toEqual(holder);
     for (const id of holder) expect(useGame.getState().board!.remaining.has(id)).toBe(false);
+  });
+
+  it('consumes an earned Revive and restores held tiles to their original positions', async () => {
+    await useGame.getState().hydrate();
+    const board = useGame.getState().board!;
+    const holder = [...board.remaining].slice(0, 4);
+    const remaining = new Set(board.remaining);
+    for (const id of holder) remaining.delete(id);
+    useGame.setState({
+      board: { ...board, remaining }, holder, status: 'holder_full',
+      inventory: { hint: 0, shuffle: 0, revive: 1 },
+      flow: { ...useGame.getState().flow, screen: 'game_over' },
+    });
+
+    useGame.getState().useRevive();
+
+    expect(useGame.getState().status).toBe('playing');
+    expect(useGame.getState().flow.screen).toBe('gameplay');
+    expect(useGame.getState().holder).toEqual([]);
+    expect(useGame.getState().inventory.revive).toBe(0);
+    for (const id of holder) expect(useGame.getState().board!.remaining.has(id)).toBe(true);
   });
 
   it('does not count a paused holder-full board before the player chooses restart or home', async () => {

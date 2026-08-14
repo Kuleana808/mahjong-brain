@@ -34,6 +34,8 @@ export interface TileMotion {
   readonly alpha?: number;
   /** 0 = resting, 1 = fully lifted. */
   readonly lift?: number;
+  /** 1 = resting size; values below 1 settle the tile into or out of view. */
+  readonly scale?: number;
 }
 
 const faceCache = new Map<string, HTMLCanvasElement>();
@@ -93,7 +95,7 @@ function drawTileBody(
   // Rear slab. Drawing this separately from the face gives the tile actual
   // thickness instead of reading as a flat card with a drop shadow.
   const rear = ctx.createLinearGradient(x, y, x + depth, y + h + depth);
-  rear.addColorStop(0, '#299657');
+  rear.addColorStop(0, '#35B766');
   rear.addColorStop(0.38, palette.tileSide);
   rear.addColorStop(1, palette.tileEdge);
   ctx.fillStyle = rear;
@@ -112,9 +114,9 @@ function drawTileBody(
 
   const gradient = ctx.createLinearGradient(x, y, x, y + h);
   gradient.addColorStop(0, palette.tileFaceTop);
-  gradient.addColorStop(0.48, palette.tileFace);
+  gradient.addColorStop(0.38, palette.tileFace);
   gradient.addColorStop(0.88, palette.tileFace);
-  gradient.addColorStop(1, '#E7D7B7');
+  gradient.addColorStop(1, '#E9DFC8');
   ctx.fillStyle = gradient;
   ctx.beginPath();
   ctx.roundRect(x, y, w, h, radius);
@@ -267,23 +269,27 @@ export function render(canvas: HTMLCanvasElement, state: RenderState): View {
     // selected tile still gets the full lift and amber ring.
     const lift = motion?.lift ?? (isSelected ? 1 : isFree ? 0.13 : 0);
     const liftY = rect.w * 0.075 * lift;
-    const drawY = rect.y - liftY;
+    const scale = motion?.scale ?? 1;
+    const drawW = rect.w * scale;
+    const drawH = rect.h * scale;
+    const drawX = rect.x + (rect.w - drawW) / 2;
+    const drawY = rect.y - liftY + (rect.h - drawH) / 2;
 
     ctx.save();
     ctx.globalAlpha *= motion?.alpha ?? 1;
     if (state.dimBlocked && !isFree && !isSelected && !isHinted) {
-      ctx.globalAlpha *= state.palette.dimAlpha;
+    ctx.globalAlpha *= state.palette.dimAlpha;
       // Keep blocked tiles materially present in the stack. Availability is a
       // hierarchy cue, not a disabled-screen treatment: the ivory body and
       // suit colours remain recognisable while free tiles stay unmistakable.
-      ctx.filter = 'saturate(72%) brightness(86%)';
+      ctx.filter = 'saturate(84%) brightness(92%)';
     }
 
-    drawTileBody(ctx, rect.x, drawY, rect.w, rect.h, state.palette, lift > 0, tile.z);
+    drawTileBody(ctx, drawX, drawY, drawW, drawH, state.palette, lift > 0, tile.z);
 
     ctx.save();
     ctx.beginPath();
-    ctx.roundRect(rect.x, drawY, rect.w, rect.h, rect.w * 0.13);
+    ctx.roundRect(drawX, drawY, drawW, drawH, drawW * 0.13);
     ctx.clip();
     // A tiny pressed-ink shadow gives the symbols the depth of paint sitting
     // in a shallow engraving, rather than SVG art floating over a card.
@@ -292,19 +298,19 @@ export function render(canvas: HTMLCanvasElement, state: RenderState): View {
     ctx.shadowOffsetY = Math.max(0.5, rect.w * 0.012);
     ctx.drawImage(
       faceCanvas(tile.face, state.palette, rect.w, rect.h, dpr),
-      rect.x,
+      drawX,
       drawY,
-      rect.w,
-      rect.h,
+      drawW,
+      drawH,
     );
     ctx.restore();
-    drawCeramicGlaze(ctx, rect.x, drawY, rect.w, rect.h);
+    drawCeramicGlaze(ctx, drawX, drawY, drawW, drawH);
     if (isFree && !isSelected && !isHinted) {
-      drawFreeTileGlint(ctx, rect.x, drawY, rect.w, rect.h);
+      drawFreeTileGlint(ctx, drawX, drawY, drawW, drawH);
     }
 
-    if (isSelected) drawRing(ctx, rect.x, drawY, rect.w, rect.h, state.palette.selected);
-    else if (isHinted) drawRing(ctx, rect.x, drawY, rect.w, rect.h, state.palette.hinted);
+    if (isSelected) drawRing(ctx, drawX, drawY, drawW, drawH, state.palette.selected);
+    else if (isHinted) drawRing(ctx, drawX, drawY, drawW, drawH, state.palette.hinted);
 
     ctx.restore();
   }

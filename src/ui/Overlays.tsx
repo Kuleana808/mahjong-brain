@@ -88,7 +88,7 @@ export function LevelsSheet({ onClose }: { onClose: () => void }) {
           </div>
           <small>{earnedThisLevel} of {neededThisLevel} XP</small>
           <hr />
-          <span>IQ estimate</span>
+          <span>Progress score</span>
           <b>{progression.iq}</b>
           <small>{progression.boardsWon} of {progression.boardsPlayed} boards cleared</small>
         </section>
@@ -107,17 +107,16 @@ export function Paywall() {
 
   return (
     <Overlay label="Unlock Mahjong Brain">
-      <h2>Keep it quiet, for good</h2>
-      <p>You have played three boards. Here is the only thing we will ever ask.</p>
+      <h2>Remove interruption ads</h2>
+      <p>Keep normal play moving without ads between rounds.</p>
 
       <strong className="card__price">{displayPrice ?? 'Store unavailable'}</strong>
-      <p style={{ marginTop: '-0.75rem' }}>Once. Not a subscription.</p>
+      <p style={{ marginTop: '-0.75rem' }}>One-time purchase.</p>
 
       <ul className="card__list">
-        <li>The AI hint coach, which explains the pattern instead of just naming a pair</li>
-        <li>Every layout, now and later</li>
-        <li>No ads — there were never going to be any</li>
-        <li>No timers, no streaks, no daily check-ins</li>
+        <li>Removes automatic ads between rounds</li>
+        <li>Optional rewarded ads for Hint or Revive remain your choice</li>
+        <li>Restore this purchase on another Apple device</li>
       </ul>
 
       <button type="button" className="button" disabled={pending !== null || !displayPrice} onClick={() => void buy()}>
@@ -219,6 +218,7 @@ export function ThemeSheet({ onClose, initialTab = 'tiles' }: { onClose: () => v
 }
 
 export function SettingsSheet() {
+  const [helpOpen, setHelpOpen] = useState(false);
   const settings = useGame((s) => s.settings);
   const update = useGame((s) => s.updateSettings);
   const openSettings = useGame((s) => s.openSettings);
@@ -231,6 +231,26 @@ export function SettingsSheet() {
   const announcement = useGame((s) => s.announcement);
   const signIn = useGame((s) => s.signIn);
   const signOut = useGame((s) => s.signOut);
+
+  if (helpOpen) {
+    return (
+      <main className="settings-screen" aria-labelledby="how-to-play-title">
+        <section className="settings-screen__panel how-to-play">
+          <div className="settings-header">
+            <button type="button" className="settings-header__back" aria-label="Back to settings" onClick={() => setHelpOpen(false)}><Icon name="back" size={26} /></button>
+            <h1 id="how-to-play-title">How to play</h1>
+          </div>
+          <div className="settings-screen__content how-to-play__steps">
+            <section><span className="how-to-play__number" aria-hidden="true">1</span><div><h2>Choose a free tile</h2><p>A tile is free when nothing covers it and at least one long side is open.</p></div></section>
+            <section><span className="how-to-play__number" aria-hidden="true">2</span><div><h2>Build a pair</h2><p>Each tile moves into the four-slot holder. Two identical tiles clear automatically.</p></div></section>
+            <section><span className="how-to-play__number" aria-hidden="true">3</span><div><h2>Protect the final slot</h2><p>Four unmatched tiles fill the holder and end the round. Hint finds a safe pair, Undo reverses a move, and Shuffle rearranges remaining tiles.</p></div></section>
+            <section><span className="how-to-play__number" aria-hidden="true">4</span><div><h2>Clear the board</h2><p>Remove every pair to finish. Every shipped board is designed to be solvable without watching an ad or buying a power-up.</p></div></section>
+            <button type="button" className="button" onClick={() => setHelpOpen(false)}>Back to settings</button>
+          </div>
+        </section>
+      </main>
+    );
+  }
 
   return (
     <main className="settings-screen" aria-labelledby="settings-title">
@@ -323,6 +343,11 @@ export function SettingsSheet() {
         checked={settings.haptics}
         onChange={(haptics) => update({ haptics })}
       />
+
+      <button type="button" className="settings-row-action" onClick={() => setHelpOpen(true)}>
+        <span><strong>How to play</strong><small>Holder rules, matching, and game tools</small></span>
+        <span aria-hidden="true">›</span>
+      </button>
 
       {accountStatus !== 'unavailable' ? (
         <div className="account-setting">

@@ -132,7 +132,7 @@ export function BoardView() {
         : [];
     const animateMatch = !settings.reduceMotion && removed.length > 0;
     const startedAt = performance.now();
-    const duration = 180;
+    const duration = 280;
 
     const paint = (now: number) => {
       const progress = animateMatch ? Math.min(1, (now - startedAt) / duration) : 1;
@@ -140,7 +140,15 @@ export function BoardView() {
       const presentationBoard = animateMatch && progress < 1 ? previous! : board;
       const motion = new Map<number, TileMotion>();
       if (animateMatch) {
-        for (const id of removed) motion.set(id, { alpha: 1 - eased, lift: 1 + eased * 0.35 });
+        for (const id of removed) {
+          const anticipation = progress < 0.24 ? 1 + Math.sin((progress / 0.24) * Math.PI) * 0.075 : 1;
+          const exit = progress < 0.24 ? 1 : 1 - (progress - 0.24) / 0.76;
+          motion.set(id, {
+            alpha: Math.max(0, exit),
+            lift: 1 + eased * 0.52,
+            scale: anticipation * (0.9 + Math.max(0, exit) * 0.1),
+          });
+        }
       }
       if (flight && presentationBoard.remaining.has(flight.id)) {
         motion.set(flight.id, { alpha: 0, lift: 1 });
@@ -232,7 +240,7 @@ export function BoardView() {
               key={tile.id}
               id={`tile-${tile.id}`}
               type="button"
-              className={`board__hit${isFree ? ' board__hit--free' : ''}`}
+              className={`board__hit${isFree ? ' board__hit--free' : ''}${hintedIds.includes(tile.id) ? ' board__hit--hinted' : ''}`}
               style={{ left: rect.x, top: rect.y, width: rect.w, height: rect.h }}
               tabIndex={isFree ? 0 : -1}
               aria-disabled={!isFree || Boolean(flight)}

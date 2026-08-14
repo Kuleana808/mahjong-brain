@@ -42,6 +42,7 @@ import {
 import {
   hintPair as holderHintPair,
   replaySession,
+  revive as revivePlaySession,
   shuffle as shufflePlaySession,
   startSession,
   tapTile as tapPlayTile,
@@ -60,6 +61,7 @@ import {
 import { clearFaceCache } from '../render/boardRenderer';
 import { PALETTES, type ThemeName, type TileStyleName } from '../render/palette';
 import { track } from '../telemetry/client';
+import type { GrantKind } from '../../packages/core/src/contracts/types';
 import { flushPersisted, loadPersisted, savePersisted } from './persist';
 
 /** The paywall appears once, after the third completed board. Never before. */
@@ -76,6 +78,14 @@ export interface Settings {
   readonly haptics: boolean;
   readonly sounds: boolean;
 }
+
+export interface Inventory {
+  readonly hint: number;
+  readonly shuffle: number;
+  readonly revive: number;
+}
+
+export const DEFAULT_INVENTORY: Inventory = { hint: 3, shuffle: 1, revive: 0 };
 
 export const DEFAULT_SETTINGS: Settings = {
   theme: 'calm',
@@ -117,6 +127,7 @@ interface GameStore {
   announcement: string;
 
   settings: Settings;
+  inventory: Inventory;
   profile: SkillProfile;
   progression: Progression;
   boardsCompleted: number;
@@ -145,7 +156,9 @@ interface GameStore {
   dismissHint(): void;
   undo(): void;
   shuffleBoard(): void;
+  useRevive(): void;
   updateSettings(patch: Partial<Settings>): void;
+  grantInventory(kind: GrantKind, quantity: number): void;
   openSettings(open: boolean): void;
   closePaywall(): void;
   buy(): Promise<void>;
@@ -250,6 +263,7 @@ export const useGame = create<GameStore>((set, get) => {
         boardsCompleted: s.boardsCompleted,
         deviceUnlocked: s.deviceUnlocked,
         unlocked: s.unlocked,
+        inventory: s.inventory,
       },
       resume: s.board
         ? {
@@ -289,6 +303,7 @@ export const useGame = create<GameStore>((set, get) => {
     announcement: '',
 
     settings: DEFAULT_SETTINGS,
+    inventory: DEFAULT_INVENTORY,
     profile: INITIAL_PROFILE,
     progression: INITIAL_PROGRESSION,
     boardsCompleted: 0,
@@ -360,6 +375,7 @@ export const useGame = create<GameStore>((set, get) => {
         boardsCompleted?: number;
         deviceUnlocked?: boolean;
         unlocked?: boolean;
+        inventory?: Partial<Inventory>;
       };
 
       // Older snapshots did not distinguish an account unlock from a StoreKit
@@ -380,6 +396,7 @@ export const useGame = create<GameStore>((set, get) => {
         boardsCompleted: storedBoardsCompleted,
         deviceUnlocked: cachedDeviceEntitlement,
         unlocked: cachedDeviceEntitlement,
+        inventory: { ...DEFAULT_INVENTORY, ...(progress.inventory ?? {}) },
         accountStatus: appleSignInAvailable() ? 'signed_out' : 'unavailable',
         accountId: null,
       });
@@ -643,8 +660,13 @@ export const useGame = create<GameStore>((set, get) => {
     },
 
     async requestHint() {
-      const { board, holder, status, unlocked, hintPending, settings } = get();
+      const { board, holder, status, unlocked, hintPending, settings, inventory } = get();
       if (!board || hintPending) return;
+
+      if (inventory.hint <= 0) {
+        set({ announcement: 'No Hints available. Collect a daily reward or choose a rewarded Hint when that service is available.' });
+        return;
+      }
 
       void track('hint_tapped', { layout: board.layoutId, seed: board.seed });
       set({ hintPending: true });
@@ -676,9 +698,11 @@ export const useGame = create<GameStore>((set, get) => {
       set((s) => ({
         hint,
         hintPending: false,
+        inventory: { ...s.inventory, hint: Math.max(0, s.inventory.hint - 1) },
         session: { ...s.session, hintsUsed: s.session.hintsUsed + 1 },
         announcement: hint?.summary ?? 'No pairs available.',
       }));
+      persist();
     },
 
     dismissHint() {
@@ -705,8 +729,12 @@ export const useGame = create<GameStore>((set, get) => {
     },
 
     shuffleBoard() {
-      const { board, holder, status, settings } = get();
+      const { board, holder, status, settings, inventory } = get();
       if (!board) return;
+      if (inventory.shuffle <= 0) {
+        set({ announcement: 'No Shuffles available. Collect a daily reward or get a Shuffle pack when StoreKit is available.' });
+        return;
+      }
       void track('shuffle_tapped', { layout: board.layoutId, seed: board.seed });
       const play = playSessionFromState(board, holder, status);
       const next = shufflePlaySession(play, randomSeed());
@@ -721,9 +749,34 @@ export const useGame = create<GameStore>((set, get) => {
         status: statusForPlaySession(next),
         selectedId: null,
         hint: null,
+        inventory: { ...inventory, shuffle: Math.max(0, inventory.shuffle - 1) },
         announcement: 'Tiles reshuffled.',
         session: { ...get().session, shufflesUsed: (get().session.shufflesUsed ?? 0) + 1 },
       });
+      persist();
+    },
+
+    useRevive() {
+      const { board, holder, status, inventory, settings } = get();
+      if (!board || status !== 'holder_full') return;
+      if (inventory.revive <= 0) {
+        set({ announcement: 'No Revives available. Restart or return home.' });
+        return;
+      }
+      const revived = revivePlaySession(playSessionFromState(board, holder, status));
+      if (revived.status !== 'playing') return;
+      playSound('shuffle', settings.sounds);
+      set((state) => ({
+        board: revived.board,
+        holder: revived.holder,
+        status: 'playing',
+        tapHistory: [],
+        undoBaseline: { board: revived.board, holder: [], status: 'playing' },
+        inventory: { ...state.inventory, revive: state.inventory.revive - 1 },
+        session: { ...state.session, revivesUsed: state.session.revivesUsed + 1 },
+        announcement: 'Revived. Held tiles returned safely to the board.',
+      }));
+      get().dispatchFlow({ type: 'revive' });
       persist();
     },
 
@@ -736,6 +789,12 @@ export const useGame = create<GameStore>((set, get) => {
         // Local settings remain authoritative while offline; the next change
         // or sign-in retries without interrupting play.
       });
+    },
+
+    grantInventory(kind, quantity) {
+      if (!['hint', 'shuffle', 'revive'].includes(kind) || !Number.isSafeInteger(quantity) || quantity <= 0) return;
+      set((state) => ({ inventory: { ...state.inventory, [kind]: state.inventory[kind as keyof Inventory] + quantity } }));
+      persist();
     },
 
     openSettings(open) {

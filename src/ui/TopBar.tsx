@@ -1,9 +1,9 @@
 /**
  * The only chrome in the game.
  *
- * Three things in the reference positions: back, tile count, and settings. No
- * score, no timer, no streak, no daily-reward badge. Nothing here counts down
- * or nags — the brief is explicit that a countdown is the opposite of calm.
+ * Three things in the reference positions: back, tile count, and settings.
+ * Retention and monetization surfaces live in explicit sheets rather than
+ * interrupting the board or shifting its geometry.
  */
 
 import { useGame } from '../state/store';

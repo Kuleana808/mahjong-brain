@@ -2,7 +2,8 @@
  * The lifetime unlock.
  *
  * One product, one price, bought once, kept forever: no tiers, no consumables,
- * no subscription, no energy, no ads in either tier. `Purchases` is deliberately
+ * The current non-consumable removes automatic interruption ads; optional
+ * rewarded ads remain explicit choices. `Purchases` is deliberately
  * a narrow interface so the real StoreKit implementation can drop in behind it
  * without the UI learning anything new.
  *
