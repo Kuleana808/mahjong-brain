@@ -269,18 +269,31 @@ export function HomeScreen() {
   return (
     <ScreenFrame className="flow-screen--home">
       <BrandHeader />
-      <div className="home-mark"><BrandMark /></div>
+      <div className="home-mark" aria-hidden="true">
+        <span className="home-mark__tile home-mark__tile--left">中</span>
+        <BrandMark />
+        <span className="home-mark__tile home-mark__tile--right">●<br />●</span>
+      </div>
       <div className="home-progress" aria-label={`Level progress ${Math.round(progress * 100)} percent`}>
         <span style={{ width: `${Math.max(8, progress * 100)}%` }} />
       </div>
       <button type="button" className="primary-button primary-button--level" onClick={() => dispatch({ type: 'start_board' })}>
-        Level {level}
+        Play Level {level}
       </button>
       {serviceNotice ? <p className="flow-notice flow-notice--home" role="status">{serviceNotice}</p> : null}
       <div className="home-actions">
-        <button type="button" className="medallion" aria-label="Levels and profile" onClick={() => setLevelsOpen(true)}><Icon name="profile" /></button>
-        <button type="button" className="medallion" aria-label="Daily reward" onClick={() => setDailyOpen(true)}><Icon name="daily" /></button>
-        <button type="button" className="medallion" aria-label="Settings" onClick={() => openSettings(true)}><Icon name="settings" /></button>
+        <div className="home-action">
+          <button type="button" className="medallion" aria-label="Levels and profile" onClick={() => setLevelsOpen(true)}><Icon name="profile" /></button>
+          <span>Levels</span>
+        </div>
+        <div className="home-action">
+          <button type="button" className="medallion" aria-label="Daily reward" onClick={() => setDailyOpen(true)}><Icon name="daily" /></button>
+          <span>Reward</span>
+        </div>
+        <div className="home-action">
+          <button type="button" className="medallion" aria-label="Settings" onClick={() => openSettings(true)}><Icon name="settings" /></button>
+          <span>Settings</span>
+        </div>
       </div>
       {levelsOpen ? <LevelsSheet onClose={() => setLevelsOpen(false)} /> : null}
       {dailyOpen ? (

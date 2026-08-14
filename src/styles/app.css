@@ -408,10 +408,57 @@ a:focus-visible {
 
 .brand-heading { display: grid; margin-bottom: 28px; font-size: clamp(3.1rem, 14vw, 5.2rem); line-height: 0.8; text-shadow: 0 4px 0 rgba(82, 52, 24, 0.62); }
 .brand-heading i { width: 130px; height: 2px; margin: 20px auto 0; background: var(--bronze-500); }
-.home-mark { position: relative; margin-bottom: 28px; }
+.home-mark {
+  position: relative;
+  isolation: isolate;
+  width: min(100%, 300px);
+  min-height: 190px;
+  margin-bottom: 20px;
+  display: grid;
+  place-items: center;
+}
+.home-mark::before {
+  content: '';
+  position: absolute;
+  z-index: -2;
+  width: 210px;
+  height: 210px;
+  border: 1px solid rgba(217, 172, 91, .34);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(240, 165, 27, .18), transparent 64%);
+  box-shadow: 0 0 44px rgba(240, 165, 27, .1);
+  animation: home-halo 900ms var(--ease-enter) both;
+}
+.home-mark .brand-mark {
+  position: relative;
+  z-index: 2;
+  width: 156px;
+  animation: home-mark-arrive 620ms var(--ease-enter) both;
+}
+.home-mark__tile {
+  position: absolute;
+  z-index: 1;
+  width: 82px;
+  height: 108px;
+  padding-top: 10px;
+  border: 2px solid #fff8e8;
+  border-radius: 13px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(145deg, #fffdf4, #ebdfc5);
+  color: var(--jade-700);
+  font: 700 2.1rem/1 var(--font-display);
+  box-shadow: 0 7px 0 #08704e, 0 16px 24px rgba(0, 18, 15, .4), inset 0 2px 0 rgba(255,255,255,.8);
+  animation: home-side-arrive 520ms var(--ease-enter) both;
+}
+.home-mark__tile--left { left: 32px; transform: rotate(-8deg); color: #bd352d; }
+.home-mark__tile--right { right: 32px; transform: rotate(8deg); color: #15558d; font-family: var(--font-body); font-size: 1.45rem; line-height: .65; }
 .home-progress { height: 14px; margin-bottom: 18px; }
 .primary-button--level { width: min(100%, 390px); min-height: 76px; font-size: calc(2rem * var(--font-scale)); }
-.home-actions { display: flex; gap: 30px; margin-top: 34px; }
+.home-actions { display: flex; gap: 26px; margin-top: 30px; }
+.home-action { min-width: 68px; display: grid; justify-items: center; gap: 9px; color: var(--cream-50); font-size: .82rem; font-weight: 700; text-shadow: 0 2px 3px rgba(0,8,7,.7); }
+.home-action .medallion { display: grid; place-items: center; }
+.home-action .medallion:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--bronze-700); }
 .medallion {
   width: 60px;
   height: 60px;
@@ -1044,6 +1091,9 @@ a:focus-visible {
 @keyframes load { from { width: 8%; } }
 @keyframes warn { 50% { border-color: var(--amber-500); box-shadow: 0 0 18px rgba(224, 122, 11, 0.72); } }
 @keyframes tutorial-match { to { opacity: 0; transform: translateY(-12px) scale(0.96); } }
+@keyframes home-mark-arrive { from { opacity: 0; transform: translateY(12px) scale(.94); } }
+@keyframes home-side-arrive { from { opacity: 0; translate: 0 16px; } }
+@keyframes home-halo { from { opacity: 0; scale: .86; } }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
@@ -1069,7 +1119,7 @@ a:focus-visible {
   .jade-panel { margin-top: 20px; padding-block: 20px; }
   .decorative-tiles { min-height: 140px; transform: scale(0.82); }
   .brand-heading { font-size: 3rem; margin-bottom: 16px; }
-  .home-mark { transform: scale(0.78); margin-block: -14px 6px; }
+  .home-mark { min-height: 124px; margin-block: -8px 4px; transform: scale(.82); }
   .home-actions { margin-top: 18px; }
 }
 
