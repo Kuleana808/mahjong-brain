@@ -1,6 +1,6 @@
 # Release status
 
-Last verified: 2026-08-13 (HST)
+Last verified: 2026-08-14 (HST)
 
 This is the operational handoff for Mahjong Brain. It separates source,
 archive, upload, processing, and tester availability so an earlier green step
@@ -10,17 +10,17 @@ cannot be mistaken for a shipped build.
 
 | Stage | State | Evidence |
 |---|---|---|
-| Local source | verified | Branch `codex/build-mobile-shell`; clean worktree before this documentation update |
-| Committed | verified | `628f4ee` is the current pushed candidate source checkpoint |
-| Pushed | verified | Local HEAD matched its upstream branch |
-| Pull request | open | PR #10; `check`, `native-ios`, and `original-art` passed on `628f4ee`; review is still required |
+| Local source | verified | Branch `codex/build-mobile-shell`; monetization candidate is build 4 and passes the release checks listed below |
+| Committed | verified | `9732925` contains the build-4 AdMob, purchase-trigger, privacy, and telemetry candidate |
+| Pushed | pending | `9732925` has not yet been pushed at the time of this evidence update |
+| Pull request | open | PR #10; its checks passed on the prior pushed SHA and must rerun on `9732925`; external review is still required |
 | Merged | not verified | PR #10 remains open and blocked on review |
-| Simulator build | verified | The production web bundle was copied into the Capacitor target and verified byte-for-byte; Xcode simulator build succeeded |
+| Simulator build | verified | Build 4 compiles with Google Mobile Ads 13.7.0 and Google User Messaging Platform 3.1.0; production web and marketing builds pass |
 | Native iPhone QA | verified | Build installed and launched into gameplay on iPhone 17 Pro simulator; 144-tile board rendered |
 | Native iPad QA | verified | Clean install launched onboarding on iPad Pro 13-inch simulator |
 | Earlier archive | verified, stale | Xcode archive `Mahjong Brain 8-11-26, 11.02 AM.xcarchive`, version 1.0 build 2, bundle `com.nihi.mahjong` |
 | Earlier upload | verified, stale | Apple app ID `6800468742`; Xcode distribution record says build 2 uploaded successfully at 2026-08-11T21:05:49Z |
-| Current release archive | missing | Build 2 predates commit `3a3e79d` and its bundled asset hashes differ from current `dist/` |
+| Current release archive | missing | Build 4 has not yet been signed and archived from the final merged SHA |
 | Processing | verified, stale | App Store Connect lists build 2 as `Testing`, expiring in 89 days |
 | Internal TestFlight | verified, stale | Build 2 is assigned to `Mahjong Internal`; App Store Connect shows 1 invite, 1 install, and 1 session |
 | External tester group | not verified | No tester-group evidence captured |
@@ -49,6 +49,30 @@ Production verification on 2026-08-13 established:
 - the public board endpoint returned HTTP 200, `live_verified`, 144 tiles, and
   nine opening moves after the 2026-08-13 deployment.
 
+Production monetization work verified on 2026-08-14:
+
+- App Store Connect contains `com.nihi.mahjong.removeads` at $4.99 and
+  `com.nihi.mahjong.shuffle5` at $0.99; both remain **Prepare for Submission**
+  until their review screenshots are attached;
+- AdMob app `7685530816` and production Hint, Revive, and Between Rounds units
+  are configured in the Release xcconfig; Google test units remain isolated to
+  Debug builds;
+- the iOS bridge compiles with Google Mobile Ads 13.7.0 and UMP 3.1.0, disables
+  ad personalization and Google's publisher first-party identifier, and exposes
+  consent/privacy choices from Settings;
+- production contract `contracts` was redeployed to project
+  `dxtzbidjtkeekthompqb`; a public Edge Function canary accepted both new
+  interstitial events and rejected zero;
+- 323 automated tests, lint, production web build, marketing build, design-lock
+  v5, brand-assets v2, byte-for-byte native bundle verification, and native
+  simulator compilation passed;
+- the AdMob account is still under Google's account verification, so production
+  fill and payout are not live-verified;
+- the corrected advertising privacy policy builds locally, but Cloudflare
+  deployment is blocked because this non-interactive shell has no
+  `CLOUDFLARE_API_TOKEN`. The existing public page still describes the older
+  no-ad binary and must be updated before App Review submission.
+
 An environment audit found shell-global Supabase variables belonging to the
 unrelated `signalmarket` project (`qynsncdqxdqiloxnrizj`). They must never be
 used for this release. The repository-linked project above is authoritative.
@@ -56,10 +80,11 @@ Migrations 0001-0004 and one event smoke batch were inadvertently also applied
 to that unrelated project; cleanup requires explicit approval and is not part
 of Mahjong Brain release evidence.
 
-Remaining release gates are App Store Connect product creation, sandbox
-purchase and restore, final privacy/accessibility answers, final native QA,
-screenshots, a fresh signed archive above build 2, upload, processing, and
-TestFlight verification.
+Remaining release gates are deploying the corrected privacy policy, completing
+the App Store privacy answers for Google Mobile Ads, attaching IAP review
+screenshots, sandbox purchase/restore and rewarded-ad QA, final native QA,
+screenshots, review/merge of PR #10, a fresh signed build-4 archive, upload,
+processing, TestFlight verification, and App Review submission.
 
 Build 3 was prepared from candidate commit `9a063a9` on 2026-08-13. All 307
 tests, preflight, native asset verification, simulator compilation, and a clean
