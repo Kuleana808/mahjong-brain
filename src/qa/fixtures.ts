@@ -53,6 +53,16 @@ const completedProgress = {
 const screen = (screenId: ScreenId) =>
   useGame.setState({ flow: { ...initialState(completedProgress), screen: screenId } });
 
+function clickQaTileWhenReady(id: number, ready: () => boolean = () => true, attempts = 50): void {
+  if (!globalThis.document || attempts <= 0) return;
+  const element = globalThis.document.getElementById(`tile-${id}`);
+  if (element && ready()) {
+    element.click();
+    return;
+  }
+  globalThis.setTimeout(() => clickQaTileWhenReady(id, ready, attempts - 1), 50);
+}
+
 function gameplay(holderCount = 0): void {
   const session = startSession('pyramid', 0x4d41484a);
   useGame.setState({
@@ -130,8 +140,18 @@ export async function applyQaFixture(id: QaFixtureId): Promise<void> {
     const pair = availableMoves(useGame.getState().board!)[0];
     if (!pair) throw new Error('QA fixture could not find a real available pair.');
     const [first, match] = pair;
-    useGame.getState().tapTile(first.id);
-    globalThis.setTimeout(() => useGame.getState().tapTile(match.id), 520);
+    if (globalThis.document) {
+      // Exercise the real flight, holder arrival, clear, and celebration—not
+      // just the store transition—so visual QA proves the interaction layer.
+      clickQaTileWhenReady(first.id);
+      clickQaTileWhenReady(
+        match.id,
+        () => useGame.getState().holder.length === 1 && !globalThis.document.querySelector('.tile-flight'),
+      );
+    } else {
+      useGame.getState().tapTile(first.id);
+      globalThis.setTimeout(() => useGame.getState().tapTile(match.id), 520);
+    }
   }
   if (id === 'S08-game-hint') {
     gameplay(2);
@@ -142,7 +162,13 @@ export async function applyQaFixture(id: QaFixtureId): Promise<void> {
     const state = useGame.getState();
     const free = new Set(freeTiles(state.board!).map((tile) => tile.id));
     const blocked = state.board!.tiles.find((tile) => state.board!.remaining.has(tile.id) && !free.has(tile.id));
-    if (blocked) state.tapTile(blocked.id);
+    if (blocked) {
+      if (globalThis.document) {
+        clickQaTileWhenReady(blocked.id);
+      } else {
+        state.tapTile(blocked.id);
+      }
+    }
   }
   if (id === 'S08-game-shuffle') {
     gameplay(2);

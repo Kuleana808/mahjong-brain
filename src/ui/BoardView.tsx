@@ -355,7 +355,8 @@ export function BoardView() {
             if (after.holder.length < before.holder.length && !settings.reduceMotion) {
               const id = performance.now();
               setCelebration({ id, origins: heldOrigin ? [heldOrigin, incomingOrigin] : [incomingOrigin] });
-              window.setTimeout(() => setCelebration((active) => active?.id === id ? null : active), 760);
+              const qaHold = document.documentElement.dataset.qaFixtureReady ? 5000 : 760;
+              window.setTimeout(() => setCelebration((active) => active?.id === id ? null : active), qaHold);
             }
             setFlight(null);
           }}

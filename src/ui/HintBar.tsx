@@ -6,6 +6,8 @@
  * appears — a board that moves under your finger is not calm.
  */
 
+import { useEffect } from 'react';
+
 import { canReshuffle } from '../../packages/core/src/game/deal';
 import { useGame } from '../state/store';
 
@@ -13,9 +15,27 @@ export function HintBar() {
   const board = useGame((s) => s.board);
   const hint = useGame((s) => s.hint);
   const status = useGame((s) => s.status);
+  const announcement = useGame((s) => s.announcement);
+  const dismissAnnouncement = useGame((s) => s.dismissAnnouncement);
   const dismissHint = useGame((s) => s.dismissHint);
   const shuffleBoard = useGame((s) => s.shuffleBoard);
   const newBoard = useGame((s) => s.newBoard);
+  const blocked = announcement.startsWith('That tile is blocked.');
+
+  useEffect(() => {
+    if (!blocked) return;
+    const qaHold = document.documentElement.dataset.qaFixtureReady ? 5000 : 1400;
+    const timeout = window.setTimeout(dismissAnnouncement, qaHold);
+    return () => window.clearTimeout(timeout);
+  }, [blocked, dismissAnnouncement]);
+
+  if (blocked) {
+    return (
+      <div className="hintbar" aria-hidden="true">
+        <div className="hint hint--brief">Blocked — choose a tile with an open side.</div>
+      </div>
+    );
+  }
 
   if (status === 'stuck' && board) {
     // A shuffle moves faces, never positions. If the last tiles are stacked,
