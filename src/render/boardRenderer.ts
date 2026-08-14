@@ -145,13 +145,15 @@ function drawRing(
   w: number,
   h: number,
   colour: string,
+  pulse = 0.5,
 ): void {
   const inset = w * 0.035;
   ctx.save();
   ctx.shadowColor = colour;
-  ctx.shadowBlur = w * 0.13;
+  ctx.shadowBlur = w * (0.1 + pulse * 0.12);
   ctx.strokeStyle = colour;
-  ctx.lineWidth = Math.max(2, w * 0.035);
+  ctx.globalAlpha = 0.68 + pulse * 0.32;
+  ctx.lineWidth = Math.max(2.5, w * (0.03 + pulse * 0.016));
   ctx.beginPath();
   ctx.roundRect(x + inset, y + inset, w - inset * 2, h - inset * 2, w * 0.1);
   ctx.stroke();
@@ -169,9 +171,9 @@ function drawHintWash(
 ): void {
   const gradient = ctx.createLinearGradient(x, y, x + w, y + h);
   const washAlpha = 0.22 + pulse * 0.18;
-  gradient.addColorStop(0, `rgba(176, 255, 231, ${washAlpha})`);
-  gradient.addColorStop(0.58, `rgba(60, 234, 191, ${0.12 + pulse * 0.12})`);
-  gradient.addColorStop(1, 'rgba(15, 136, 107, 0.08)');
+  gradient.addColorStop(0, `rgba(203, 255, 190, ${washAlpha})`);
+  gradient.addColorStop(0.58, `rgba(76, 224, 95, ${0.12 + pulse * 0.12})`);
+  gradient.addColorStop(1, 'rgba(20, 132, 58, 0.08)');
   ctx.save();
   ctx.beginPath();
   ctx.roundRect(x + w * 0.025, y + w * 0.025, w * 0.95, h - w * 0.05, w * 0.1);
@@ -288,7 +290,16 @@ export function render(canvas: HTMLCanvasElement, state: RenderState): View {
   const live: Tile[] = state.board.tiles.filter((t) => state.board.remaining.has(t.id));
   const hinted = new Set(state.hintedIds);
 
-  for (const tile of paintOrder(live)) {
+  // A hinted tile is temporarily lifted to the top of the visual stack. This
+  // reveals the actual face instead of drawing a detached rectangle over tiles
+  // that would normally overlap it.
+  const ordered = paintOrder(live);
+  const drawOrder = [
+    ...ordered.filter((tile) => !hinted.has(tile.id)),
+    ...ordered.filter((tile) => hinted.has(tile.id)),
+  ];
+
+  for (const tile of drawOrder) {
     const rect = tileRect(tile, state.board.layoutId, view);
     const isSelected = tile.id === state.selectedId;
     const isHinted = hinted.has(tile.id);
@@ -298,9 +309,10 @@ export function render(canvas: HTMLCanvasElement, state: RenderState): View {
     // Free tiles sit a fraction above the stack. This small physical cue makes
     // the available moves read before the player has to hunt for them, while a
     // selected tile still gets the full lift and amber ring.
-    const lift = motion?.lift ?? (isSelected ? 1 : isFree ? 0.13 : 0);
+    const hintPulse = state.hintPulse ?? 0.5;
+    const lift = motion?.lift ?? (isSelected ? 1 : isHinted ? 0.32 + hintPulse * 0.16 : isFree ? 0.13 : 0);
     const liftY = rect.w * 0.075 * lift;
-    const scale = motion?.scale ?? 1;
+    const scale = motion?.scale ?? (isHinted ? 1.008 + hintPulse * 0.018 : 1);
     const drawW = rect.w * scale;
     const drawH = rect.h * scale;
     const drawX = rect.x + (rect.w - drawW) / 2;
@@ -342,7 +354,7 @@ export function render(canvas: HTMLCanvasElement, state: RenderState): View {
     }
 
     if (isSelected) drawRing(ctx, drawX, drawY, drawW, drawH, state.palette.selected);
-    else if (isHinted) drawRing(ctx, drawX, drawY, drawW, drawH, state.palette.hinted);
+    else if (isHinted) drawRing(ctx, drawX, drawY, drawW, drawH, state.palette.hinted, state.hintPulse);
 
     ctx.restore();
   }

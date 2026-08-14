@@ -61,7 +61,7 @@ export const PALETTES: Readonly<Record<ThemeName, Palette>> = {
     ink: '#143E34',
     inkSoft: '#526158',
     selected: '#E07A0B',
-    hinted: '#58E6C1',
+    hinted: '#4CE05F',
     dimAlpha: 0.93,
     suits: {
       bamboo: '#087A43',

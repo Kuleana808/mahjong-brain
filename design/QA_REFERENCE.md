@@ -57,7 +57,7 @@ This written contract is the durable QA baseline. Competitor screenshots may exp
 | `S08-game-two` | Gameplay, two unmatched | Stable holder order, neutral frame. |
 | `S08-game-three` | Gameplay warning | Amber holder treatment and spoken “three of four” warning. |
 | `S08-game-match` | Match clearing | Pair clears in 180 ms or opacity-only under Reduced Motion. |
-| `S08-game-hint` | Hint shown | Leaf-green ring plus non-reflowing text overlay; board and tools keep their exact positions; safe move only. |
+| `S08-game-hint` | Hint shown | Animated leaf-green ring is painted in tile depth order, so adjacent tiles occlude it naturally; no blue rectangle above the stack. Text does not reflow the board or tools; safe move only. |
 | `S08-game-blocked` | Blocked tile attempt | No holder change; concise spoken feedback; no punitive shake. |
 | `S08-game-shuffle` | Shuffle | Board state updates; holder behavior follows contract; count and controls remain stable. |
 | `S08-game-resume` | Cold resume | Seed, remaining tiles, holder occupancy, and controls exactly restored. |

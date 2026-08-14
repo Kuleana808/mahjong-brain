@@ -1,6 +1,6 @@
 {
   "version": 6,
-  "approvedReference": "Dark felt, bright 3D tiles, carved-walnut controls, jade-mint hint pulses, an original brain-tile identity, and four genuinely distinct face-art themes approved 2026-08-14",
+  "approvedReference": "Dark felt, bright 3D tiles, carved-walnut controls, leaf-green in-stack hint pulses, an original brain-tile identity, and four genuinely distinct face-art themes approved 2026-08-14",
   "cssTokens": {
     "--jade-950": "#001b18",
     "--jade-900": "#002b26",
@@ -29,7 +29,7 @@
     "tileSide": "#15934D",
     "tileEdge": "#064629",
     "selected": "#E07A0B",
-    "hinted": "#58E6C1"
+    "hinted": "#4CE05F"
   },
   "presentation": {
     "fontDisplay": "Georgia, 'Times New Roman', serif",
