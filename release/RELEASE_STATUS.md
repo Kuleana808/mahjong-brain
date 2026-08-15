@@ -10,10 +10,10 @@ cannot be mistaken for a shipped build.
 
 | Stage | State | Evidence |
 |---|---|---|
-| Local source | verified | Branch `codex/build-mobile-shell`; current source through `8cf8386` passes the checks listed below |
-| Committed | verified | `8cf8386` records the published privacy label; `2ec9622` contains the latest audited gameplay/UI batch |
-| Pushed | verified | Branch is published through `8cf8386` |
-| Pull request | open | PR #10; `check`, `original-art`, and `native-ios` pass on `8cf8386`; external review is still required |
+| Local source | verified | Branch `codex/build-mobile-shell`; current source through `5bc3d9f` passes the checks listed below |
+| Committed | verified | `5bc3d9f` adds the original Game Center achievement artwork; `8cf8386` records the published privacy label; `2ec9622` contains the latest audited gameplay/UI batch |
+| Pushed | verified | Branch is published through `5bc3d9f` |
+| Pull request | open | PR #10; `check`, `original-art`, and `native-ios` pass on `5bc3d9f`; external review is still required |
 | Merged | not verified | PR #10 remains open and blocked on review |
 | Simulator build | verified | Build 4 compiles with Google Mobile Ads 13.7.0 and Google User Messaging Platform 3.1.0; production web and marketing builds pass |
 | Native iPhone QA | verified | Build installed and launched into gameplay on iPhone 17 Pro simulator; 144-tile board rendered |
@@ -86,10 +86,19 @@ Migrations 0001-0004 and one event smoke batch were inadvertently also applied
 to that unrelated project; cleanup requires explicit approval and is not part
 of Mahjong Brain release evidence.
 
+The App Store version now has six ordered iPhone 6.9-inch screenshots and six
+ordered iPad 13-inch screenshots in App Store Connect. Both sets use the same
+approved sequence: readable board, match flow, visible hint, themes, progress,
+and backgrounds. Apple reuses the iPhone 6.9-inch set for the 6.5-inch slot.
+These are deterministic browser QA compositions; they must still be recaptured
+from the exact signed release candidate before submission if the native archive
+does not match them.
+
 Remaining release gates are attaching IAP review screenshots, sandbox
-purchase/restore and rewarded-ad QA, final native QA,
-screenshots, review/merge of PR #10, a fresh signed build-4 archive, upload,
-processing, TestFlight verification, and App Review submission.
+purchase/restore and rewarded-ad QA, final native QA, verifying the uploaded
+screenshots against the signed candidate, review/merge of PR #10, a fresh
+signed build-4 archive, upload, processing, TestFlight verification, and App
+Review submission.
 
 On 2026-08-14, the Apple Developer App ID `com.nihi.mahjong` was updated to
 enable Game Center after the first build-4 archive attempt proved that the
