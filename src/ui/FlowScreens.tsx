@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { levelProgress as progressionFraction } from '../../packages/core/src/progression/progression';
 import { useGame } from '../state/store';
 import { Icon } from './Icon';
-import { DailyRewardSheet } from './DailyRewardSheet';
+import { DailyRewardSheet, type DailyRewardFixture } from './DailyRewardSheet';
 import { LevelsSheet, ThemeSheet } from './Overlays';
 
 function BrandMark({ compact = false }: { compact?: boolean }) {
@@ -255,11 +255,14 @@ export function HomeScreen() {
   const openSettings = useGame((s) => s.openSettings);
   const progression = useGame((s) => s.progression);
   const announcement = useGame((s) => s.announcement);
-  const [levelsOpen, setLevelsOpen] = useState(false);
-  const [dailyOpen, setDailyOpen] = useState(false);
   const qaTheme = import.meta.env.DEV
     ? new URLSearchParams(window.location.search).get('qa')
     : null;
+  const [levelsOpen, setLevelsOpen] = useState(qaTheme === 'S14-levels');
+  const qaDaily = import.meta.env.DEV && qaTheme?.startsWith('S15-daily-')
+    ? qaTheme.replace('S15-daily-', '') as DailyRewardFixture
+    : undefined;
+  const [dailyOpen, setDailyOpen] = useState(Boolean(qaDaily));
   const [themeOpen, setThemeOpen] = useState(qaTheme === 'S19-theme-tiles' || qaTheme === 'S19-theme-backgrounds');
   const level = progression.level;
   const progress = progressionFraction(progression.xp);
@@ -299,6 +302,7 @@ export function HomeScreen() {
       {dailyOpen ? (
         <DailyRewardSheet
           onClose={() => setDailyOpen(false)}
+          qaState={qaDaily}
           onOpenSettings={() => {
             setDailyOpen(false);
             openSettings(true);

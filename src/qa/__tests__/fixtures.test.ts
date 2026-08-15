@@ -58,13 +58,42 @@ describe('deterministic QA fixtures', () => {
       'S07-home-new', 'S07-home-progress', 'S07-home-offline',
       'S08-game-empty', 'S08-game-one', 'S08-game-two', 'S08-game-three',
       'S08-game-match', 'S08-game-hint', 'S08-game-blocked', 'S08-game-shuffle', 'S08-game-resume',
-      'S09-holder-full', 'S10-complete',
+      'S09-holder-full', 'S09-revive-pending', 'S09-revive-failed', 'S10-complete',
+      'S11-paywall', 'S11-purchase-pending', 'S11-purchase-success', 'S11-purchase-cancel',
+      'S11-purchase-error', 'S11-restore-empty', 'S11-restore-success',
       'S12-settings', 'S12-settings-large', 'S12-settings-offline',
+      'S13-signin', 'S13-signin-pending', 'S13-signin-error',
+      'S14-levels', 'S15-daily-claimable', 'S15-daily-claimed', 'S15-daily-offline',
       'S16-generic-offline', 'S17-generic-error', 'S18-maintenance',
       'S19-theme-tiles', 'S19-theme-backgrounds',
       'S20-remove-ads', 'S20-shuffle-store',
     ] as const;
     for (const id of required) expect(QA_FIXTURE_IDS).toContain(id);
+  });
+
+  it('keeps the purchase and restore matrix honest', async () => {
+    await applyQaFixture('S11-purchase-pending');
+    expect(useGame.getState().purchasePending).toBe('buying');
+    expect(useGame.getState().unlocked).toBe(false);
+
+    await applyQaFixture('S11-purchase-success');
+    expect(useGame.getState().paywallOpen).toBe(false);
+    expect(useGame.getState().unlocked).toBe(true);
+    expect(useGame.getState().announcement).toMatch(/unlocked/i);
+
+    await applyQaFixture('S11-restore-empty');
+    expect(useGame.getState().unlocked).toBe(false);
+    expect(useGame.getState().announcement).toMatch(/no purchase/i);
+  });
+
+  it('keeps optional Apple sign-in visibly non-blocking', async () => {
+    await applyQaFixture('S13-signin-pending');
+    expect(useGame.getState().settingsOpen).toBe(true);
+    expect(useGame.getState().accountStatus).toBe('signing_in');
+
+    await applyQaFixture('S13-signin-error');
+    expect(useGame.getState().accountStatus).toBe('signed_out');
+    expect(useGame.getState().accountError).toMatch(/local play remains available/i);
   });
 
   it('exposes truthful StoreKit review states with localized display prices', async () => {

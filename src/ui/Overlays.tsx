@@ -115,6 +115,11 @@ export function Paywall() {
   const close = useGame((s) => s.closePaywall);
   const pending = useGame((s) => s.purchasePending);
   const displayPrice = useGame((s) => s.purchaseDisplayPrice);
+  const announcement = useGame((s) => s.announcement);
+  const purchaseMessage = pending === null && /purchase|store|unlock/i.test(announcement)
+    ? announcement
+    : '';
+  const purchaseError = /could not|unavailable|failed/i.test(purchaseMessage);
 
   return (
     <Overlay label="Unlock Mahjong Brain">
@@ -128,6 +133,12 @@ export function Paywall() {
         <li>Removes automatic ads between rounds</li>
         <li>Restore this purchase on another Apple device</li>
       </ul>
+
+      {purchaseMessage ? (
+        <p className={purchaseError ? 'purchase-message purchase-message--error' : 'purchase-message'} role={purchaseError ? 'alert' : 'status'}>
+          {purchaseMessage}
+        </p>
+      ) : null}
 
       <button type="button" className="button" disabled={pending !== null || !displayPrice} onClick={() => void buy()}>
         {pending === 'buying' ? 'Contacting Apple…' : displayPrice ? `Unlock for ${displayPrice}` : 'Try again later'}

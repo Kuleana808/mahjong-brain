@@ -492,7 +492,12 @@ a:focus-visible {
 .result-card .brand-mark { margin: 0 auto 24px; }
 .result-card h1 { font-size: 3rem; }
 .result-card p { color: #4e5c4c; }
-.result-card .result-message { margin: 14px 0 2px; color: var(--danger); font-weight: 700; }
+.result-card .result-message { margin: 14px 0 2px; color: var(--color-danger); font-weight: 700; }
+.purchase-message { margin: 4px 0 12px; padding: 10px 12px; border-radius: 10px; background: color-mix(in srgb, var(--color-success) 12%, transparent); color: var(--ink-900); font-weight: 700; }
+.purchase-message--error { border: 1px solid color-mix(in srgb, var(--color-danger) 38%, transparent); background: color-mix(in srgb, var(--color-danger) 10%, transparent); color: var(--color-danger); }
+.transaction-banner { position: fixed; z-index: 90; left: 50%; bottom: max(22px, env(safe-area-inset-bottom)); display: flex; align-items: center; gap: 12px; width: min(calc(100% - 32px), 430px); padding: 12px 14px; border: 1px solid var(--amber-500); border-radius: 14px; background: var(--cream-50); color: var(--ink-900); box-shadow: var(--shadow-3); transform: translateX(-50%); }
+.transaction-banner span { flex: 1; font-weight: 750; }
+.transaction-banner button { min-width: 64px; min-height: 44px; border: 0; border-radius: 10px; background: var(--jade-800); color: var(--cream-50); font-weight: 800; }
 .result-card .text-button { color: var(--ink-900); }
 .result-kicker { margin: 0 0 4px; text-transform: uppercase; letter-spacing: 0.12em; font-size: 0.82rem; font-weight: 800; }
 .result-restart { margin-top: 14px; min-height: 58px; }
@@ -538,11 +543,13 @@ a:focus-visible {
   .iconbutton__label { display: none; }
   .card { padding-inline: 18px; }
   .setting { align-items: stretch; flex-direction: column; }
+  .settings-screen .setting__label { width: 100%; flex-basis: auto; text-align: left; font-weight: 650; }
   .setting .switch { align-self: flex-end; }
   .card .segmented,
-  .settings-screen .segmented { display: grid; grid-template-columns: 1fr; width: 100%; }
+  .settings-screen .segmented { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); width: 100%; flex-basis: auto; }
   .card .segmented button,
   .settings-screen .segmented button { min-width: 0; padding-inline: 12px; white-space: normal; }
+  .app[data-large-text='true'] .settings-screen .segmented { grid-template-columns: 1fr; }
   .theme-options { gap: 7px; margin-bottom: 12px; }
   .theme-option { gap: 3px; padding: 6px; }
   .theme-option strong { font-size: .9rem; line-height: 1.05; }
@@ -916,6 +923,7 @@ a:focus-visible {
   box-shadow: 0 2px 5px rgba(0, 10, 8, .48);
 }
 .daily-card { position: relative; overflow: visible; }
+.daily-card .sheet-close { top: 12px; right: 12px; }
 .daily-days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin: 20px 0; }
 .daily-days span { aspect-ratio: 1; display: grid; place-items: center; border: 1px solid rgba(116,80,34,.42); border-radius: 50%; background: var(--ivory-100); color: var(--ink-900); font-weight: 750; }
 .daily-days .is-complete { background: var(--jade-700); color: var(--cream-50); }
@@ -1193,9 +1201,9 @@ a:focus-visible {
 }
 
 @media (max-width: 430px) {
-  .levels-layout { grid-template-columns: 80px 1fr; gap: 12px; }
-  .level-path li { grid-template-columns: 44px 1fr; gap: 5px; }
+  .levels-layout { grid-template-columns: 104px 1fr; gap: 12px; }
+  .level-path li { grid-template-columns: 44px 1fr; gap: 6px; }
   .level-path li > span { width: 44px; height: 44px; }
-  .level-path li > small { font-size: 0.64rem; }
-  .level-card { padding-inline: 12px; }
+  .level-path li > small { font-size: 0.76rem; line-height: 1.15; }
+  .level-card { padding-inline: 10px; }
 }

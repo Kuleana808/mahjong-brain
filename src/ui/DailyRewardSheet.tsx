@@ -7,7 +7,18 @@ import { Icon } from './Icon';
 
 const LABEL: Record<GrantKind, string> = { hint: 'Hint', shuffle: 'Shuffle', revive: 'Revive', remove_ads: 'Ad removal' };
 
-export function DailyRewardSheet({ onClose, onOpenSettings }: { onClose: () => void; onOpenSettings?: () => void }) {
+export type DailyRewardFixture = 'claimable' | 'claimed' | 'offline';
+
+const QA_REWARD: DailyRewardState = {
+  day: 3,
+  streakDays: 3,
+  claimableToday: true,
+  reward: { kind: 'hint', quantity: 1 },
+  lastClaimedOn: null,
+  streakBroken: false,
+};
+
+export function DailyRewardSheet({ onClose, onOpenSettings, qaState }: { onClose: () => void; onOpenSettings?: () => void; qaState?: DailyRewardFixture }) {
   const accountStatus = useGame((state) => state.accountStatus);
   const grantInventory = useGame((state) => state.grantInventory);
   const [reward, setReward] = useState<DailyRewardState | null>(null);
@@ -15,6 +26,18 @@ export function DailyRewardSheet({ onClose, onOpenSettings }: { onClose: () => v
   const [message, setMessage] = useState('');
 
   useEffect(() => {
+    if (qaState) {
+      if (qaState === 'offline') {
+        setReward(null);
+        setStatus('error');
+        setMessage('Daily rewards are unavailable while offline. No reward was changed; try again when you reconnect.');
+      } else {
+        setReward({ ...QA_REWARD, claimableToday: qaState === 'claimable', lastClaimedOn: qaState === 'claimed' ? '2026-08-15' : null });
+        setStatus(qaState === 'claimable' ? 'ready' : 'claimed');
+        setMessage(qaState === 'claimed' ? 'Today’s Hint was added.' : '');
+      }
+      return;
+    }
     if (accountStatus !== 'signed_in') {
       setStatus('error');
       setMessage('Sign in with Apple in Settings to protect rewards across devices.');
@@ -27,7 +50,7 @@ export function DailyRewardSheet({ onClose, onOpenSettings }: { onClose: () => v
       setStatus('error');
       setMessage(cause instanceof Error ? cause.message : 'Daily reward could not be loaded.');
     });
-  }, [accountStatus]);
+  }, [accountStatus, qaState]);
 
   const claim = async () => {
     if (status !== 'ready') return;

@@ -113,6 +113,9 @@ export function App() {
   const isResult = screen === 'game_over';
   const showsGameplayFrame = shouldRenderGameplayFrame(screen);
   const isSettings = settingsOpen;
+  const transactionFeedback = /^(Unlocked\.|Purchase restored\.)/.test(announcement)
+    ? announcement
+    : '';
 
   return (
     <div
@@ -145,6 +148,13 @@ export function App() {
         <aside className="recovery-banner" role="status">
           <span>{announcement}</span>
           <button type="button" onClick={dismissAnnouncement}>Got it</button>
+        </aside>
+      ) : null}
+
+      {transactionFeedback ? (
+        <aside className="transaction-banner" role="status">
+          <span>{transactionFeedback}</span>
+          <button type="button" onClick={dismissAnnouncement}>Done</button>
         </aside>
       ) : null}
 

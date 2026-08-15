@@ -38,6 +38,11 @@ for (const [name, token] of Object.entries(semanticCssNames)) {
   const pattern = new RegExp(`${token}\\s*:\\s*${value}`, 'i');
   if (!pattern.test(css)) failures.push(`Semantic token ${name} is not wired to ${token}: ${value}`);
 }
+for (const undefinedAlias of ['--danger', '--success', '--warning', '--info']) {
+  if (css.includes(`var(${undefinedAlias})`)) {
+    failures.push(`CSS references undefined semantic alias ${undefinedAlias}; use the locked --color-* token`);
+  }
+}
 
 if (!css.includes(`--font-display: ${lock.presentation.fontDisplay};`)) {
   failures.push(`Display typography drifted from ${lock.presentation.fontDisplay}`);

@@ -916,7 +916,9 @@ export const useGame = create<GameStore>((set, get) => {
           set({ deviceUnlocked: true, unlocked: true, paywallOpen: false, announcement: 'Unlocked. Thank you.' });
           void track('iap_purchase_completed', { productId: PRODUCT_ID });
           persist();
-        } else if (result.status !== 'cancelled') {
+        } else if (result.status === 'cancelled') {
+          set({ announcement: 'Purchase cancelled. Nothing was charged.' });
+        } else {
           void track('iap_purchase_failed', { productId: PRODUCT_ID });
           set({ announcement: result.message ?? 'Purchase could not be completed.' });
         }

@@ -33,9 +33,23 @@ export const QA_FIXTURE_IDS = [
   'S09-revive-pending',
   'S09-revive-failed',
   'S10-complete',
+  'S11-paywall',
+  'S11-purchase-pending',
+  'S11-purchase-success',
+  'S11-purchase-cancel',
+  'S11-purchase-error',
+  'S11-restore-empty',
+  'S11-restore-success',
   'S12-settings',
   'S12-settings-large',
   'S12-settings-offline',
+  'S13-signin',
+  'S13-signin-pending',
+  'S13-signin-error',
+  'S14-levels',
+  'S15-daily-claimable',
+  'S15-daily-claimed',
+  'S15-daily-offline',
   'S16-generic-offline',
   'S17-generic-error',
   'S18-maintenance',
@@ -112,6 +126,10 @@ export async function applyQaFixture(id: QaFixtureId): Promise<void> {
     'S07-home-new': 'home',
     'S07-home-progress': 'home',
     'S07-home-offline': 'home',
+    'S14-levels': 'home',
+    'S15-daily-claimable': 'home',
+    'S15-daily-claimed': 'home',
+    'S15-daily-offline': 'home',
     'S19-theme-tiles': 'home',
     'S19-theme-backgrounds': 'home',
   };
@@ -133,6 +151,12 @@ export async function applyQaFixture(id: QaFixtureId): Promise<void> {
     }
     if (id === 'S07-home-offline') {
       useGame.setState({ announcement: 'Offline. Your game and settings remain available on this device.' });
+    }
+    if (id === 'S14-levels') {
+      useGame.setState({ progression: { xp: 1150, level: 6, iq: 125, boardsPlayed: 14, boardsWon: 11 } });
+    }
+    if (id.startsWith('S15-daily-')) {
+      useGame.setState({ accountStatus: 'signed_in', accountId: 'qa-daily-account', accountError: null });
     }
     return;
   }
@@ -217,6 +241,37 @@ export async function applyQaFixture(id: QaFixtureId): Promise<void> {
         ? 'Settings are saved on this device. Account sync is temporarily unavailable.'
         : '',
     }));
+  }
+  if (id === 'S13-signin' || id === 'S13-signin-pending' || id === 'S13-signin-error') {
+    screen('home');
+    useGame.setState({
+      settingsOpen: true,
+      accountStatus: id === 'S13-signin-pending' ? 'signing_in' : 'signed_out',
+      accountId: null,
+      accountError: id === 'S13-signin-error' ? 'Apple could not verify this sign-in. Try again; local play remains available.' : null,
+    });
+    globalThis.setTimeout(() => {
+      globalThis.document?.querySelector<HTMLElement>('.account-setting')?.scrollIntoView({ block: 'center' });
+    }, 50);
+  }
+  if (id.startsWith('S11-')) {
+    screen('home');
+    const success = id === 'S11-purchase-success' || id === 'S11-restore-success';
+    const announcement = id === 'S11-purchase-pending' ? 'Contacting Apple…'
+      : id === 'S11-purchase-success' ? 'Unlocked. Thank you.'
+      : id === 'S11-purchase-cancel' ? 'Purchase cancelled. Nothing was charged.'
+      : id === 'S11-purchase-error' ? 'Purchase could not be completed. Try again or restore a previous purchase.'
+      : id === 'S11-restore-empty' ? 'No purchase to restore.'
+      : id === 'S11-restore-success' ? 'Purchase restored.'
+      : '';
+    useGame.setState({
+      paywallOpen: !success,
+      purchaseDisplayPrice: '$4.99',
+      purchasePending: id === 'S11-purchase-pending' ? 'buying' : null,
+      deviceUnlocked: success,
+      unlocked: success,
+      announcement,
+    });
   }
   if (id === 'S16-generic-offline') {
     screen('home');
