@@ -814,7 +814,7 @@ a:focus-visible {
   max-width: min(31rem, 100%);
   padding: 10px 17px;
   border: 1.5px solid var(--bronze-500);
-  border-radius: var(--radius-round);
+  border-radius: 18px;
   background: rgba(0, 43, 38, 0.94);
   color: var(--cream-50);
   text-align: center;
