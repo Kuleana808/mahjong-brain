@@ -19,10 +19,11 @@ npx wrangler pages deploy out --project-name=mahjong-brain
    --production-branch main`.
 3. Point the domain at it in the Pages dashboard.
 
-The marketing export builds clean. Chrome is signed into Cloudflare, but the
-correct account, Pages project, deployment, and public URL have not been
-authoritatively verified. Do not infer a deployment from the login state. See
-[`release/RELEASE_STATUS.md`](../release/RELEASE_STATUS.md) for the current gate.
+The production site is live at `https://mahjong-brain.pages.dev/`. Its support
+and privacy routes returned HTTP 200 on 2026-08-14, including the current Google
+Mobile Ads disclosures. See
+[`release/RELEASE_STATUS.md`](../release/RELEASE_STATUS.md) for the evidence
+ladder and remaining App Store gates.
 
 ### Domain
 
@@ -81,7 +82,7 @@ npm run smoke:events
 ### Hosted project
 
 The dedicated production project is `Mahjong Brain` (`dxtzbidjtkeekthompqb`) in
-the Operator.fyi organization, region `us-west-1`. Migrations 0001 through 0003
+the Operator.fyi organization, region `us-west-1`. Migrations 0001 through 0004
 and the `contracts` Edge Function were deployed and verified on 2026-08-13.
 Credentials are stored in the deployment platform and local Keychain, never in
 the repository.
@@ -102,6 +103,17 @@ VITE_API_BASE_URL=https://dxtzbidjtkeekthompqb.supabase.co/functions/v1/contract
 
 Re-run the migration list, contract smoke, and event smoke tests against this
 exact project before each production release.
+
+The local release gate does not request or load the hosted service-role key:
+
+```bash
+npm run preflight
+```
+
+It reads the ignored `.env.production` client values, checks the production
+board canary, and proves the deployed StoreKit verifier is configured and fails
+closed. Database migration and event smoke evidence remain separate deployment
+checks; a passing mobile preflight does not claim a sandbox purchase succeeded.
 
 ## Secrets
 

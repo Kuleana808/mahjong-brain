@@ -10,10 +10,10 @@ cannot be mistaken for a shipped build.
 
 | Stage | State | Evidence |
 |---|---|---|
-| Local source | verified | Branch `codex/build-mobile-shell`; monetization candidate is build 4 and passes the release checks listed below |
-| Committed | verified | `9732925` contains the build-4 AdMob, purchase-trigger, privacy, and telemetry candidate |
-| Pushed | verified | Branch was pushed through release-evidence commit `2fa31d1`; feature commit `9732925` is on GitHub |
-| Pull request | open | PR #10; `check`, `native-ios`, and `original-art` passed on head `210e487`; external review is still required |
+| Local source | verified | Branch `codex/build-mobile-shell`; current source through `195f941` passes the checks listed below |
+| Committed | verified | `195f941` adds live production-service preflight; `2ec9622` contains the latest audited gameplay/UI batch |
+| Pushed | verified through prior head | Branch is published through `2ec9622`; `195f941` and this handoff update still need push |
+| Pull request | open | PR #10; CI is rerunning for the current pushed head and external review is still required |
 | Merged | not verified | PR #10 remains open and blocked on review |
 | Simulator build | verified | Build 4 compiles with Google Mobile Ads 13.7.0 and Google User Messaging Platform 3.1.0; production web and marketing builds pass |
 | Native iPhone QA | verified | Build installed and launched into gameplay on iPhone 17 Pro simulator; 144-tile board rendered |
@@ -63,9 +63,14 @@ Production monetization work verified on 2026-08-14:
 - production contract `contracts` was redeployed to project
   `dxtzbidjtkeekthompqb`; a public Edge Function canary accepted both new
   interstitial events and rejected zero;
-- 323 automated tests, lint, production web build, marketing build, design-lock
-  v5, brand-assets v2, byte-for-byte native bundle verification, and native
-  simulator compilation passed;
+- 327 automated tests and the production web build pass locally; design-lock
+  v6 and brand-assets v3 pass;
+- browser visual QA covers compact phone plus iPad portrait/landscape for
+  onboarding, tutorials, gameplay Hint/full/complete, themes, and 200% Settings
+  with no clipped text, horizontal overflow, or touch targets below 44 points;
+- `npm run preflight` now reads the ignored release client config, obtains a
+  `live_verified` solvable board, and observes the deployed StoreKit verifier
+  reject a malformed JWS as `unverified_transaction` without an unlock;
 - the AdMob account is still under Google's account verification, so production
   fill and payout are not live-verified;
 - the corrected advertising privacy policy was uploaded through the authenticated
@@ -105,14 +110,14 @@ source.
 
 ## Resume sequence
 
-1. Approve and merge PR #10, recording the merged SHA.
-2. In App Store Connect app `6800468742`, configure the permanent StoreKit
-   product under bundle `com.nihi.mahjong`; set identical server and client
-   product IDs. Verify a sandbox purchase and restore before describing contract
-   8 as live verified.
+1. Finish CI and external review, then approve and merge PR #10, recording the
+   merged SHA.
+2. Attach review screenshots to both existing StoreKit products, then verify a
+   sandbox purchase and clean-install restore before describing contract 8 as
+   live verified.
 3. Build with the production URLs and product ID, run `npm run preflight`,
    `npm run ios:prepare`, and the full test suite.
-4. Increment the iOS build number above 2, archive the merged SHA, and run
+4. Confirm the iOS build number remains 4, archive the merged SHA, and run
    `npm run ios:verify-archive -- /path/to/archive.xcarchive`.
 5. Upload the verified archive. Record the archive path, SHA, version, build,
    Apple upload event, processing result, export-compliance result, internal

@@ -27,10 +27,10 @@ Twelve, not eleven — 11 and 12 arrived with the parity doctrine.
 | 5 | `hints/generate` | **live_verified** | — |
 | 6 | `play-pattern/log` | **live_verified** | — |
 | 7 | `difficulty/next-board` | **live_verified** | — |
-| 8 | `receipts/validate` | `source_available` | **D-005** — fails closed by design |
+| 8 | `receipts/validate` | `configured` | real sandbox purchase and restore still required |
 | 9 | `unlock-status` | **live_verified** | — (real Postgres 2026-08-11) |
 | 10 | `analytics/session` | **live_verified** | — (real Postgres 2026-08-11) |
-| 11 | `events/batch` | **live_verified** | — 165 events into real Postgres |
+| 11 | `events/batch` | **live_verified** | — 184 events into real Postgres |
 | 12 | `retention/daily` | **live_verified** | — (real Postgres 2026-08-11) |
 
 **On "live-verified end-to-end".** `live_verified` in this repo means *observed
@@ -42,9 +42,9 @@ so it should not be claimed loosely.
 - 4, 9, 10, 11 and 12 were observed against real Postgres on 2026-08-11.
 - 3 remains `configured`: its verifier uses real signature checks, but a real
   Apple identity-token round trip has not yet been observed.
-- 8 stays `source_available` and fails closed until D-005 and a real sandbox
-  transaction prove the installed bridge, product identifier, and certificate
-  pin end to end.
+- 8 is `configured`: a 2026-08-14 production canary reached the verifier and
+  rejected a malformed JWS as `unverified_transaction`, with no unlock. A real
+  sandbox purchase and restore are still required for `live_verified`.
 
 Calling 3 or 8 "live-verified" today would be the exact thing the state ladder
 exists to prevent.
@@ -55,15 +55,13 @@ exists to prevent.
 collects what `eventsFor()` says to emit, posts it through the real handler and
 reads back what landed. No mocks in the path.
 
-Last run against the dev store: **165 events, 39 distinct names, every one
-stored.** Eighteen catalogue events were not exercised — abandonment paths,
-permission prompts, settings — which a happy-path script cannot reach. The
-script prints that list rather than hiding it.
+The production smoke run stored **184 events across 38 distinct names** in the
+dedicated Mahjong Brain project. The script prints unexercised catalogue events
+rather than hiding them.
 
-The table above records an observed real-Postgres run on 2026-08-11. The current
-shell credentials have not been proven to identify that same Mahjong Brain
-project, so a release session must re-identify the target and repeat the smoke
-test instead of relying on ambient environment variables.
+The linked Supabase CLI target was re-verified on 2026-08-14 as project
+`dxtzbidjtkeekthompqb`; migrations 0001–0004 match. Do not rely on ambient
+`SUPABASE_*` variables because another project also exists in the shell history.
 
 ### Marketing site
 
@@ -74,7 +72,8 @@ because a convincing fake is the thing most likely to ship by accident.
 
 `npm run marketing:dev` · `npm run marketing:build`
 
-The old `site/index.html` is superseded and can go once Codex has moved in.
+The production export, support page, and advertising-aware privacy page are live
+at `https://mahjong-brain.pages.dev/`.
 
 ---
 
@@ -82,10 +81,10 @@ The old `site/index.html` is superseded and can go once Codex has moved in.
 
 | | Blocks | Note |
 |---|---|---|
-| **StoreKit product id** | contract 8, all purchases | Bundle ID is permanent; product record and sandbox verification remain |
-| **Public support/privacy URLs** | App Store metadata and preflight | Marketing pages exist locally; deployment is unverified |
-| **Production Supabase/API target** | account sync and release instrumentation | Current shell project is not identified as Mahjong Brain |
-| **Ad network** | Revive and Hint revenue | Vendor decision |
+| **StoreKit sandbox proof** | contract 8, all purchases | Product records exist; purchase and clean-install restore remain unverified |
+| **IAP review screenshots** | App Store product review | Both products remain Prepare for Submission |
+| **AdMob account verification** | production fill and payout | SDK and units are configured; live fill/reward still needs device proof |
+| **PR review and current archive** | TestFlight/App Review | PR #10 remains review-required; no archive exists for the current head |
 
 ### The bundle id, and a contradiction worth naming
 
@@ -131,7 +130,7 @@ That binary predates the current PR head and is not the release candidate. See
 ## Commands
 
 ```bash
-npm test                  # 306 tests
+npm test                  # 327 tests
 npm run smoke:events      # instrumentation end to end
 npm run preflight         # pre-submission gate — run before any upload
 npm run api               # contracts dev server, :5185

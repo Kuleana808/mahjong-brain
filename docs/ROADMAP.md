@@ -18,16 +18,16 @@ the work is findable from where it happens.
 
 ## Done
 
-- **Scaffold** — playable board end to end, 306 tests, iOS builds clean on
+- **Scaffold** — playable board end to end, 327 tests, iOS builds clean on
   Xcode 26.
 - **`packages/core`** — game engine and AI hint routing extracted, runtime-
   agnostic, importable as `@mahjong-brain/core`.
 - **The ten contracts** — shapes, handlers, 5-state envelope, dev server.
 - **The adapters** — Apple identity verification, HMAC sessions, StoreKit 2 JWS
   with full `x5c` chain validation and Apple Root CA G3 pinning, a Supabase
-  store over PostgREST, and an in-process dev store. The production project and
-  a real sandbox transaction remain release gates; all unconfigured paths fail
-  closed.
+  store over PostgREST, and an in-process dev store. The dedicated production
+  project is live; a real sandbox transaction remains a release gate and all
+  unconfigured paths fail closed.
 - **The schema** — `supabase/migrations/`, append-only, RLS on, cohort views.
 - **The holder mechanic** (D-015) — `@mahjong-brain/core/play`, the parity loop.
 - **Instrumentation** (contract 11) — closed event catalogue covering every
@@ -40,10 +40,11 @@ the work is findable from where it happens.
 - **Marketing site shell** — `apps/marketing/`, Next.js static export for
   Cloudflare Pages. Copy scaffold; Codex owns polish.
 - **Instrumentation smoke test** — `npm run smoke:events`, real machines through
-  the real handler. 165 events / 39 names against the dev store; the Supabase
-  run is waiting on a project existing.
-- **Pre-submission gate** — `npm run preflight`. Currently exits 1 on the
-  placeholder bundle id, by design.
+  the real handler. The production run stored 184 events / 38 names in the
+  dedicated Mahjong Brain project.
+- **Pre-submission gate** — `npm run preflight`. It reads the ignored release
+  client config, verifies a live solvable board, and proves the deployed
+  StoreKit verifier fails closed.
 - **Original interaction sound system** — Web Audio synthesis for tile, match,
   blocked, holder warning/full, hint, shuffle, undo, and win cues; independently
   controlled from Settings with no borrowed audio samples.
@@ -52,51 +53,52 @@ the work is findable from where it happens.
 
 ## Claude Code — next
 
-### C1 — Stand up the Supabase project
+### C1 — Supabase production project — complete
 
-The adapters are written and tested. What is missing is a project to point them
-at. Free tier.
+The dedicated `Mahjong Brain` project (`dxtzbidjtkeekthompqb`) is active in
+`us-west-1`. Migrations 0001–0004 and the `contracts` Edge Function are live.
 
-- Create the project; run `supabase/migrations/0001_init.sql`.
-- Set `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` and contracts 4, 9 and 10 go
-  from the dev store to real rows with no code change.
-- Set `APPLE_BUNDLE_ID` and contract 3 goes live — the Apple verifier is already
-  written, tested against real signatures, and only needs an audience to check.
-- Deploy `handle()` as an Edge Function. The router is transport-independent and
-  the adapters use `fetch`, not the Supabase SDK, so this is packaging, not a
-  port.
+- Project created and migrations 0001–0004 applied.
+- `SUPABASE_URL`, the service-role key, session key, Apple audience, and pinned
+  root are stored in Supabase secrets.
+- `handle()` is deployed as the `contracts` Edge Function. The public release
+  URL is configured in the mobile production build.
 
-Bundle ID `com.nihi.mahjong` is locked. Blocked on creating and configuring the
-dedicated Supabase project.
+Bundle ID `com.nihi.mahjong` is locked. Production board generation, settings,
+unlock status, retention, and anonymous event storage are verified against this
+project.
 
 ### C2 — Turn on StoreKit verification
 
 The verifier is written and tested against generated chains, including the
 attack cases. Apple Root CA G3 is pinned from Apple's PKI distribution and the
 in-house StoreKit 2 bridge compiles in the iOS target. What remains is the
-permanent product id and a real sandbox transaction.
+permanent product ids and a real sandbox transaction.
 
-- Set `IAP_PRODUCT_ID`.
+- Keep the client catalogue, server allow-list, and App Store Connect product
+  records aligned for `removeads` and `shuffle5`.
 - App Store Server Notifications V2 endpoint, so refunds and family-sharing
   removal revoke the unlock without the app having to ask. Same verifier.
 - Verify against a real sandbox purchase — that is what moves contract 8 from
   `configured` to `live_verified`.
 
-The App Store record and permanent bundle ID exist. Blocked on creating the
-permanent product ID in App Store Connect and completing a real sandbox
-purchase/restore. D-005 is settled.
+The App Store record, permanent bundle ID, and both product records exist.
+Review screenshots plus a real sandbox purchase/restore remain. D-005 is
+settled.
 
-### C3 — Ad reward verification (contract 13)
+### C3 — Ad reward verification
 
-Blocked on an ad network being chosen, which is a vendor decision and needs a
-yes. Same fail-closed pattern as contract 8: the network calls us signed, and a
-client-side "the ad finished" is instrumentation, not entitlement.
+Google Mobile Ads and UMP are installed with production Hint, Revive, and
+between-round units. The remaining gate is live rewarded-ad completion on a
+physical device after Google's account verification. Only the native SDK's
+earned-reward callback grants a Hint or Revive; dismissals and load failures do
+not.
 
-### C4 — Consumable grants
+### C4 — Consumable grants — complete in source
 
-Contract 8 currently models one non-consumable. Shuffle packs are consumables:
-repeatable purchases, no restore, and `unlocks.original_transaction_id` being
-UNIQUE is wrong for them. Needs its own table and a migration. See D-005.
+Shuffle packs use the append-only consumable grant ledger in migration 0004.
+They are repeatable, never restored as a non-consumable, and still require a
+real sandbox transaction before release.
 
 ### C5 — Coach the mistake, not just the move — POST-PARITY
 

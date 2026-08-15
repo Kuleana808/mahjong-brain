@@ -37,7 +37,8 @@ moment Revive is offered, and the reason Shuffle and Hint exist.
 
 ## Money
 
-Parity monetisation, live from tile one:
+Parity monetisation is implemented from tile one; production revenue remains
+gated on provider and sandbox proof:
 
 | | |
 |---|---|
@@ -73,9 +74,9 @@ v0.2 follows a week of data. There is no "1.0".
 | AI coach | Offline explainer by default; Ollama for phrasing on web/dev |
 | Purchases | In-house StoreKit 2 bridge; server JWS verification pinned to Apple Root CA G3 |
 | Instrumentation | First-party, Supabase-native. No third-party analytics SDK. |
-| Ads | Rewarded video for Revive and Hint. Network not chosen — needs a yes. |
+| Ads | Google Mobile Ads for rewarded Revive/Hint and between-round interstitials; non-personalized release configuration with UMP privacy choices |
 
-Shipped bundle: **~76 KB gzipped**.
+Current production web bundle: **~107 KB gzipped** across JavaScript and CSS.
 
 ## Launch week
 
@@ -89,11 +90,17 @@ npm install
 npm run dev             # the game, :5183
 npm run api             # contracts dev server, :5185
 npm run marketing:dev   # marketing site, :5186
-npm test                # 306 tests
+npm test                # 327 tests
 npm run smoke:events    # instrumentation, end to end
 npm run preflight       # pre-submission gate — run before any upload
 npm run build           # typecheck + production build
 ```
+
+`npm run preflight` reads the ignored `.env.production` release client
+configuration, then verifies the public production API returns a solvable
+`live_verified` board and that the deployed StoreKit verifier rejects an
+invalid JWS without granting access. Server-side Supabase service-role keys stay
+in Supabase; they are never required on the mobile build machine.
 
 iOS:
 

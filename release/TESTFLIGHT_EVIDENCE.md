@@ -9,13 +9,13 @@ upload, an upload is not processing, and processing is not tester availability.
 | Field | Evidence |
 |---|---|
 | Marketing version | `1.0` |
-| Build number | `3` |
+| Build number | `4` |
 | Bundle ID | `com.nihi.mahjong` |
 | Apple app ID | `6800468742` |
-| Git commit | `628f4ee` pushed checkpoint; PR #10 remains review-required and unmerged |
+| Git commit | Current candidate is on PR #10 and remains review-required and unmerged; record the final merged SHA before archiving |
 | Working tree clean | PENDING |
-| Archive path | `/tmp/MahjongBrain-build3.xcarchive` |
-| Archive verification command/output | `npm run ios:verify-archive -- /tmp/MahjongBrain-build3.xcarchive` passed: identity, version/build, iPhone+iPad, privacy and brand assets |
+| Archive path | PENDING; the verified build-3 archive is stale and is not this candidate |
+| Archive verification command/output | PENDING for build 4 |
 
 ## Configuration gates
 
@@ -36,13 +36,13 @@ upload, an upload is not processing, and processing is not tester availability.
 
 | Check | Evidence |
 |---|---|
-| `npm test` | 313 passed, 2026-08-13 |
-| `npm run build` | passed, production bundle generated |
-| `npm run preflight` | passed with production Supabase/API and StoreKit IDs configured |
-| `npm run check:design-drift` | Design lock v5 passed |
-| `npm run check:brand-assets` | Brand assets v2 passed |
-| `npm run ios:prepare` | passed; native web assets verified byte-for-byte |
-| PR checks | `check`, `native-ios`, and `original-art` passed on `4a9b0df`; build-3 SHA checks pending after push |
+| `npm test` | 327 passed, 2026-08-14 |
+| `npm run build` | passed after the latest UI changes, production bundle generated |
+| `npm run preflight` | passed against the release config and live production canaries: solvable board `live_verified`; malformed StoreKit JWS rejected fail-closed |
+| `npm run check:design-drift` | Design lock v6 passed |
+| `npm run check:brand-assets` | Brand assets v3 passed |
+| `npm run ios:prepare` | PENDING for the final merged build-4 SHA |
+| PR checks | PENDING on the latest PR #10 head; do not reuse checks from an older commit |
 
 ## Native QA matrix
 
@@ -73,8 +73,8 @@ Record device, OS, clean-install status, result, and screenshot/video path.
 
 | Stage | Evidence |
 |---|---|
-| Xcode archive completed | Build 3 archive succeeded and passed repository archive verifier |
-| Upload completed | BLOCKED: Xcode reports no App Store Connect account for team `RCCA2K8UXV`; user must restore the account session in Xcode Settings > Accounts |
+| Xcode archive completed | PENDING for build 4; build 3 succeeded but is stale |
+| Upload completed | PENDING for build 4; do not reuse build-2 upload evidence |
 | App Store Connect processing completed | PENDING |
 | Export compliance resolved | PENDING |
 | Internal testing group assigned | PENDING |
