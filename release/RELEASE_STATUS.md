@@ -86,21 +86,20 @@ Migrations 0001-0004 and one event smoke batch were inadvertently also applied
 to that unrelated project; cleanup requires explicit approval and is not part
 of Mahjong Brain release evidence.
 
-Remaining release gates are completing the App Store privacy answers for Google
-Mobile Ads, attaching IAP review
-screenshots, sandbox purchase/restore and rewarded-ad QA, final native QA,
+Remaining release gates are attaching IAP review screenshots, sandbox
+purchase/restore and rewarded-ad QA, final native QA,
 screenshots, review/merge of PR #10, a fresh signed build-4 archive, upload,
 processing, TestFlight verification, and App Review submission.
 
 On 2026-08-14, the Apple Developer App ID `com.nihi.mahjong` was updated to
 enable Game Center after the first build-4 archive attempt proved that the
-managed provisioning profile did not contain the entitlement. The coarse
-location App Privacy disclosure was also completed as used for third-party
-advertising and analytics, linked to the user, and not used for tracking.
-Gameplay Content (analytics, unlinked, no tracking), User ID (app
-functionality, linked, no tracking), and Purchase History (app functionality,
-linked, no tracking) are also complete. Five selected data types still require
-their individual App Store Connect setup.
+managed provisioning profile did not contain the entitlement.
+All nine selected App Privacy data types were completed and published in App
+Store Connect on 2026-08-14. The published label declares no tracking. Gameplay
+Content and Crash Data are unlinked; Coarse Location, User ID, Device ID,
+Purchase History, Product Interaction, Advertising Data, and Performance Data
+are linked. The usage purposes reflect the configured App Functionality,
+Analytics, and Third-Party Advertising behavior.
 
 Build 3 was prepared from candidate commit `9a063a9` on 2026-08-13. All 307
 tests, preflight, native asset verification, simulator compilation, and a clean
