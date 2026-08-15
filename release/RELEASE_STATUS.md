@@ -96,8 +96,11 @@ On 2026-08-14, the Apple Developer App ID `com.nihi.mahjong` was updated to
 enable Game Center after the first build-4 archive attempt proved that the
 managed provisioning profile did not contain the entitlement. The coarse
 location App Privacy disclosure was also completed as used for third-party
-advertising and analytics, linked to the user, and not used for tracking. Eight
-selected data types still require their individual App Store Connect setup.
+advertising and analytics, linked to the user, and not used for tracking.
+Gameplay Content (analytics, unlinked, no tracking), User ID (app
+functionality, linked, no tracking), and Purchase History (app functionality,
+linked, no tracking) are also complete. Five selected data types still require
+their individual App Store Connect setup.
 
 Build 3 was prepared from candidate commit `9a063a9` on 2026-08-13. All 307
 tests, preflight, native asset verification, simulator compilation, and a clean
