@@ -177,6 +177,21 @@ if (
 ) {
   blockers.push('PrivacyInfo.xcprivacy does not disclose optional linked account and purchase data.');
 }
+for (const advertisingDataType of [
+  'NSPrivacyCollectedDataTypeCoarseLocation',
+  'NSPrivacyCollectedDataTypeDeviceID',
+  'NSPrivacyCollectedDataTypeProductInteraction',
+  'NSPrivacyCollectedDataTypeAdvertisingData',
+  'NSPrivacyCollectedDataTypeCrashData',
+  'NSPrivacyCollectedDataTypePerformanceData',
+]) {
+  if (!privacyManifest.includes(advertisingDataType)) {
+    blockers.push(`PrivacyInfo.xcprivacy is missing Google Mobile Ads disclosure ${advertisingDataType}.`);
+  }
+}
+if (!privacyManifest.includes('NSPrivacyCollectedDataTypePurposeThirdPartyAdvertising')) {
+  blockers.push('PrivacyInfo.xcprivacy does not declare the third-party advertising purpose.');
+}
 if (!project.includes('PrivacyInfo.xcprivacy in Resources')) {
   blockers.push('PrivacyInfo.xcprivacy is not included in the iOS app target resources.');
 }
