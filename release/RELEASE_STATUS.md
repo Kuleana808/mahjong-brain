@@ -1,6 +1,6 @@
 # Release status
 
-Last verified: 2026-08-14 (HST)
+Last verified: 2026-08-15 (HST)
 
 This is the operational handoff for Mahjong Brain. It separates source,
 archive, upload, processing, and tester availability so an earlier green step
@@ -10,10 +10,10 @@ cannot be mistaken for a shipped build.
 
 | Stage | State | Evidence |
 |---|---|---|
-| Local source | verified | Branch `codex/build-mobile-shell`; current source through `a1aadbd` passes the checks listed below |
-| Committed | verified | `a1aadbd` adds the release accessibility contract; `fc160cf` records the current App Store screenshot set; `5bc3d9f` adds the original Game Center achievement artwork |
-| Pushed | verified | Branch is published through `a1aadbd` |
-| Pull request | open | PR #10; `check`, `original-art`, and `native-ios` pass on `a1aadbd`; external review is still required |
+| Local source | verified | Branch `codex/build-mobile-shell`; current source through `3e8cb52` passes the production build, design-drift check, and whitespace check |
+| Committed | verified | `3e8cb52` keeps both sheet close controls visible and records Apple-sized IAP review screenshots; `d5a64f9` covers purchase-account and reward states |
+| Pushed | verified | Branch is published through `3e8cb52` |
+| Pull request | open | PR #10; `check`, `original-art`, and `native-ios` all pass on `3e8cb52`; external review is still required |
 | Merged | not verified | PR #10 remains open and blocked on review |
 | Simulator build | verified | Build 4 compiles with Google Mobile Ads 13.7.0 and Google User Messaging Platform 3.1.0; production web and marketing builds pass |
 | Native iPhone QA | verified | Build installed and launched into gameplay on iPhone 17 Pro simulator; 144-tile board rendered |
@@ -94,8 +94,14 @@ These are deterministic browser QA compositions; they must still be recaptured
 from the exact signed release candidate before submission if the native archive
 does not match them.
 
-Remaining release gates are attaching IAP review screenshots, sandbox
-purchase/restore and rewarded-ad QA, final native QA, verifying the uploaded
+On 2026-08-15, App Store Connect accepted the corrected 1170 x 2532 review
+screenshots for both `com.nihi.mahjong.removeads` and
+`com.nihi.mahjong.shuffle5`; the prior dimension errors are gone. Both products
+remain **Prepare for Submission** and have not been added to review because a
+verified current build is not attached yet.
+
+Remaining release gates are sandbox purchase/restore and rewarded-ad QA, final
+native QA, verifying the uploaded
 screenshots against the signed candidate, review/merge of PR #10, a fresh
 signed build-4 archive, upload, processing, TestFlight verification, and App
 Review submission.
@@ -112,9 +118,12 @@ Analytics, and Third-Party Advertising behavior.
 
 The `Boards Cleared` classic Game Center leaderboard was created with production
 identifier `com.nihi.mahjong.boardsCleared`, integer best-score submission, and
-high-to-low sorting. Its localization and review attachment still require final
-verification, and the second leaderboard plus five achievements remain to be
-created.
+high-to-low sorting. On 2026-08-15 the second `Brain IQ` leaderboard was created
+with identifier `com.nihi.mahjong.brainIq`, integer best-score submission,
+high-to-low sorting, and U.S. English localization. `First Clear` was created
+with its five-point rule, U.S. English descriptions, and original achievement
+artwork. The remaining four achievements, final localization audit, and review
+attachment still require completion and verification.
 
 Build 3 was prepared from candidate commit `9a063a9` on 2026-08-13. All 307
 tests, preflight, native asset verification, simulator compilation, and a clean
