@@ -10,10 +10,10 @@ cannot be mistaken for a shipped build.
 
 | Stage | State | Evidence |
 |---|---|---|
-| Local source | verified | Branch `codex/build-mobile-shell`; current source through `5bc3d9f` passes the checks listed below |
-| Committed | verified | `5bc3d9f` adds the original Game Center achievement artwork; `8cf8386` records the published privacy label; `2ec9622` contains the latest audited gameplay/UI batch |
-| Pushed | verified | Branch is published through `5bc3d9f` |
-| Pull request | open | PR #10; `check`, `original-art`, and `native-ios` pass on `5bc3d9f`; external review is still required |
+| Local source | verified | Branch `codex/build-mobile-shell`; current source through `a1aadbd` passes the checks listed below |
+| Committed | verified | `a1aadbd` adds the release accessibility contract; `fc160cf` records the current App Store screenshot set; `5bc3d9f` adds the original Game Center achievement artwork |
+| Pushed | verified | Branch is published through `a1aadbd` |
+| Pull request | open | PR #10; `check`, `original-art`, and `native-ios` pass on `a1aadbd`; external review is still required |
 | Merged | not verified | PR #10 remains open and blocked on review |
 | Simulator build | verified | Build 4 compiles with Google Mobile Ads 13.7.0 and Google User Messaging Platform 3.1.0; production web and marketing builds pass |
 | Native iPhone QA | verified | Build installed and launched into gameplay on iPhone 17 Pro simulator; 144-tile board rendered |
@@ -125,17 +125,25 @@ Store Connect account for team `RCCA2K8UXV`. The user must restore that account
 session in Xcode Settings > Accounts before upload can continue. PR #10 also
 remains protected by its required external review; do not bypass it.
 
-The current `24a4fc6` candidate passed production preflight, rebuilt and synced
-the native web bundle byte-for-byte, and passed all three PR checks. A build-4
-archive retry after enabling Game Center still failed with `No Accounts: Add a
-new account in Accounts settings`, so no build-4 archive or upload exists yet.
+The current `a1aadbd` candidate passed production preflight, rebuilt and synced
+the native web bundle byte-for-byte, and passed all three PR checks. On
+2026-08-14 Xcode's Apple Accounts UI showed `brent.akamine@gmail.com` on the
+Brent Akamine Admin team, and manual profiles were refreshed. Two build-4
+archive retries still failed with `No Accounts: Add a new account in Accounts
+settings`; the downloaded `iOS Team Provisioning Profile: com.nihi.mahjong`
+also remained stale and omitted Game Center. Xcode lists three Apple
+Distribution certificates as `Not in Keychain`, while command-line signing
+reports zero valid identities. No build-4 archive or upload exists yet.
 
-The Mac keychain currently exposes only `Apple Development: Created via API` to
-command-line signing. Xcode nevertheless produced and uploaded build 2 using
-Apple's managed distribution preparation. A new release must repeat the signed
-archive and upload from Xcode, then record the new archive and distribution
-events. An old organizer success dialog is not signing evidence for current
-source.
+The Mac keychain currently exposes zero valid code-signing identities to
+command-line signing. Xcode's certificate manager still displays an older
+`Created via API` development certificate and three Apple Distribution
+certificates that are explicitly `Not in Keychain`. Xcode nevertheless produced
+and uploaded build 2 using Apple's managed distribution preparation. A new
+release must restore or create an authorized local distribution identity,
+regenerate the Game Center-capable profile, repeat the signed archive and upload
+from Xcode, and record the new archive and distribution events. An old organizer
+success dialog is not signing evidence for current source.
 
 ## Resume sequence
 

@@ -12,8 +12,8 @@ upload, an upload is not processing, and processing is not tester availability.
 | Build number | `4` |
 | Bundle ID | `com.nihi.mahjong` |
 | Apple app ID | `6800468742` |
-| Git commit | Current candidate is on PR #10 and remains review-required and unmerged; record the final merged SHA before archiving |
-| Working tree clean | PENDING |
+| Git commit | PR #10 head `a1aadbdc8b43a2607d6d39901568bcc16bc61039`; remains review-required and unmerged, so record the final merged SHA before release archiving |
+| Working tree clean | Verified before this evidence update on 2026-08-14 |
 | Archive path | PENDING; the verified build-3 archive is stale and is not this candidate |
 | Archive verification command/output | PENDING for build 4 |
 
@@ -24,7 +24,7 @@ upload, an upload is not processing, and processing is not tester availability.
 | Public support URL returns 200 over HTTPS | `https://mahjong-brain.pages.dev/support/`, HTTP 200 verified 2026-08-13 |
 | Public privacy URL returns 200 over HTTPS | `https://mahjong-brain.pages.dev/privacy/`, HTTP 200 verified 2026-08-13 |
 | `VITE_API_BASE_URL` points to the verified production contracts endpoint | `https://dxtzbidjtkeekthompqb.supabase.co/functions/v1/contracts`; HTTP 200 `live_verified` after current deploy |
-| Server and client StoreKit product IDs match App Store Connect | PENDING |
+| Server and client StoreKit product IDs match App Store Connect | Verified: `com.nihi.mahjong.removeads` and `com.nihi.mahjong.shuffle5` are present in App Store Connect and in the deployed server allow-list |
 | Correct Supabase project ref recorded | `dxtzbidjtkeekthompqb` (`Mahjong Brain`, Operator.fyi, `us-west-1`) |
 | Migrations 0001-0004 applied to that project | Verified by `supabase migration list --linked`, 2026-08-13 |
 | Contracts smoke test passed against production | Passed: settings persistence, unlock, daily retention, analytics, fail-closed receipts |
@@ -36,14 +36,14 @@ upload, an upload is not processing, and processing is not tester availability.
 
 | Check | Evidence |
 |---|---|
-| `npm test` | 327 passed, 2026-08-14 |
+| `npm test` | 328 passed, 2026-08-14 |
 | `npm run build` | passed after the latest UI changes, production bundle generated |
 | `npm run preflight` | passed against the release config and live production canaries: solvable board `live_verified`; malformed StoreKit JWS rejected fail-closed |
 | `npm run check:design-drift` | Design lock v6 passed |
 | `npm run check:brand-assets` | Brand assets v3 passed |
 | `npm run check:accessibility` | passed on PR #10 head, 2026-08-14; verifies spoken tile names, keyboard navigation, live announcements, selection state, Reduce Motion, and 44-point targets in source; native assistive-technology QA remains separate below |
-| `npm run ios:prepare` | PENDING for the final merged build-4 SHA |
-| PR checks | PENDING on the latest PR #10 head; do not reuse checks from an older commit |
+| `npm run ios:prepare` | Passed on unmerged PR #10 head `a1aadbd`; production preflight clear and nine native web files matched byte-for-byte. Must rerun on the final merged SHA |
+| PR checks | `check`, `native-ios`, and `original-art` passed on `a1aadbd`, 2026-08-14 |
 
 ## Native QA matrix
 
@@ -74,7 +74,7 @@ Record device, OS, clean-install status, result, and screenshot/video path.
 
 | Stage | Evidence |
 |---|---|
-| Xcode archive completed | PENDING for build 4; build 3 succeeded but is stale |
+| Xcode archive completed | PENDING for build 4; two retries on `a1aadbd` failed because CLI signing could not see the GUI account and the cached profile omitted Game Center. Build 3 succeeded but is stale |
 | Upload completed | PENDING for build 4; do not reuse build-2 upload evidence |
 | App Store Connect processing completed | PENDING |
 | Export compliance resolved | PENDING |
