@@ -35,6 +35,15 @@ describe('deterministic QA fixtures', () => {
     expect(useGame.getState().announcement).toMatch(/restored/i);
   });
 
+  it('does not let persisted inventory invalidate gameplay fixtures', async () => {
+    useGame.setState({ inventory: { hint: 0, shuffle: 0, revive: 0 } });
+
+    await applyQaFixture('S08-game-hint');
+
+    expect(useGame.getState().hint).not.toBeNull();
+    expect(useGame.getState().inventory).toEqual({ hint: 2, shuffle: 1, revive: 0 });
+  });
+
   it('shows truthful completed progress in the completion fixture', async () => {
     await applyQaFixture('S10-complete');
     expect(useGame.getState().boardsCompleted).toBe(1);

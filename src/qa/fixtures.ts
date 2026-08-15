@@ -79,6 +79,7 @@ function gameplay(holderCount = 0): void {
     paywallOpen: false,
     announcement: '',
     settings: { ...useGame.getState().settings, sounds: false },
+    inventory: { hint: 3, shuffle: 1, revive: 0 },
   });
 
   for (let index = 0; index < holderCount; index++) {
