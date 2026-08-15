@@ -63,8 +63,8 @@ Production monetization work verified on 2026-08-14:
 - production contract `contracts` was redeployed to project
   `dxtzbidjtkeekthompqb`; a public Edge Function canary accepted both new
   interstitial events and rejected zero;
-- 327 automated tests and the production web build pass locally; design-lock
-  v6 and brand-assets v3 pass;
+- 328 automated tests and the production web build pass locally; design-lock
+  v6, brand-assets v3, and the source accessibility contract pass;
 - browser visual QA covers compact phone plus iPad portrait/landscape for
   onboarding, tutorials, gameplay Hint/full/complete, themes, and 200% Settings
   with no clipped text, horizontal overflow, or touch targets below 44 points;

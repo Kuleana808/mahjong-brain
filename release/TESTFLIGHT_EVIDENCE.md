@@ -41,6 +41,7 @@ upload, an upload is not processing, and processing is not tester availability.
 | `npm run preflight` | passed against the release config and live production canaries: solvable board `live_verified`; malformed StoreKit JWS rejected fail-closed |
 | `npm run check:design-drift` | Design lock v6 passed |
 | `npm run check:brand-assets` | Brand assets v3 passed |
+| `npm run check:accessibility` | passed on PR #10 head, 2026-08-14; verifies spoken tile names, keyboard navigation, live announcements, selection state, Reduce Motion, and 44-point targets in source; native assistive-technology QA remains separate below |
 | `npm run ios:prepare` | PENDING for the final merged build-4 SHA |
 | PR checks | PENDING on the latest PR #10 head; do not reuse checks from an older commit |
 

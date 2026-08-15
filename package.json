@@ -13,6 +13,7 @@
     "typecheck": "tsc -b --noEmit",
     "check:design-drift": "node scripts/check-design-drift.mjs",
     "check:brand-assets": "node scripts/check-brand-assets.mjs",
+    "check:accessibility": "node scripts/check-accessibility-contract.mjs",
     "ios:sync": "npm run build && npx cap sync ios && node scripts/configure-admob-spm.mjs",
     "ios:verify-bundle": "node scripts/verify-native-web-assets.mjs",
     "ios:build-simulator": "xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Debug -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO build",
@@ -24,7 +25,7 @@
     "smoke:events": "npm --workspace @mahjong-brain/api run smoke:events",
     "marketing:dev": "npm --workspace @mahjong-brain/marketing run dev",
     "marketing:build": "npm --workspace @mahjong-brain/marketing run build",
-    "preflight": "npm run check:design-drift && npm run check:brand-assets && node scripts/preflight.mjs",
+    "preflight": "npm run check:design-drift && npm run check:brand-assets && npm run check:accessibility && node scripts/preflight.mjs",
     "smoke:supabase": "node scripts/smoke-local-supabase.mjs",
     "smoke:contracts": "npm --workspace @mahjong-brain/api run smoke:contracts",
     "build:edge": "esbuild supabase/functions/contracts/source.ts --bundle --platform=neutral --format=esm --target=es2022 --outfile=supabase/functions/contracts/bundle.js"
