@@ -10,9 +10,9 @@ cannot be mistaken for a shipped build.
 
 | Stage | State | Evidence |
 |---|---|---|
-| Local source | verified | Branch `codex/build-mobile-shell`; current source through `3e8cb52` passes the production build, design-drift check, and whitespace check |
+| Local source | verified | Branch `codex/build-mobile-shell`; current source through `1173ab8` passes all 333 tests, production preflight, native preparation, byte-for-byte native bundle verification, and the production build |
 | Committed | verified | `3e8cb52` keeps both sheet close controls visible and records Apple-sized IAP review screenshots; `d5a64f9` covers purchase-account and reward states |
-| Pushed | verified | Branch is published through `3e8cb52` |
+| Pushed | verified | Branch is published through `1173ab8` |
 | Pull request | open | PR #10; `check`, `original-art`, and `native-ios` all pass on `3e8cb52`; external review is still required |
 | Merged | not verified | PR #10 remains open and blocked on review |
 | Simulator build | verified | Build 4 compiles with Google Mobile Ads 13.7.0 and Google User Messaging Platform 3.1.0; production web and marketing builds pass |
