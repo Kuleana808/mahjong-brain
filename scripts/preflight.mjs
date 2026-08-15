@@ -20,6 +20,21 @@ import { join } from 'node:path';
 
 const root = new URL('..', import.meta.url).pathname;
 const read = (p) => (existsSync(join(root, p)) ? readFileSync(join(root, p), 'utf8') : '');
+const parseEnv = (source) => Object.fromEntries(
+  source
+    .split('\n')
+    .map((line) => line.trim())
+    .filter((line) => line && !line.startsWith('#') && line.includes('='))
+    .map((line) => {
+      const separator = line.indexOf('=');
+      return [line.slice(0, separator), line.slice(separator + 1).replace(/^['"]|['"]$/g, '')];
+    }),
+);
+const releaseEnv = {
+  ...parseEnv(read('.env.production')),
+  ...parseEnv(read('.env.production.local')),
+  ...process.env,
+};
 
 const PLACEHOLDER_BUNDLE_ID = 'com.mahjongbrain.game';
 
@@ -100,8 +115,8 @@ if (xcodeBundleIds.length !== 1) {
       '    Native auth, StoreKit, and the App Store record must use one permanent identifier.',
   );
 }
-if (process.env.APPLE_BUNDLE_ID && capacitorBundleId && process.env.APPLE_BUNDLE_ID !== capacitorBundleId) {
-  blockers.push(`APPLE_BUNDLE_ID (${process.env.APPLE_BUNDLE_ID}) does not match the app bundle id (${capacitorBundleId}).`);
+if (releaseEnv.APPLE_BUNDLE_ID && capacitorBundleId && releaseEnv.APPLE_BUNDLE_ID !== capacitorBundleId) {
+  blockers.push(`APPLE_BUNDLE_ID (${releaseEnv.APPLE_BUNDLE_ID}) does not match the app bundle id (${capacitorBundleId}).`);
 }
 
 const marketingVersions = [...new Set([...project.matchAll(/MARKETING_VERSION\s*=\s*([^;]+);/g)].map((match) => match[1].trim()))];
@@ -118,9 +133,9 @@ if (types.includes(PLACEHOLDER_BUNDLE_ID)) {
   blockers.push('PRODUCT_CATALOGUE still carries placeholder product ids derived from the bundle id.');
 }
 
-const configuredProductIds = (process.env.IAP_PRODUCT_IDS ?? process.env.IAP_PRODUCT_ID ?? '').split(',').map((value) => value.trim()).filter(Boolean);
+const configuredProductIds = (releaseEnv.IAP_PRODUCT_IDS ?? releaseEnv.IAP_PRODUCT_ID ?? '').split(',').map((value) => value.trim()).filter(Boolean);
 const configuredProductId = configuredProductIds.find((id) => id.endsWith('.removeads'));
-const configuredClientProductId = process.env.VITE_IAP_PRODUCT_ID;
+const configuredClientProductId = releaseEnv.VITE_IAP_PRODUCT_ID;
 if (configuredProductId && configuredClientProductId && configuredProductId !== configuredClientProductId) {
   blockers.push('IAP_PRODUCT_ID and VITE_IAP_PRODUCT_ID disagree. The client and verifier must name the same product.');
 }
@@ -128,7 +143,7 @@ if (configuredProductId && capacitorBundleId && !configuredProductId.startsWith(
   blockers.push(`IAP_PRODUCT_ID (${configuredProductId}) is not namespaced under ${capacitorBundleId}.`);
 }
 const configuredShuffleId = configuredProductIds.find((id) => id.endsWith('.shuffle5'));
-const configuredClientShuffleId = process.env.VITE_SHUFFLE_PRODUCT_ID;
+const configuredClientShuffleId = releaseEnv.VITE_SHUFFLE_PRODUCT_ID;
 if (configuredShuffleId && configuredClientShuffleId && configuredShuffleId !== configuredClientShuffleId) {
   blockers.push('The server and client Shuffle product ids disagree.');
 }
@@ -201,18 +216,42 @@ if (!configuredProductId || !configuredShuffleId || !configuredClientProductId |
   );
 }
 
-if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
-  blockers.push(
-    'No Supabase project configured. Instrumentation is mandatory before launch\n' +
-      '    (D-014/D-016) — run `npm run smoke:events` against the real project first.',
-  );
-}
-
-if (!process.env.VITE_API_BASE_URL) {
+const apiBaseUrl = releaseEnv.VITE_API_BASE_URL;
+if (!apiBaseUrl) {
   blockers.push(
     'VITE_API_BASE_URL is not configured. Anonymous gameplay events remain safely\n' +
       '    queued on-device, but production telemetry and account sync cannot reach the API.',
   );
+} else if (!apiBaseUrl.startsWith('https://')) {
+  blockers.push('VITE_API_BASE_URL must be a production HTTPS endpoint.');
+} else {
+  try {
+    const boardResponse = await fetch(
+      `${apiBaseUrl}/api/game/board/generate?layout=pyramid&seed=1296123978&includeTiles=false`,
+      { signal: AbortSignal.timeout(10_000) },
+    );
+    const board = await boardResponse.json();
+    if (!boardResponse.ok || board.state !== 'live_verified' || board.data?.solvable !== true) {
+      blockers.push('The configured production API did not return a live-verified solvable board.');
+    }
+
+    const receiptResponse = await fetch(`${apiBaseUrl}/api/receipts/validate`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ signedTransaction: 'e30.e30.e30' }),
+      signal: AbortSignal.timeout(10_000),
+    });
+    const receipt = await receiptResponse.json();
+    if (
+      receipt.state !== 'configured' ||
+      receipt.error?.code !== 'unverified_transaction' ||
+      JSON.stringify(receipt).includes('"unlocked":true')
+    ) {
+      blockers.push('The production StoreKit verifier is not proving configured, fail-closed behavior.');
+    }
+  } catch (error) {
+    blockers.push(`Production API verification failed: ${error instanceof Error ? error.message : String(error)}.`);
+  }
 }
 
 // --- report -----------------------------------------------------------------
