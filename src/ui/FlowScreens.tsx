@@ -325,10 +325,10 @@ export function ResultScreen() {
   const continueAfterBoard = useGame((s) => s.continueAfterBoard);
   return (
     <ScreenFrame className="flow-screen--result">
-      <div className="result-card">
+      <div className="result-card" role="dialog" aria-modal="true" aria-labelledby="result-title">
         <BrandMark compact />
         <p className="result-kicker">{isFull ? 'Round paused' : 'Beautiful work'}</p>
-        <h1>{isFull ? 'Out of space' : 'Board clear'}</h1>
+        <h1 id="result-title">{isFull ? 'Out of space' : 'Board clear'}</h1>
         <p>
           {isFull
             ? 'Four unmatched tiles filled the holder. Your completed levels are safe.'

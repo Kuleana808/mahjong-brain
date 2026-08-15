@@ -26,6 +26,10 @@ import { HintBar } from './HintBar';
 import { Holder } from './Holder';
 import { TopBar } from './TopBar';
 
+export function shouldRenderGameplayFrame(screen: string): boolean {
+  return screen === 'gameplay' || screen === 'game_over';
+}
+
 export function App() {
   const [nativeAccessibility, setNativeAccessibility] = useState<NativeAccessibilityPreferences>({
     textScale: 1,
@@ -106,25 +110,27 @@ export function App() {
     );
   }
 
-  const isGameplay = screen === 'gameplay';
+  const isResult = screen === 'game_over';
+  const showsGameplayFrame = shouldRenderGameplayFrame(screen);
   const isSettings = settingsOpen;
 
   return (
     <div
-      className={`app ${isSettings ? 'app--settings' : isGameplay ? 'app--gameplay' : 'app--flow'}`}
+      className={`app ${isSettings ? 'app--settings' : showsGameplayFrame ? 'app--gameplay' : 'app--flow'}`}
       data-reduce-motion={settings.reduceMotion || nativeAccessibility.reduceMotion}
       data-increase-contrast={nativeAccessibility.increaseContrast}
       data-large-text={settings.fontScale * nativeAccessibility.textScale >= 1.8}
     >
       {isSettings ? (
         <SettingsSheet />
-      ) : isGameplay ? (
+      ) : showsGameplayFrame ? (
         <>
           <TopBar />
           <Holder />
           <BoardView />
           <HintBar />
           <BottomDock />
+          {isResult ? <FlowRouter /> : null}
         </>
       ) : (
         <FlowRouter />

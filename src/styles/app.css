@@ -470,9 +470,18 @@ a:focus-visible {
   cursor: pointer;
 }
 
-.flow-screen--result { padding-inline: 20px; }
-.result-card {
+.flow-screen--result {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
   width: 100%;
+  max-width: none;
+  padding-inline: 20px;
+  background: rgba(0, 28, 24, 0.72);
+  backdrop-filter: blur(5px);
+}
+.result-card {
+  width: min(100%, 35rem);
   padding: 36px 24px 30px;
   border: 3px double var(--bronze-500);
   border-radius: 24px;
