@@ -10,10 +10,10 @@ cannot be mistaken for a shipped build.
 
 | Stage | State | Evidence |
 |---|---|---|
-| Local source | verified | Branch `codex/build-mobile-shell`; current source through `195f941` passes the checks listed below |
-| Committed | verified | `195f941` adds live production-service preflight; `2ec9622` contains the latest audited gameplay/UI batch |
-| Pushed | verified through prior head | Branch is published through `2ec9622`; `195f941` and this handoff update still need push |
-| Pull request | open | PR #10; CI is rerunning for the current pushed head and external review is still required |
+| Local source | verified | Branch `codex/build-mobile-shell`; current source through `8cf8386` passes the checks listed below |
+| Committed | verified | `8cf8386` records the published privacy label; `2ec9622` contains the latest audited gameplay/UI batch |
+| Pushed | verified | Branch is published through `8cf8386` |
+| Pull request | open | PR #10; `check`, `original-art`, and `native-ios` pass on `8cf8386`; external review is still required |
 | Merged | not verified | PR #10 remains open and blocked on review |
 | Simulator build | verified | Build 4 compiles with Google Mobile Ads 13.7.0 and Google User Messaging Platform 3.1.0; production web and marketing builds pass |
 | Native iPhone QA | verified | Build installed and launched into gameplay on iPhone 17 Pro simulator; 144-tile board rendered |
@@ -100,6 +100,12 @@ Content and Crash Data are unlinked; Coarse Location, User ID, Device ID,
 Purchase History, Product Interaction, Advertising Data, and Performance Data
 are linked. The usage purposes reflect the configured App Functionality,
 Analytics, and Third-Party Advertising behavior.
+
+The `Boards Cleared` classic Game Center leaderboard was created with production
+identifier `com.nihi.mahjong.boardsCleared`, integer best-score submission, and
+high-to-low sorting. Its localization and review attachment still require final
+verification, and the second leaderboard plus five achievements remain to be
+created.
 
 Build 3 was prepared from candidate commit `9a063a9` on 2026-08-13. All 307
 tests, preflight, native asset verification, simulator compilation, and a clean
