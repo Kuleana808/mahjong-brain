@@ -92,6 +92,13 @@ screenshots, sandbox purchase/restore and rewarded-ad QA, final native QA,
 screenshots, review/merge of PR #10, a fresh signed build-4 archive, upload,
 processing, TestFlight verification, and App Review submission.
 
+On 2026-08-14, the Apple Developer App ID `com.nihi.mahjong` was updated to
+enable Game Center after the first build-4 archive attempt proved that the
+managed provisioning profile did not contain the entitlement. The coarse
+location App Privacy disclosure was also completed as used for third-party
+advertising and analytics, linked to the user, and not used for tracking. Eight
+selected data types still require their individual App Store Connect setup.
+
 Build 3 was prepared from candidate commit `9a063a9` on 2026-08-13. All 307
 tests, preflight, native asset verification, simulator compilation, and a clean
 iPhone onboarding launch passed. `/tmp/MahjongBrain-build3.xcarchive` archived
@@ -100,6 +107,11 @@ Apple account boundary: Xcode's distribution log says it cannot find an App
 Store Connect account for team `RCCA2K8UXV`. The user must restore that account
 session in Xcode Settings > Accounts before upload can continue. PR #10 also
 remains protected by its required external review; do not bypass it.
+
+The current `24a4fc6` candidate passed production preflight, rebuilt and synced
+the native web bundle byte-for-byte, and passed all three PR checks. A build-4
+archive retry after enabling Game Center still failed with `No Accounts: Add a
+new account in Accounts settings`, so no build-4 archive or upload exists yet.
 
 The Mac keychain currently exposes only `Apple Development: Created via API` to
 command-line signing. Xcode nevertheless produced and uploaded build 2 using
