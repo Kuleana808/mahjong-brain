@@ -139,6 +139,7 @@ interface GameStore {
   selectedId: number | null;
   hint: Hint | null;
   hintPending: boolean;
+  revivePending: boolean;
   /** Announced to screen readers via aria-live. */
   announcement: string;
 
@@ -324,6 +325,7 @@ export const useGame = create<GameStore>((set, get) => {
     selectedId: null,
     hint: null,
     hintPending: false,
+    revivePending: false,
     announcement: '',
 
     settings: DEFAULT_SETTINGS,
@@ -795,20 +797,24 @@ export const useGame = create<GameStore>((set, get) => {
     },
 
     async useRevive() {
-      let { board, holder, status, inventory, settings } = get();
-      if (!board || status !== 'holder_full') return;
+      let { board, holder, status, inventory, settings, revivePending } = get();
+      if (!board || status !== 'holder_full' || revivePending) return;
       void track('revive_tapped', { placement: 'revive' });
       if (inventory.revive <= 0) {
-        set({ announcement: 'Loading a short ad to revive this board…' });
+        set({ revivePending: true, announcement: 'Loading a short ad to revive this board…' });
         void track('revive_ad_started', { placement: 'revive' });
-        const result = await ads().showRewarded('revive');
-        if (result.status !== 'completed') {
-          set({ announcement: result.status === 'dismissed' ? 'Ad closed. The board is still paused.' : 'A rewarded Revive is unavailable right now.' });
-          return;
+        try {
+          const result = await ads().showRewarded('revive');
+          if (result.status !== 'completed') {
+            set({ announcement: result.status === 'dismissed' ? 'Ad closed. The board is still paused.' : 'A rewarded Revive is unavailable right now.' });
+            return;
+          }
+          void track('revive_ad_completed', { placement: 'revive' });
+          set((state) => ({ inventory: { ...state.inventory, revive: state.inventory.revive + 1 } }));
+          ({ board, holder, status, inventory, settings } = get());
+        } finally {
+          set({ revivePending: false });
         }
-        void track('revive_ad_completed', { placement: 'revive' });
-        set((state) => ({ inventory: { ...state.inventory, revive: state.inventory.revive + 1 } }));
-        ({ board, holder, status, inventory, settings } = get());
       }
       if (!board) return;
       const revived = revivePlaySession(playSessionFromState(board, holder, status));

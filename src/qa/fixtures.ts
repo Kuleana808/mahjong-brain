@@ -30,6 +30,8 @@ export const QA_FIXTURE_IDS = [
   'S08-game-shuffle-empty',
   'S08-game-resume',
   'S09-holder-full',
+  'S09-revive-pending',
+  'S09-revive-failed',
   'S10-complete',
   'S12-settings',
   'S12-settings-large',
@@ -186,7 +188,15 @@ export async function applyQaFixture(id: QaFixtureId): Promise<void> {
     gameplay(1);
     useGame.setState({ announcement: 'Saved game restored. One of four holder slots occupied.' });
   }
-  if (id === 'S09-holder-full') gameplay(4);
+  if (id === 'S09-holder-full' || id === 'S09-revive-pending' || id === 'S09-revive-failed') {
+    gameplay(4);
+    if (id === 'S09-revive-pending') {
+      useGame.setState({ revivePending: true, announcement: 'Loading a short ad to revive this board…' });
+    }
+    if (id === 'S09-revive-failed') {
+      useGame.setState({ revivePending: false, announcement: 'A rewarded Revive is unavailable right now.' });
+    }
+  }
   if (id === 'S10-complete') {
     gameplay(0);
     useGame.setState((state) => ({

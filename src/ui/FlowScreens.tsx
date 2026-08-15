@@ -321,6 +321,8 @@ export function ResultScreen() {
   const status = useGame((s) => s.status);
   const isFull = status === 'holder_full';
   const inventory = useGame((s) => s.inventory);
+  const revivePending = useGame((s) => s.revivePending);
+  const announcement = useGame((s) => s.announcement);
   const reviveRound = useGame((s) => s.useRevive);
   const continueAfterBoard = useGame((s) => s.continueAfterBoard);
   return (
@@ -336,13 +338,9 @@ export function ResultScreen() {
               ? 'Your first board is complete.'
               : `${completed} boards complete.`}
         </p>
-        {isFull && inventory.revive > 0 ? (
-          <button type="button" className="primary-button" onClick={() => void reviveRound()}>
-            Revive · {inventory.revive} available
-          </button>
-        ) : isFull ? (
-          <button type="button" className="primary-button" onClick={() => dispatch({ type: 'start_board' })}>
-            Restart
+        {isFull ? (
+          <button type="button" className="primary-button" disabled={revivePending} onClick={() => void reviveRound()}>
+            {revivePending ? 'Loading ad…' : inventory.revive > 0 ? `Revive · ${inventory.revive} available` : 'Revive with ad'}
           </button>
         ) : (
           <button type="button" className="primary-button" onClick={() => void continueAfterBoard()}>
@@ -351,7 +349,8 @@ export function ResultScreen() {
         )}
         {isFull ? (
           <>
-            {inventory.revive > 0 ? <button type="button" className="text-button" onClick={() => dispatch({ type: 'start_board' })}>Restart instead</button> : null}
+            {(announcement.startsWith('Ad closed') || announcement.includes('Revive is unavailable')) ? <p className="result-message" role="status">{announcement}</p> : null}
+            <button type="button" className="text-button" disabled={revivePending} onClick={() => dispatch({ type: 'start_board' })}>Restart instead</button>
             <button type="button" className="text-button" onClick={() => dispatch({ type: 'leave_game_over' })}>Back to home</button>
           </>
         ) : null}
