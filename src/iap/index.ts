@@ -260,6 +260,11 @@ export function setPurchases(implementation: Purchases): void {
 
 export function consumablePurchases(): ConsumablePurchases { return activeConsumables; }
 
+/** Injects a deterministic StoreKit surface for tests and development-only QA fixtures. */
+export function setConsumablePurchases(implementation: ConsumablePurchases): void {
+  activeConsumables = implementation;
+}
+
 /** Configures the native bridge only when every security boundary is present. */
 export function configureNativePurchases(): void {
   const productId = import.meta.env.VITE_IAP_PRODUCT_ID?.trim();

@@ -11,6 +11,15 @@ archived release candidate, rerun the renderer, and compare the output to the
 design lock. Browser fixtures prove composition and copy, not native archive
 identity, StoreKit availability, ad fill, or App Review readiness.
 
+## In-app purchase review evidence
+
+The deterministic `S20-remove-ads` and `S20-shuffle-store` fixtures render the
+two StoreKit product surfaces with their App Store Connect prices. Browser
+proofs live in `iap-review/browser/`. They verify layout and copy only. Before
+attaching review evidence to either product, capture the matching screen from
+the exact native release candidate after StoreKit returns its localized price,
+and store it in `iap-review/native/` with the build number in the filename.
+
 Current sequence:
 
 1. A board you can read

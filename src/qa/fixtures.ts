@@ -4,6 +4,7 @@ import { availableMoves, freeTiles } from '../../packages/core/src/game/board';
 import { matchGroup } from '../../packages/core/src/game/tiles';
 import { startSession } from '../../packages/core/src/play/session';
 import { initialState, type ScreenId } from '../../packages/core/src/flow/screens';
+import { SHUFFLE_PRODUCT_ID, setConsumablePurchases } from '../iap';
 import { useGame } from '../state/store';
 
 export const QA_FIXTURE_IDS = [
@@ -38,6 +39,8 @@ export const QA_FIXTURE_IDS = [
   'S18-maintenance',
   'S19-theme-tiles',
   'S19-theme-backgrounds',
+  'S20-remove-ads',
+  'S20-shuffle-store',
 ] as const;
 
 export type QaFixtureId = (typeof QA_FIXTURE_IDS)[number];
@@ -218,6 +221,26 @@ export async function applyQaFixture(id: QaFixtureId): Promise<void> {
   if (id === 'S18-maintenance') {
     screen('home');
     useGame.setState({ announcement: 'Online services are temporarily unavailable. You can keep playing locally.' });
+  }
+  if (id === 'S20-remove-ads') {
+    gameplay(0);
+    useGame.setState((state) => ({
+      flow: { ...state.flow, screen: 'game_over' },
+      status: 'complete',
+      paywallOpen: true,
+      purchaseDisplayPrice: '$4.99',
+    }));
+  }
+  if (id === 'S20-shuffle-store') {
+    gameplay(0);
+    useGame.setState((state) => ({ inventory: { ...state.inventory, shuffle: 0 } }));
+    setConsumablePurchases({
+      product: async () => ({ productId: SHUFFLE_PRODUCT_ID, displayPrice: '$0.99' }),
+      purchase: async () => ({ status: 'cancelled' }),
+    });
+    globalThis.setTimeout(() => {
+      globalThis.document?.querySelector<HTMLButtonElement>('button[aria-label^="Shuffle"]')?.click();
+    }, 0);
   }
 }
 

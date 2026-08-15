@@ -62,8 +62,19 @@ describe('deterministic QA fixtures', () => {
       'S12-settings', 'S12-settings-large', 'S12-settings-offline',
       'S16-generic-offline', 'S17-generic-error', 'S18-maintenance',
       'S19-theme-tiles', 'S19-theme-backgrounds',
+      'S20-remove-ads', 'S20-shuffle-store',
     ] as const;
     for (const id of required) expect(QA_FIXTURE_IDS).toContain(id);
+  });
+
+  it('exposes truthful StoreKit review states with localized display prices', async () => {
+    await applyQaFixture('S20-remove-ads');
+    expect(useGame.getState().paywallOpen).toBe(true);
+    expect(useGame.getState().purchaseDisplayPrice).toBe('$4.99');
+
+    await applyQaFixture('S20-shuffle-store');
+    expect(useGame.getState().inventory.shuffle).toBe(0);
+    expect(useGame.getState().status).toBe('playing');
   });
 
   it('anchors both theme fixtures on home with approved local selections', async () => {
