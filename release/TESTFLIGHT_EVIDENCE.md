@@ -9,13 +9,13 @@ upload, an upload is not processing, and processing is not tester availability.
 | Field | Evidence |
 |---|---|
 | Marketing version | `1.0` |
-| Build number | `5` |
+| Build number | `6` |
 | Bundle ID | `com.nihi.mahjong` |
 | Apple app ID | `6800468742` |
-| Git commit | PR #10 head `93c70cc`; remains review-required and unmerged |
+| Git commit | PR #10 candidate `d97c1e3`; remains review-required and unmerged |
 | Working tree clean | Verified before release-evidence documentation on 2026-08-16 |
-| Archive path | `/tmp/MahjongBrain-build5.xcarchive` |
-| Archive verification command/output | `npm run ios:verify-archive -- /tmp/MahjongBrain-build5.xcarchive` passed: `com.nihi.mahjong` 1.0 (5), iPhone + iPad, required privacy and brand assets present |
+| Archive path | `/tmp/MahjongBrain-build6.xcarchive` |
+| Archive verification command/output | `npm run ios:verify-archive -- /tmp/MahjongBrain-build6.xcarchive` passed: `com.nihi.mahjong` 1.0 (6), iPhone + iPad, required privacy and brand assets present; compiled 120 px green-brain AppIcon visually checked |
 
 ## Configuration gates
 
@@ -74,12 +74,12 @@ Record device, OS, clean-install status, result, and screenshot/video path.
 
 | Stage | Evidence |
 |---|---|
-| Xcode archive completed | Verified for build 5 at `/tmp/MahjongBrain-build5.xcarchive` using Apple Distribution certificate SHA-1 `B4A70969B20667DC4878512311E6F263424FC871` and profile UUID `909cee20-780f-4d6e-af0c-fc2799cb130d` |
-| Upload completed | Verified in Xcode Organizer: build 5 `Uploaded to Apple`, 2026-08-16 08:02 HST; Google Mobile Ads and UMP missing-dSYM warnings were non-blocking |
-| App Store Connect processing completed | Verified: Build Uploads lists version 1.0 build 5 as `Complete` |
+| Xcode archive completed | Verified for build 6 at `/tmp/MahjongBrain-build6.xcarchive` using Apple Distribution certificate SHA-1 `B4A70969B20667DC4878512311E6F263424FC871` and profile UUID `909cee20-780f-4d6e-af0c-fc2799cb130d` |
+| Upload completed | Verified in Xcode Organizer: build 6 uploaded 2026-08-16 08:28 HST; Google Mobile Ads and UMP missing-dSYM warnings were non-blocking |
+| App Store Connect processing completed | Verified: Build Uploads lists version 1.0 build 6 as `Complete` |
 | Export compliance resolved | No blocking compliance prompt appeared; build proceeded to `Testing` |
 | Internal testing group assigned | Verified: `Mahjong Internal` |
-| Build available to internal testers | Verified: build 5 status `Testing`, expires in 90 days, 1 invite |
+| Build available to internal testers | Verified: build 6 status `Testing`, assigned to `Mahjong Internal`, expires in 90 days, 1 invite |
 | Clean TestFlight install launched | PENDING |
 | Onboarding-to-game smoke completed from TestFlight | PENDING |
 | Crash/console review | PENDING |
