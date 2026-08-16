@@ -103,7 +103,7 @@ verified current build is not attached yet.
 Remaining release gates are sandbox purchase/restore and rewarded-ad QA, final
 native QA, verifying the uploaded
 screenshots against the signed candidate, review/merge of PR #10, a fresh
-signed build-4 archive, upload, processing, TestFlight verification, and App
+signed build-5 archive, upload, processing, TestFlight verification, and App
 Review submission.
 
 On 2026-08-14, the Apple Developer App ID `com.nihi.mahjong` was updated to
@@ -154,6 +154,17 @@ regenerate the Game Center-capable profile, repeat the signed archive and upload
 from Xcode, and record the new archive and distribution events. An old organizer
 success dialog is not signing evidence for current source.
 
+Build 5 was prepared on 2026-08-15 from the current release branch. Production
+preflight, native synchronization, the production web build, and byte-for-byte
+native bundle verification passed. The managed-signing archive attempt failed
+before compilation with three authoritative errors: Xcode reported no usable
+account for command-line provisioning, the downloaded profile lacked Game
+Center, and it lacked `com.apple.developer.game-center`. Xcode lists three active
+Apple Distribution certificates as `Not in Keychain`, so one unavailable
+certificate must be explicitly revoked before a replacement identity and fresh
+Game Center-capable profile can be created. No build-5 archive or upload exists
+yet.
+
 ## Resume sequence
 
 1. Finish CI and external review, then approve and merge PR #10, recording the
@@ -163,7 +174,7 @@ success dialog is not signing evidence for current source.
    live verified.
 3. Build with the production URLs and product ID, run `npm run preflight`,
    `npm run ios:prepare`, and the full test suite.
-4. Confirm the iOS build number remains 4, archive the merged SHA, and run
+4. Confirm the iOS build number remains 5, archive the merged SHA, and run
    `npm run ios:verify-archive -- /path/to/archive.xcarchive`.
 5. Upload the verified archive. Record the archive path, SHA, version, build,
    Apple upload event, processing result, export-compliance result, internal
