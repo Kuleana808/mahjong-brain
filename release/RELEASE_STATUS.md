@@ -1,6 +1,6 @@
 # Release status
 
-Last verified: 2026-08-15 (HST)
+Last verified: 2026-08-16 08:02 HST
 
 This is the operational handoff for Mahjong Brain. It separates source,
 archive, upload, processing, and tester availability so an earlier green step
@@ -10,19 +10,20 @@ cannot be mistaken for a shipped build.
 
 | Stage | State | Evidence |
 |---|---|---|
-| Local source | verified | Branch `codex/build-mobile-shell`; current source through `1173ab8` passes all 333 tests, production preflight, native preparation, byte-for-byte native bundle verification, and the production build |
-| Committed | verified | `3e8cb52` keeps both sheet close controls visible and records Apple-sized IAP review screenshots; `d5a64f9` covers purchase-account and reward states |
-| Pushed | verified | Branch is published through `1173ab8` |
-| Pull request | open | PR #10; `check`, `original-art`, and `native-ios` all pass on `3e8cb52`; external review is still required |
+| Local source | verified | Branch `codex/build-mobile-shell`; build-5 candidate `93c70cc` passes all 333 tests, production preflight, native preparation, byte-for-byte native bundle verification, and the production build |
+| Committed | verified | Build-5 candidate is committed as `93c70cc` |
+| Pushed | verified | Branch is published through `93c70cc` |
+| Pull request | open | PR #10; `check`, `original-art`, and `native-ios` all pass on `93c70cc`; external review is still required |
 | Merged | not verified | PR #10 remains open and blocked on review |
 | Simulator build | verified | Build 4 compiles with Google Mobile Ads 13.7.0 and Google User Messaging Platform 3.1.0; production web and marketing builds pass |
 | Native iPhone QA | verified | Build installed and launched into gameplay on iPhone 17 Pro simulator; 144-tile board rendered |
 | Native iPad QA | verified | Clean install launched onboarding on iPad Pro 13-inch simulator |
 | Earlier archive | verified, stale | Xcode archive `Mahjong Brain 8-11-26, 11.02 AM.xcarchive`, version 1.0 build 2, bundle `com.nihi.mahjong` |
 | Earlier upload | verified, stale | Apple app ID `6800468742`; Xcode distribution record says build 2 uploaded successfully at 2026-08-11T21:05:49Z |
-| Current release archive | missing | Build 4 has not yet been signed and archived from the final merged SHA |
-| Processing | verified, stale | App Store Connect lists build 2 as `Testing`, expiring in 89 days |
-| Internal TestFlight | verified, stale | Build 2 is assigned to `Mahjong Internal`; App Store Connect shows 1 invite, 1 install, and 1 session |
+| Current release archive | verified, unmerged | `/tmp/MahjongBrain-build5.xcarchive`, version 1.0 build 5, bundle `com.nihi.mahjong`; `npm run ios:verify-archive` passed |
+| Upload | verified | Xcode Organizer shows build 5 `Uploaded to Apple` at 2026-08-16 08:02 HST; only Google Mobile Ads and UMP third-party dSYM warnings were reported |
+| Processing | verified | App Store Connect build uploads lists version 1.0 build 5 as `Complete` |
+| Internal TestFlight | verified | Build 5 is `Testing`, assigned to `Mahjong Internal`, expires in 90 days, and shows 1 invite |
 | External tester group | not verified | No tester-group evidence captured |
 
 Build 1 is not a candidate. Its Xcode upload record failed with Apple error
@@ -100,11 +101,11 @@ screenshots for both `com.nihi.mahjong.removeads` and
 remain **Prepare for Submission** and have not been added to review because a
 verified current build is not attached yet.
 
-Remaining release gates are sandbox purchase/restore and rewarded-ad QA, final
-native QA, verifying the uploaded
-screenshots against the signed candidate, review/merge of PR #10, a fresh
-signed build-5 archive, upload, processing, TestFlight verification, and App
-Review submission.
+Remaining release gates are a clean-device TestFlight smoke, sandbox
+purchase/restore and rewarded-ad QA, final native QA, verifying the uploaded
+screenshots against the signed candidate, review/merge of PR #10, and App
+Review submission. Build 5 is available to the internal TestFlight group; that
+does not establish App Store submission or public availability.
 
 On 2026-08-14, the Apple Developer App ID `com.nihi.mahjong` was updated to
 enable Game Center after the first build-4 archive attempt proved that the
@@ -154,16 +155,15 @@ regenerate the Game Center-capable profile, repeat the signed archive and upload
 from Xcode, and record the new archive and distribution events. An old organizer
 success dialog is not signing evidence for current source.
 
-Build 5 was prepared on 2026-08-15 from the current release branch. Production
-preflight, native synchronization, the production web build, and byte-for-byte
-native bundle verification passed. The managed-signing archive attempt failed
-before compilation with three authoritative errors: Xcode reported no usable
-account for command-line provisioning, the downloaded profile lacked Game
-Center, and it lacked `com.apple.developer.game-center`. Xcode lists three active
-Apple Distribution certificates as `Not in Keychain`, so one unavailable
-certificate must be explicitly revoked before a replacement identity and fresh
-Game Center-capable profile can be created. No build-5 archive or upload exists
-yet.
+Build 5 was prepared from `93c70cc`. A replacement Apple Distribution identity
+and explicit Game Center-capable App Store profile were created, the archive
+completed at `/tmp/MahjongBrain-build5.xcarchive`, and archive verification
+passed for `com.nihi.mahjong` version 1.0 build 5. Xcode Organizer uploaded the
+archive at 2026-08-16 08:02 HST. App Store Connect subsequently marked the
+upload `Complete` and build 5 `Testing` in `Mahjong Internal`. The upload emitted
+non-blocking missing-dSYM warnings for GoogleMobileAds.framework and
+UserMessagingPlatform.framework; symbolication coverage for crashes in those
+third-party frameworks is therefore limited.
 
 ## Resume sequence
 
