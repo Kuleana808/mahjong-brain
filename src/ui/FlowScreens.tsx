@@ -37,6 +37,12 @@ function ScreenFrame({ children, className = '' }: { children: ReactNode; classN
   return <main className={`flow-screen ${className}`}>{children}</main>;
 }
 
+export function loadingShouldRemainParked(search: string, isDevelopment: boolean): boolean {
+  if (!isDevelopment) return false;
+  const fixture = new URLSearchParams(search).get('qa');
+  return fixture === 'S03-loading' || fixture === 'S03-loading-offline';
+}
+
 type LegalDocument = 'terms' | 'privacy';
 
 function LegalDocumentDialog({ document, onClose }: { document: LegalDocument; onClose: () => void }) {
@@ -126,7 +132,10 @@ export function LoadingScreen() {
   const dispatch = useGame((s) => s.dispatchFlow);
   const announcement = useGame((s) => s.announcement);
   useEffect(() => {
-    if (import.meta.env.DEV && new URLSearchParams(window.location.search).has('qa')) return;
+    // Only the two deliberate loading-screen fixtures stay parked for visual
+    // capture. A stray or invalid `?qa` query must never trap a debug build on
+    // a progress bar that cannot complete.
+    if (loadingShouldRemainParked(window.location.search, import.meta.env.DEV)) return;
     const id = window.setTimeout(() => dispatch({ type: 'loading_finished' }), 900);
     return () => window.clearTimeout(id);
   }, [dispatch]);
