@@ -512,8 +512,8 @@ a:focus-visible {
 .result-card h1 { font-size: 3rem; }
 .result-card p { color: #4e5c4c; }
 .result-card .result-message { margin: 14px 0 2px; color: var(--color-danger); font-weight: 700; }
-.purchase-message { margin: 4px 0 12px; padding: 10px 12px; border-radius: 10px; background: color-mix(in srgb, var(--color-success) 12%, transparent); color: var(--ink-900); font-weight: 700; }
-.purchase-message--error { border: 1px solid color-mix(in srgb, var(--color-danger) 38%, transparent); background: color-mix(in srgb, var(--color-danger) 10%, transparent); color: var(--color-danger); }
+.purchase-message { margin: 4px 0 12px; padding: 10px 12px; border-radius: 10px; background: color-mix(in srgb, var(--color-success) 12%, var(--ivory-200)); color: var(--ink-900); font-weight: 700; }
+.purchase-message--error { border: 1px solid color-mix(in srgb, var(--color-danger) 38%, transparent); background: color-mix(in srgb, var(--color-danger) 10%, var(--ivory-200)); color: var(--color-danger); }
 .transaction-banner { position: fixed; z-index: 90; left: 50%; bottom: max(22px, env(safe-area-inset-bottom)); display: flex; align-items: center; gap: 12px; width: min(calc(100% - 32px), 430px); padding: 12px 14px; border: 1px solid var(--amber-500); border-radius: 14px; background: var(--cream-50); color: var(--ink-900); box-shadow: var(--shadow-3); transform: translateX(-50%); }
 .transaction-banner span { flex: 1; font-weight: 750; }
 .transaction-banner button { min-width: 64px; min-height: 44px; border: 0; border-radius: 10px; background: var(--jade-800); color: var(--cream-50); font-weight: 800; }
@@ -1266,4 +1266,28 @@ a:focus-visible {
   font-weight: 800;
   font-size: calc(1.02rem * var(--font-scale));
   letter-spacing: 0.02em;
+}
+
+/* Sticky action footer inside a scrolling card.
+   `.card` caps at min(90dvh, 780px) and scrolls. When content grows — a
+   purchase-error paragraph is enough — the actions fell below the visible box
+   and the card showed no sign it scrolled, so the dismiss button was
+   effectively missing. Pinning the actions keeps them reachable at any content
+   length. The background matches the card so scrolled content cannot show
+   through behind them. */
+.card__actions {
+  position: sticky;
+  bottom: -28px;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 4px -24px -28px;
+  padding: 12px 24px 28px;
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 249, 233, 0) 0%,
+    var(--ivory-200) 8%,
+    var(--ivory-200) 100%
+  );
 }
