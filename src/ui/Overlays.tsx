@@ -134,21 +134,37 @@ export function Paywall() {
         <li>Restore this purchase on another Apple device</li>
       </ul>
 
-      {purchaseMessage ? (
-        <p className={purchaseError ? 'purchase-message purchase-message--error' : 'purchase-message'} role={purchaseError ? 'alert' : 'status'}>
-          {purchaseMessage}
-        </p>
-      ) : null}
-
-      <button type="button" className="button" disabled={pending !== null || !displayPrice} onClick={() => void buy()}>
-        {pending === 'buying' ? 'Contacting Apple…' : displayPrice ? `Unlock for ${displayPrice}` : 'Try again later'}
-      </button>
-      <button type="button" className="button button--quiet" disabled={pending !== null} onClick={() => void restore()}>
-        {pending === 'restoring' ? 'Checking with Apple…' : 'Restore purchase'}
-      </button>
-      <button type="button" className="button button--quiet" disabled={pending !== null} onClick={close}>
-        Not now
-      </button>
+      {/* The actions stick to the bottom of the scrolling card.
+          `.card` is `overflow-y: auto` capped at `min(90dvh, 780px)`, and when
+          a purchase error adds a paragraph the content grows past that cap. On
+          a 375x812 phone that pushed "Not now" to y 760-808 against a card
+          whose visible box ended at 771 — the dismiss action sat below the fold
+          of a card with no scroll affordance, so the one button a player needs
+          after a failed purchase was invisible. Sticky keeps every action
+          reachable no matter how long the copy above them gets. */}
+      <div className="card__actions">
+        {/* The message rides WITH the actions rather than above them. Left in
+            the scrolling body it was covered by this sticky footer and cut off
+            mid-sentence — and the one thing a player needs after a failed
+            purchase is to read why and then choose what to do. */}
+        {purchaseMessage ? (
+          <p
+            className={purchaseError ? 'purchase-message purchase-message--error' : 'purchase-message'}
+            role={purchaseError ? 'alert' : 'status'}
+          >
+            {purchaseMessage}
+          </p>
+        ) : null}
+        <button type="button" className="button" disabled={pending !== null || !displayPrice} onClick={() => void buy()}>
+          {pending === 'buying' ? 'Contacting Apple…' : displayPrice ? `Unlock for ${displayPrice}` : 'Try again later'}
+        </button>
+        <button type="button" className="button button--quiet" disabled={pending !== null} onClick={() => void restore()}>
+          {pending === 'restoring' ? 'Checking with Apple…' : 'Restore purchase'}
+        </button>
+        <button type="button" className="button button--quiet" disabled={pending !== null} onClick={close}>
+          Not now
+        </button>
+      </div>
     </Overlay>
   );
 }
