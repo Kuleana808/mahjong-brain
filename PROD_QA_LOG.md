@@ -145,6 +145,53 @@ effect** (0.022 vs 0.020). Now 0.016, and a test enforces the ordering.
 | Music quieter than effects | | **PASS** — enforced by test |
 | Hum gone on a real device | | **NOT TESTED — no device paired** |
 
+## UI defect sweep (2026-09-02)
+
+> Brent: "still sees UI defects", without a list yet.
+
+Screenshotting 49 fixtures on two devices is ~100 images and a poor way to find
+truncation, hit areas or contrast — those are measurable. `npm run ui:sweep`
+drives CDP over every QA fixture at iPhone (393x852 @3x) and iPad (1032x1376
+@2x) and reports overflow, clipped text, sub-44pt targets, WCAG contrast,
+placeholder strings, broken or low-res images, and modals with no exit.
+
+### Result: the automated sweep found ZERO genuine defects
+
+98 page-states measured. Every one of the 242 raw findings was a probe bug, and
+all three classes are now suppressed with the reason recorded in the script:
+
+| raw class | count | verdict |
+|---|---:|---|
+| `safe-area-top` / `safe-area-bottom` | 231 | **False positive.** A headless browser reports `env(safe-area-inset-*)` as 0, so every element near an edge looks like a violation. The shell pads all four insets (`app.css:168`), `viewport-fit=cover` is deliberate, and the simulator screenshot shows the top bar below the status bar. Safe-area is a simulator check, and the check was removed. |
+| `text-clipped` / `text-clipped-y` | 6 | **False positive.** All six are `class="visually-hidden"`, `clip-path: inset(50%)`, `aria-live="polite"`, 1x1px — correct screen-reader live regions. Now skipped. |
+| `progress-visible` | 5 | **Informational.** The loading bar and the home level bar are both legitimately present. Narrowed to `aria-busy="true"` only. |
+| `contrast` | 0 after fix | The first run reported the win card as failing at 1.50:1. That was a probe bug: it read only `background-color` and walked past a card painted with a `linear-gradient` onto the dark scrim behind it. Real ratio is ~11:1. Fixed to read gradient stops. |
+
+**What that means.** The measurable defect classes are clean. Every real defect
+found today came from looking at screens and interacting with them, not from
+static measurement — which is worth knowing about where to spend future effort.
+
+### Real defects found, by inspection
+
+| # | Defect | Severity | Status |
+|---|---|---|---|
+| U1 | **Paywall dismiss unreachable after a failed purchase.** The error paragraph pushes content past the card's `min(90dvh, 780px)` cap; "Not now" rendered at y 760-808 against a visible box ending at 771. `elementFromPoint` at the button's own centre returned `DIV.overlay`. Error state only. | **Blocker** | **FIXED** — PR #25, actions pinned in a sticky footer |
+| U2 | **Levelling up was completely invisible.** No level-up UI existed anywhere in `src/ui/`. XP moved, the level changed, nothing said so. | **High** | **FIXED** — PR #24, result screen shows the bar and a "Level N reached" line |
+| U3 | **Level bar could caption "0 XP to Level 2".** `homeLevelBar` trusted the caller's level instead of deriving it from XP; when they disagreed it rendered an empty bar with a nonsense caption, and announced a self-contradicting `aria-valuetext`. | **High** | **FIXED** — PR #24, level derived from XP |
+| U4 | **Shuffle at zero is labelled by state, not action.** `aria-label="Shuffle, 0 available"` while tapping opens the purchase sheet. Sighted players see a badge; screen-reader users are told a count and nothing about the action changing. | Medium | Punch list |
+| U5 | **Win screen shows no XP gained.** It now shows progress toward the next level, but never says how much this board earned. | Low | Punch list |
+
+Two of the three fixes were themselves verified by hit test rather than by eye,
+because U1 proves a screenshot can look correct while a control is untappable.
+
+### Competitor comparison — not done as specified
+
+There are no Vita Mahjong **screenshots** in the repo, only a written parity
+audit (`docs/VITA_LIVE_PARITY_AUDIT_2026-08-13.md`). Its open gaps are product
+scope rather than UI defects: rewarded Hint/Revive providers, the consumable
+shuffle ledger, daily-reward UI, and production tile/background theme sets. A
+visual side-by-side needs reference captures that do not exist here.
+
 ## Risks and what was not tested
 
 1. **No physical device.** `xcrun devicectl list devices` reports none paired,
