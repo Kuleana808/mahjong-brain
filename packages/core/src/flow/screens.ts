@@ -23,6 +23,7 @@ import type { EventName } from '../telemetry/events';
 export type ScreenId =
   | 'tos'
   | 'age_gate'
+  | 'age_blocked'
   | 'loading'
   | 'tutorial_a'
   | 'tutorial_b'
@@ -37,10 +38,32 @@ export type ScreenId =
  * Only the gates live here. Board state, level and IQ live elsewhere — this is
  * "what has this person already been through", nothing more.
  */
+/**
+ * The three answers the age screen offers.
+ *
+ * `under_13` is the only one that stops play. `13_17` plays the full game but
+ * is treated as a minor for anything age-restricted (see `isMinor`).
+ */
+export type AgeBand = 'under_13' | '13_17' | '18_plus';
+
 export interface FlowProgress {
   readonly tosAcceptedAt: string | null;
-  /** Null until answered. False is accepted as a legacy answered value. */
+  /**
+   * LEGACY. Null until answered, false accepted as an answered value.
+   *
+   * Retained and still honoured on read because installs exist in the wild
+   * that persisted `false` back when the prompt was demographic and could not
+   * block. Those players were deliberately un-blocked; re-reading `false` as
+   * "under 13" would lock them out of a game they already had. New answers go
+   * to `ageBand` and `agePassed` is written alongside only for rollback.
+   */
   readonly agePassed: boolean | null;
+  /**
+   * The answered band, or null for never-answered AND for legacy installs
+   * that only ever wrote `agePassed`. Grandfathering is handled in
+   * `resumeScreen`, not here.
+   */
+  readonly ageBand: AgeBand | null;
   /** Highest tutorial screen completed, or null if never started. */
   readonly tutorialCompleted: 'tutorial_a' | 'tutorial_b' | 'tutorial_c' | null;
   readonly tutorialSkipped: boolean;
@@ -50,6 +73,7 @@ export interface FlowProgress {
 export const INITIAL_PROGRESS: FlowProgress = {
   tosAcceptedAt: null,
   agePassed: null,
+  ageBand: null,
   tutorialCompleted: null,
   tutorialSkipped: false,
   boardsCompleted: 0,
@@ -58,7 +82,7 @@ export const INITIAL_PROGRESS: FlowProgress = {
 export type FlowAction =
   | { type: 'launch' }
   | { type: 'accept_tos'; at: string }
-  | { type: 'answer_age_gate'; passed: boolean }
+  | { type: 'answer_age_gate'; band: AgeBand }
   | { type: 'loading_finished' }
   | { type: 'tutorial_step_done'; step: 'tutorial_a' | 'tutorial_b' | 'tutorial_c' }
   | { type: 'skip_tutorial' }
@@ -72,7 +96,11 @@ export type FlowAction =
 export interface FlowState {
   readonly screen: ScreenId;
   readonly progress: FlowProgress;
-  /** Deprecated compatibility field. The shipped age prompt never blocks play. */
+  /**
+   * True only when this install answered `under_13`. Sticky across relaunch:
+   * a neutral age screen that can be retried is not a gate. Reinstalling
+   * clears it, which is the standard and deliberate recovery path.
+   */
   readonly ageBlocked: boolean;
 }
 
@@ -85,7 +113,16 @@ export interface FlowState {
  */
 export function resumeScreen(progress: FlowProgress): ScreenId {
   if (!progress.tosAcceptedAt) return 'tos';
-  if (progress.agePassed === null) return 'age_gate';
+  // Under 13 is terminal and survives relaunch.
+  if (progress.ageBand === 'under_13') return 'age_blocked';
+  // Never answered at all. A legacy install that only wrote `agePassed` is
+  // NOT re-prompted and NOT blocked — see the field comment on `agePassed`.
+  //
+  // Loose equality is deliberate: this progress object is rehydrated from JSON
+  // written by older builds, where these keys are ABSENT rather than null. A
+  // strict `=== null` would read `undefined` as "answered" and skip the gate
+  // for someone who had never seen it.
+  if (progress.ageBand == null && progress.agePassed == null) return 'age_gate';
   if (progress.tutorialSkipped) return 'home';
 
   switch (progress.tutorialCompleted) {
@@ -100,6 +137,17 @@ export function resumeScreen(progress: FlowProgress): ScreenId {
   }
 }
 
+/**
+ * Whether anything age-restricted should be suppressed for this install.
+ *
+ * True for 13-17. Under 13 never reaches a screen that could show an ad, so it
+ * is not the interesting case here. A legacy install with no band is treated
+ * as an adult, matching how it has already been running.
+ */
+export function isMinor(progress: FlowProgress): boolean {
+  return progress.ageBand === '13_17';
+}
+
 export function initialState(progress: FlowProgress = INITIAL_PROGRESS): FlowState {
   // A first-ever launch goes through loading before the tutorial; a resume does
   // not, because the loading screen exists to cover the first-run setup.
@@ -107,7 +155,7 @@ export function initialState(progress: FlowProgress = INITIAL_PROGRESS): FlowSta
   return {
     screen: resume,
     progress,
-    ageBlocked: false,
+    ageBlocked: progress.ageBand === 'under_13',
   };
 }
 
@@ -126,10 +174,16 @@ export function reduce(state: FlowState, action: FlowAction): FlowState {
 
     case 'answer_age_gate': {
       if (state.screen !== 'age_gate') return state;
-      // `passed` is a legacy action field. Every displayed range is optional
-      // demographic context and must advance into local play.
-      const next = { ...progress, agePassed: action.passed };
-      return { ...state, progress: next, ageBlocked: false, screen: 'loading' };
+      const blocked = action.band === 'under_13';
+      // `agePassed` is written alongside the band purely so a rollback to the
+      // previous build still sees an answered gate rather than re-prompting.
+      const next = { ...progress, ageBand: action.band, agePassed: !blocked };
+      return {
+        ...state,
+        progress: next,
+        ageBlocked: blocked,
+        screen: blocked ? 'age_blocked' : 'loading',
+      };
     }
 
     case 'loading_finished': {
@@ -199,7 +253,7 @@ export function eventsFor(action: FlowAction, before: FlowState, after: FlowStat
       events.push('tos_accepted');
       break;
     case 'answer_age_gate':
-      events.push(action.passed ? 'age_gate_passed' : 'age_gate_failed');
+      events.push(action.band === 'under_13' ? 'age_gate_failed' : 'age_gate_passed');
       break;
     case 'tutorial_step_done':
       events.push('tutorial_step_completed');

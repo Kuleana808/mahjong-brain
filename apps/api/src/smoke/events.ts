@@ -54,7 +54,7 @@ function collectEvents(): { events: ClientEvent[]; covered: Set<EventName> } {
   let flow: FlowState = initialState();
   const script: FlowAction[] = [
     { type: 'accept_tos', at: AT() },
-    { type: 'answer_age_gate', passed: true },
+    { type: 'answer_age_gate', band: '18_plus' },
     { type: 'loading_finished' },
     { type: 'tutorial_step_done', step: 'tutorial_a' },
     { type: 'tutorial_step_done', step: 'tutorial_b' },

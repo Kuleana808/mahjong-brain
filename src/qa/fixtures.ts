@@ -64,6 +64,7 @@ export type QaFixtureId = (typeof QA_FIXTURE_IDS)[number];
 const completedProgress = {
   tosAcceptedAt: '2026-08-10T00:00:00.000Z',
   agePassed: true,
+  ageBand: '18_plus' as const,
   tutorialCompleted: 'tutorial_c' as const,
   tutorialSkipped: false,
   boardsCompleted: 0,

@@ -14,7 +14,7 @@ interface NativeAdStatus {
 }
 
 interface NativeAds {
-  configure(): Promise<NativeAdStatus>;
+  configure(options: { underAgeOfConsent: boolean }): Promise<NativeAdStatus>;
   showRewarded(options: { placement: RewardedPlacement }): Promise<NativeAdResult>;
   showInterstitial(): Promise<NativeAdResult>;
   showPrivacyOptions(): Promise<void>;
@@ -28,10 +28,27 @@ export interface Ads {
 
 const native = registerPlugin<NativeAds>('MahjongAds');
 let configured: Promise<boolean> | null = null;
+let underAgeOfConsent = false;
+
+/**
+ * Records the age-gate answer for the ad stack.
+ *
+ * Must be called before the first ad request. Ads are non-personalized for
+ * every player regardless; this adds the under-age-of-consent signal Google
+ * expects for a self-declared 13-17 player, and it also decides which consent
+ * form the UMP SDK presents. Calling it after `configure()` has already run
+ * cannot retroactively change that form, so the store sets it during hydrate.
+ */
+export const setUnderAgeOfConsent = (value: boolean): void => {
+  underAgeOfConsent = value;
+};
 
 const configure = async (): Promise<boolean> => {
   if (!Capacitor.isNativePlatform() || Capacitor.getPlatform() !== 'ios') return false;
-  configured ??= native.configure().then((status) => status.configured && status.canRequestAds).catch(() => false);
+  configured ??= native
+    .configure({ underAgeOfConsent })
+    .then((status) => status.configured && status.canRequestAds)
+    .catch(() => false);
   return configured;
 };
 
