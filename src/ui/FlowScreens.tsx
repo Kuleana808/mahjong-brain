@@ -118,9 +118,12 @@ export function AgeScreen() {
       <section className="jade-panel">
         <h1>Welcome!</h1>
         <p>Could you share your age to improve our game experience?</p>
+        {/* Ranges must not overlap: a reader who is exactly 35 or 55 had two
+            valid answers before, which reads as carelessness on the first
+            screen of the app. The bands are otherwise unchanged. */}
         <div className="age-options" aria-label="Age range">
-          <button type="button" className="ivory-button" onClick={choose}>0–35</button>
-          <button type="button" className="ivory-button" onClick={choose}>35–55</button>
+          <button type="button" className="ivory-button" onClick={choose}>0–34</button>
+          <button type="button" className="ivory-button" onClick={choose}>35–54</button>
           <button type="button" className="ivory-button" onClick={choose}>55+</button>
         </div>
       </section>
