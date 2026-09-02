@@ -29,6 +29,7 @@ import { randomSeed } from '../../packages/core/src/game/rng';
 import {
   INITIAL_PROGRESSION,
   normalizeProgression,
+  leveledUp,
   recordBoard,
   type Progression,
 } from '../../packages/core/src/progression/progression';
@@ -1049,6 +1050,14 @@ export const useGame = create<GameStore>((set, get) => {
       // already paid. Not before a board, not mid-board, not on a timer.
       paywallOpen: shouldOpenPaywall,
     });
+    // The level-up sparkle, after the win sound rather than on top of it, so
+    // the two read as a sequence instead of a clash.
+    if (leveledUp(progression, nextProgression)) {
+      // Plain setTimeout, not window.setTimeout: the store also runs under Node
+      // in tests, where there is no window. playSound is already a no-op there.
+      setTimeout(() => playSound('level-up', get().settings.sounds), 520);
+    }
+
     if (completed) {
       void reportGameCenterProgress({
         boardsCleared: total,

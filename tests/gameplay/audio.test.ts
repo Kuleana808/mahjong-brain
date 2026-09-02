@@ -54,6 +54,14 @@ class FakeGain extends FakeNode {
   gain = new FakeParam();
 }
 
+class FakeBufferSource extends FakeNode {
+  buffer: unknown = null;
+  started: number | null = null;
+  stopped: number | null = null;
+  start = vi.fn((t = 0) => { this.started = t; });
+  stop = vi.fn((t = 0) => { this.stopped = t; });
+}
+
 class FakeAudioContext {
   static instances: FakeAudioContext[] = [];
   state: 'running' | 'suspended' = 'running';
@@ -65,7 +73,15 @@ class FakeAudioContext {
 
   constructor() { FakeAudioContext.instances.push(this); }
 
+  sources: FakeBufferSource[] = [];
+
   createOscillator() { const o = new FakeOscillator(); this.oscillators.push(o); return o; }
+  createBuffer(_ch: number, frames: number) {
+    const data = new Float32Array(frames);
+    return { getChannelData: () => data, length: frames };
+  }
+  createBufferSource() { const s = new FakeBufferSource(); this.sources.push(s); return s; }
+  get sampleRate() { return 44100; }
   createGain() { const g = new FakeGain(); this.gains.push(g); return g; }
   createBiquadFilter() { return Object.assign(new FakeNode(), { type: '', frequency: new FakeParam() }); }
 
@@ -84,6 +100,7 @@ function installAudioEnvironment(): void {
     addEventListener: vi.fn(),
     removeEventListener: vi.fn(),
     setTimeout: (fn: () => void, ms?: number) => setTimeout(fn, ms),
+    clearTimeout: (id: number) => clearTimeout(id),
   });
   vi.stubGlobal('document', {
     visibilityState: 'visible',
@@ -126,14 +143,14 @@ describe('sound coverage', () => {
       fresh.playSound(sound);
 
       const context = ctx();
-      expect({ sound, oscillators: context.oscillators.length > 0 }).toEqual({
-        sound,
-        oscillators: true,
-      });
+      // A sound may be tones, noise, or both — `shuffle` is noise only, because
+      // sliding tiles are not a pitch.
+      const voices = context.oscillators.length + context.sources.length;
+      expect({ sound, voices: voices > 0 }).toEqual({ sound, voices: true });
       // Every oscillator is both started and scheduled to stop — an oscillator
       // that is started and never stopped is a stuck tone.
-      for (const osc of context.oscillators) {
-        expect({ sound, started: osc.started !== null, stopped: osc.stopped !== null }).toEqual({
+      for (const voice of [...context.oscillators, ...context.sources]) {
+        expect({ sound, started: voice.started !== null, stopped: voice.stopped !== null }).toEqual({
           sound,
           started: true,
           stopped: true,
@@ -195,15 +212,17 @@ describe('layering', () => {
     const { playSound } = await import('../../src/audio/sounds');
 
     playSound('tile');
-    const afterFirst = ctx().oscillators.length;
+    const afterFirst = ctx().oscillators.length + ctx().sources.length;
     playSound('tile');
     playSound('tile');
 
     // Each tap builds a fresh oscillator/gain pair, so overlapping taps mix
     // instead of stealing one shared node. Dropped or clipped taps would show
     // up here as a flat count.
-    expect(ctx().oscillators.length).toBe(afterFirst * 3);
-    for (const osc of ctx().oscillators) expect(osc.stop).toHaveBeenCalled();
+    expect(ctx().oscillators.length + ctx().sources.length).toBe(afterFirst * 3);
+    for (const voice of [...ctx().oscillators, ...ctx().sources]) {
+      expect(voice.stop).toHaveBeenCalled();
+    }
   });
 });
 
@@ -229,18 +248,19 @@ describe('mute', () => {
     expect(ctx().oscillators.length).toBeGreaterThan(0);
   });
 
-  it('stops ambient music when music is switched off', async () => {
+  it('schedules no further notes once music is switched off', async () => {
     const { setAmbientMusicEnabled } = await import('../../src/audio/sounds');
 
     setAmbientMusicEnabled(true);
-    const running = ctx().oscillators.filter((o) => o.started !== null).length;
-    expect(running).toBeGreaterThan(0);
+    const whilePlaying = ctx().oscillators.length;
+    expect(whilePlaying).toBeGreaterThan(0);
 
     setAmbientMusicEnabled(false);
-    // The music gain is ramped to near-silence rather than cut, so there is no
-    // click on the way out.
-    const targets = ctx().gains.flatMap((g) => g.gain.events).filter(([k]) => k === 'target');
-    expect(targets.length).toBeGreaterThan(0);
+    // Nothing to fade: the bed is discrete struck notes that decay on their
+    // own, so switching it off simply stops scheduling. The old drone had to be
+    // ramped down because it would otherwise have played forever.
+    const after = ctx().oscillators.length;
+    expect(after).toBe(whilePlaying);
   });
 });
 

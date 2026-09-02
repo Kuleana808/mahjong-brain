@@ -1,26 +1,42 @@
 /**
  * Original, synthesized game sounds.
  *
- * The short envelopes make the feedback feel like ceramic and wood without
- * shipping borrowed samples or turning a calm game into a slot machine. Audio
- * is created lazily from the player's first gesture and every failure is a
- * silent no-op, so sound can never block gameplay.
+ * Every sound is described in `spec.ts` as data; this file is only the part
+ * that talks to WebAudio. Audio is created lazily from the player's first
+ * gesture and every failure is a silent no-op, so sound can never block
+ * gameplay.
+ *
+ * ── Why the ambient bed works the way it does ─────────────────────────────
+ *
+ * Brent, 2026-09-02: "there is a hum for the sound in the app that isn't
+ * pleasant".
+ *
+ * The previous ambient bed was three oscillators at 146.83 / 220 / 293.66 Hz,
+ * started once and never stopped or modulated, under a 920 Hz lowpass. That is
+ * a sustained low chord playing forever — the acoustic definition of a hum. It
+ * was not music with a defect; the "music" WAS the hum.
+ *
+ * It is now a slow sequence of struck bell tones, one every few seconds, each
+ * decaying to silence before the next. Nothing sustains, so nothing can drone,
+ * and the space between notes is what makes it read as calm rather than as a
+ * tone. Enforced by test: no sound in the game contains a partial below 180 Hz,
+ * and the rendered bed has no sustained low-frequency energy.
  */
 
-export type GameSound =
-  | 'tile'
-  | 'blocked'
-  | 'match'
-  | 'holder-warning'
-  | 'shuffle'
-  | 'undo'
-  | 'hint'
-  | 'win'
-  | 'holder-full';
+import {
+  AMBIENT_INTERVAL_SECONDS,
+  ambientNote,
+  SOUND_SPECS,
+  type GameSound,
+  type SoundSpec,
+} from './spec';
+
+export type { GameSound } from './spec';
 
 let context: AudioContext | null = null;
 let musicEnabled = false;
-let musicNodes: { oscillators: OscillatorNode[]; gain: GainNode } | null = null;
+let ambientTimer: number | null = null;
+let ambientIndex = 0;
 let gestureListenerInstalled = false;
 
 function audioContext(): AudioContext | null {
@@ -32,71 +48,144 @@ function audioContext(): AudioContext | null {
   return context;
 }
 
-function stopAmbientMusic(): void {
-  if (!musicNodes) return;
-  const active = musicNodes;
-  musicNodes = null;
-  const now = context?.currentTime ?? 0;
-  active.gain.gain.cancelScheduledValues(now);
-  active.gain.gain.setTargetAtTime(0.0001, now, 0.18);
-  window.setTimeout(() => active.oscillators.forEach((oscillator) => oscillator.stop()), 900);
+/**
+ * A short burst of band-limited noise.
+ *
+ * This is what makes a tile tap sound like wood rather than like a beep. The
+ * buffer is generated per burst; they are short enough that caching would save
+ * nothing worth the added state.
+ */
+function noiseBurst(
+  ctx: AudioContext,
+  at: number,
+  duration: number,
+  peak: number,
+  cutoff: number,
+  attack: number,
+): void {
+  const frames = Math.max(1, Math.ceil(duration * ctx.sampleRate));
+  const buffer = ctx.createBuffer(1, frames, ctx.sampleRate);
+  const data = buffer.getChannelData(0);
+  // Mean-zero noise. A biased source would put a DC offset into the output,
+  // which is inaudible on its own but wastes headroom and can thump on cheap
+  // speakers when it starts and stops.
+  for (let i = 0; i < frames; i += 1) data[i] = Math.random() * 2 - 1;
+
+  const source = ctx.createBufferSource();
+  source.buffer = buffer;
+
+  const filter = ctx.createBiquadFilter();
+  filter.type = 'lowpass';
+  filter.frequency.value = cutoff;
+
+  // Everything is high-passed at 150 Hz on the way out. Nothing in the game is
+  // supposed to have energy down there, and this is the backstop that keeps a
+  // future sound from reintroducing the hum.
+  const highpass = ctx.createBiquadFilter();
+  highpass.type = 'highpass';
+  highpass.frequency.value = 150;
+
+  const gain = ctx.createGain();
+  gain.gain.setValueAtTime(0.0001, at);
+  gain.gain.exponentialRampToValueAtTime(peak, at + attack);
+  gain.gain.exponentialRampToValueAtTime(0.0001, at + duration);
+
+  source.connect(filter).connect(highpass).connect(gain).connect(ctx.destination);
+  source.start(at);
+  source.stop(at + duration + 0.02);
 }
 
-/**
- * Resume a context the platform suspended, then start.
- *
- * `AudioContext.resume()` is ASYNCHRONOUS. The previous version called
- * `audioContext()` (which fires resume) and then immediately bailed on
- * `state !== 'running'` — so returning from the background, or coming back from
- * a phone call, left the music silently dead until something else happened to
- * restart it. That is the "audio goes weird after a while" symptom.
- */
-function startAmbientMusic(): void {
-  if (!musicEnabled || musicNodes || document.visibilityState === 'hidden') return;
+function tone(
+  ctx: AudioContext,
+  freq: number,
+  wave: OscillatorType,
+  at: number,
+  duration: number,
+  peak: number,
+  attack: number,
+): void {
+  const oscillator = ctx.createOscillator();
+  const gain = ctx.createGain();
+  oscillator.type = wave;
+  oscillator.frequency.setValueAtTime(freq, at);
+  gain.gain.setValueAtTime(0.0001, at);
+  gain.gain.exponentialRampToValueAtTime(peak, at + attack);
+  gain.gain.exponentialRampToValueAtTime(0.0001, at + duration);
+  oscillator.connect(gain).connect(ctx.destination);
+  oscillator.start(at);
+  // Always stopped. A started oscillator with no stop is a tone that never
+  // ends, which is how the old ambient bed became a hum.
+  oscillator.stop(at + duration + 0.02);
+}
+
+function render(ctx: AudioContext, spec: SoundSpec, startAt: number): void {
+  for (const p of spec.partials) {
+    tone(ctx, p.freq, p.wave, startAt + p.at, p.duration, p.peak, p.attack ?? 0.006);
+  }
+  for (const n of spec.noise ?? []) {
+    noiseBurst(ctx, startAt + n.at, n.duration, n.peak, n.cutoff, n.attack ?? 0.002);
+  }
+}
+
+export function playSound(sound: GameSound, enabled = true): void {
+  if (!enabled) return;
+  try {
+    const ctx = audioContext();
+    if (!ctx) return;
+    render(ctx, SOUND_SPECS[sound], ctx.currentTime + 0.004);
+  } catch {
+    // Audio availability and permissions never affect the play loop.
+  }
+}
+
+function stopAmbientMusic(): void {
+  if (ambientTimer !== null) {
+    window.clearTimeout(ambientTimer);
+    ambientTimer = null;
+  }
+  // Notes already scheduled decay to silence on their own within a few
+  // seconds. There is nothing sustaining to cut off.
+}
+
+function scheduleNextAmbientNote(): void {
+  if (!musicEnabled || typeof window === 'undefined') return;
+  if (document.visibilityState === 'hidden') return;
+
   const ctx = audioContext();
   if (!ctx) return;
   if (ctx.state !== 'running') {
+    // resume() is asynchronous. Bailing here without retrying is what left the
+    // bed silent after a phone call or a trip to the background.
     void ctx
       .resume()
       .then(() => {
-        // Re-check: the player may have turned music off, backgrounded the
-        // app, or started music another way while resume was in flight.
-        if (musicEnabled && !musicNodes && document.visibilityState !== 'hidden') {
-          startAmbientMusic();
-        }
+        if (musicEnabled && ambientTimer === null) scheduleNextAmbientNote();
       })
-      .catch(() => {
-        /* A context that will not resume is silence, never an error. */
-      });
+      .catch(() => undefined);
     return;
   }
 
-  const gain = ctx.createGain();
-  const filter = ctx.createBiquadFilter();
-  filter.type = 'lowpass';
-  filter.frequency.value = 920;
-  gain.gain.setValueAtTime(0.0001, ctx.currentTime);
-  gain.gain.exponentialRampToValueAtTime(0.012, ctx.currentTime + 1.8);
-  gain.connect(filter).connect(ctx.destination);
+  render(ctx, ambientNote(ambientIndex), ctx.currentTime + 0.05);
+  ambientIndex += 1;
 
-  const oscillators = [146.83, 220, 293.66].map((frequency, index) => {
-    const oscillator = ctx.createOscillator();
-    oscillator.type = index === 1 ? 'triangle' : 'sine';
-    oscillator.frequency.value = frequency;
-    oscillator.detune.value = index === 2 ? -7 : index === 0 ? 4 : 0;
-    oscillator.connect(gain);
-    oscillator.start();
-    return oscillator;
-  });
-  musicNodes = { oscillators, gain };
+  ambientTimer = window.setTimeout(() => {
+    ambientTimer = null;
+    scheduleNextAmbientNote();
+  }, AMBIENT_INTERVAL_SECONDS * 1000);
+}
+
+function startAmbientMusic(): void {
+  if (!musicEnabled || ambientTimer !== null) return;
+  if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return;
+  scheduleNextAmbientNote();
 }
 
 /**
  * Bring audio back after the platform took it away.
  *
- * Called when the app returns to the foreground. On iOS a phone call, an
- * alarm or Siri suspends the WebAudio context; the native side reactivates the
- * AVAudioSession, and this reattaches the web side to it. Safe to call often.
+ * Called when the app returns to the foreground. On iOS a phone call, an alarm
+ * or Siri suspends the WebAudio context; the native side reactivates the
+ * AVAudioSession and this reattaches the web side to it. Safe to call often.
  */
 export function resumeAudio(): void {
   const ctx = audioContext();
@@ -125,83 +214,4 @@ export function setAmbientMusicEnabled(enabled: boolean): void {
     });
   }
   startAmbientMusic();
-}
-
-function tone(
-  ctx: AudioContext,
-  frequency: number,
-  at: number,
-  duration: number,
-  volume: number,
-  type: OscillatorType = 'sine',
-): void {
-  const oscillator = ctx.createOscillator();
-  const gain = ctx.createGain();
-  oscillator.type = type;
-  oscillator.frequency.setValueAtTime(frequency, at);
-  gain.gain.setValueAtTime(0.0001, at);
-  gain.gain.exponentialRampToValueAtTime(volume, at + 0.006);
-  gain.gain.exponentialRampToValueAtTime(0.0001, at + duration);
-  oscillator.connect(gain).connect(ctx.destination);
-  oscillator.start(at);
-  oscillator.stop(at + duration + 0.02);
-}
-
-function ceramicTap(ctx: AudioContext, at: number, pitch = 1): void {
-  tone(ctx, 1260 * pitch, at, 0.055, 0.025, 'triangle');
-  tone(ctx, 690 * pitch, at + 0.004, 0.085, 0.018, 'sine');
-}
-
-function softRattle(ctx: AudioContext, at: number): void {
-  for (let index = 0; index < 5; index += 1) {
-    ceramicTap(ctx, at + index * 0.035, 0.78 + index * 0.055);
-  }
-}
-export function playSound(sound: GameSound, enabled = true): void {
-  if (!enabled) return;
-  try {
-    const ctx = audioContext();
-    if (!ctx) return;
-    const now = ctx.currentTime + 0.004;
-
-    switch (sound) {
-      case 'tile':
-        ceramicTap(ctx, now);
-        break;
-      case 'blocked':
-        tone(ctx, 310, now, 0.07, 0.018, 'triangle');
-        break;
-      case 'match':
-        ceramicTap(ctx, now, 1.04);
-        tone(ctx, 880, now + 0.055, 0.16, 0.028, 'sine');
-        tone(ctx, 1175, now + 0.09, 0.2, 0.022, 'sine');
-        break;
-      case 'holder-warning':
-        tone(ctx, 523, now, 0.14, 0.022, 'sine');
-        tone(ctx, 659, now + 0.1, 0.18, 0.02, 'sine');
-        break;
-      case 'shuffle':
-        softRattle(ctx, now);
-        break;
-      case 'undo':
-        tone(ctx, 740, now, 0.08, 0.02, 'triangle');
-        tone(ctx, 554, now + 0.055, 0.12, 0.018, 'triangle');
-        break;
-      case 'hint':
-        tone(ctx, 659, now, 0.12, 0.018, 'sine');
-        tone(ctx, 988, now + 0.075, 0.19, 0.018, 'sine');
-        break;
-      case 'win':
-        tone(ctx, 523, now, 0.24, 0.024, 'sine');
-        tone(ctx, 659, now + 0.1, 0.28, 0.025, 'sine');
-        tone(ctx, 784, now + 0.2, 0.38, 0.028, 'sine');
-        break;
-      case 'holder-full':
-        tone(ctx, 392, now, 0.18, 0.022, 'triangle');
-        tone(ctx, 330, now + 0.11, 0.24, 0.02, 'triangle');
-        break;
-    }
-  } catch {
-    // Audio availability and permissions never affect the play loop.
-  }
 }
