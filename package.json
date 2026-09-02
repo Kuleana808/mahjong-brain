@@ -32,7 +32,8 @@
     "smoke:cert": "npm --workspace @mahjong-brain/api run smoke:cert",
     "screenshots:capture": "node scripts/capture-screenshot-sources.mjs",
     "screenshots:compose": "python3 scripts/render-app-store-screenshots.py",
-    "screenshots": "npm run screenshots:capture && npm run screenshots:compose"
+    "screenshots": "npm run screenshots:capture && npm run screenshots:compose",
+    "ui:sweep": "node scripts/ui-sweep.mjs"
   },
   "dependencies": {
     "@capacitor/core": "^8.5.0",

@@ -1227,3 +1227,43 @@ a:focus-visible {
   .level-path li > small { font-size: 0.76rem; line-height: 1.15; }
   .level-card { padding-inline: 10px; }
 }
+
+/* Progress on the result screen. Levels used to advance silently — XP moved,
+   the level could change, and nothing said so until the player got back to the
+   home screen. Same amber as the home bar, so the two read as one system. */
+.result-progress {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: min(100%, 320px);
+  margin: 4px 0 18px;
+}
+.result-progress__bar {
+  width: 100%;
+  height: 12px;
+  padding: 2px;
+  border: 1.5px solid rgba(20, 62, 52, 0.28);
+  border-radius: 999px;
+  background: rgba(20, 62, 52, 0.1);
+  overflow: hidden;
+}
+.result-progress__bar span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--amber-600), var(--amber-500));
+  transition: width 480ms ease-out;
+}
+.result-progress__caption {
+  margin: 0;
+  color: rgba(20, 62, 52, 0.72);
+  font-size: calc(0.9rem * var(--font-scale));
+}
+.result-levelup {
+  margin: 0;
+  color: var(--amber-600);
+  font-weight: 800;
+  font-size: calc(1.02rem * var(--font-scale));
+  letter-spacing: 0.02em;
+}
