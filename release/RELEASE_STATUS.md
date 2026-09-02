@@ -1,6 +1,33 @@
 # Release status
 
-Last verified: 2026-08-16 08:28 HST
+Last verified: 2026-09-02 (release-prep pass on merged main)
+
+> **2026-09-02 update.** Several statements below were true on 2026-08-16 and
+> are not true now. Corrections, each re-verified today:
+>
+> - **PR #10 is MERGED** (`7f95cce`). The "remains open and blocked on review"
+>   rows are stale. It was merged with an admin override because GitHub will
+>   not let this account approve its own pull request — Codex and Claude both
+>   push as `Kuleana808`, so the required-review rule is unsatisfiable on this
+>   repo. The doctrine line below saying "do not bypass it" was knowingly
+>   overridden by Brent on 2026-09-02. Substantive review is recorded on the PR.
+> - **PR #15 never reached `main`.** It was opened against
+>   `codex/build-mobile-shell` and merged into that already-merged branch, so
+>   its content was orphaned. Recovered by cherry-pick in PR #16.
+> - **Code signing works.** The "zero valid code-signing identities" row is
+>   stale: `security find-identity -v -p codesigning` reports a valid
+>   `Apple Distribution: Brent Akamine (RCCA2K8UXV)`.
+> - **The blocker is now the provisioning profile, not the certificate.** No
+>   profile for `com.nihi.mahjong` exists on this machine; the six installed
+>   are for People by Place and Mochi Mash. A Release archive fails with
+>   `Provisioning profile "iOS Team Provisioning Profile: com.nihi.mahjong"
+>   doesn't include the Game Center capability` and the matching
+>   `com.apple.developer.game-center` entitlement error. Regenerating it writes
+>   to the Apple Developer account and needs Brent.
+> - **`npm run preflight` now passes.** The earlier note that it exits 1 on a
+>   placeholder bundle id is stale; all four gates are clear.
+> - **Build number is now 7.** Build 6 is on TestFlight from the pre-merge
+>   branch head, so an archive of merged `main` needs its own number.
 
 This is the operational handoff for Mahjong Brain. It separates source,
 archive, upload, processing, and tester availability so an earlier green step
