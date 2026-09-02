@@ -6,23 +6,40 @@
  * sub-pages.
  */
 
-import { useEffect, useRef, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 
-import { PRICE_DISPLAY } from '../iap';
+import { levelProgress, xpForLevel } from '../../packages/core/src/progression/progression';
+import { ads } from '../ads';
+import { purchasesConfigured } from '../iap';
 import { useGame, type Settings } from '../state/store';
+import { Icon } from './Icon';
+import { TileFaceCanvas } from './TileFaceCanvas';
+import { paletteFor } from '../render/palette';
+import {
+  connectGameCenter,
+  gameCenterAvailable,
+  gameCenterStatus,
+  openGameCenter,
+  reportGameCenterProgress,
+  type GameCenterStatus,
+} from '../gamecenter';
 
-function Overlay({ label, children }: { label: string; children: ReactNode }) {
+function Overlay({ label, children, cardClassName = '' }: { label: string; children: ReactNode; cardClassName?: string }) {
   const ref = useRef<HTMLDivElement>(null);
 
   // Move focus into the card so a keyboard or screen-reader user is not left
   // behind on the board underneath.
   useEffect(() => {
-    ref.current?.querySelector<HTMLElement>('button, [href], input')?.focus();
+    const heading = ref.current?.querySelector<HTMLElement>('h2');
+    if (heading) {
+      heading.tabIndex = -1;
+      heading.focus();
+    }
   }, []);
 
   return (
     <div className="overlay" role="dialog" aria-modal="true" aria-label={label}>
-      <div className="card" ref={ref}>
+      <div className={`card ${cardClassName}`.trim()} ref={ref}>
         {children}
       </div>
     </div>
@@ -30,7 +47,7 @@ function Overlay({ label, children }: { label: string; children: ReactNode }) {
 }
 
 export function CompletionCard() {
-  const start = useGame((s) => s.start);
+  const newBoard = useGame((s) => s.newBoard);
   const boardsCompleted = useGame((s) => s.boardsCompleted);
 
   return (
@@ -41,9 +58,53 @@ export function CompletionCard() {
           ? 'That is one board down.'
           : `That is ${boardsCompleted} boards down.`}
       </p>
-      <button type="button" className="button" onClick={() => start()}>
+      <button type="button" className="button" onClick={() => newBoard()}>
         Play again
       </button>
+    </Overlay>
+  );
+}
+
+export function LevelsSheet({ onClose }: { onClose: () => void }) {
+  const progression = useGame((s) => s.progression);
+  const progress = levelProgress(progression.xp);
+  const levelFloor = xpForLevel(progression.level);
+  const levelCeiling = xpForLevel(progression.level + 1);
+  const earnedThisLevel = progression.xp - levelFloor;
+  const neededThisLevel = levelCeiling - levelFloor;
+  const firstVisibleLevel = Math.max(1, progression.level - 2);
+  const visibleLevels = Array.from({ length: 5 }, (_, index) => firstVisibleLevel + index);
+
+  return (
+    <Overlay label="Levels">
+      <h2>Levels</h2>
+      <div className="levels-layout">
+        <ol className="level-path" aria-label="Level path">
+          {visibleLevels.map((level) => (
+            <li
+              key={level}
+              className={level === progression.level ? 'is-current' : level < progression.level ? 'is-complete' : 'is-locked'}
+              aria-current={level === progression.level ? 'step' : undefined}
+            >
+              <span>{level}</span>
+              <small>{level < progression.level ? 'Complete' : level === progression.level ? 'Current' : 'Locked'}</small>
+            </li>
+          ))}
+        </ol>
+        <section className="level-card" aria-label={`Current level ${progression.level}`}>
+          <span>Level</span>
+          <strong>{progression.level}</strong>
+          <div className="home-progress" aria-label={`${Math.round(progress * 100)} percent to next level`}>
+            <span style={{ width: `${Math.max(4, progress * 100)}%` }} />
+          </div>
+          <small>{earnedThisLevel} of {neededThisLevel} XP</small>
+          <hr />
+          <span>Progress score</span>
+          <b>{progression.iq}</b>
+          <small>{progression.boardsWon} of {progression.boardsPlayed} boards cleared</small>
+        </section>
+      </div>
+      <button type="button" className="button" onClick={onClose}>Done</button>
     </Overlay>
   );
 }
@@ -52,29 +113,40 @@ export function Paywall() {
   const buy = useGame((s) => s.buy);
   const restore = useGame((s) => s.restore);
   const close = useGame((s) => s.closePaywall);
+  const pending = useGame((s) => s.purchasePending);
+  const displayPrice = useGame((s) => s.purchaseDisplayPrice);
+  const announcement = useGame((s) => s.announcement);
+  const purchaseMessage = pending === null && /purchase|store|unlock/i.test(announcement)
+    ? announcement
+    : '';
+  const purchaseError = /could not|unavailable|failed/i.test(purchaseMessage);
 
   return (
     <Overlay label="Unlock Mahjong Brain">
-      <h2>Keep it quiet, for good</h2>
-      <p>You have played three boards. Here is the only thing we will ever ask.</p>
+      <h2>Remove interruption ads</h2>
+      <p>Keep normal play moving without ads between rounds.</p>
 
-      <strong className="card__price">{PRICE_DISPLAY}</strong>
-      <p style={{ marginTop: '-0.75rem' }}>Once. Not a subscription.</p>
+      <strong className="card__price">{displayPrice ?? 'Store unavailable'}</strong>
+      <p style={{ marginTop: '-0.75rem' }}>One-time purchase.</p>
 
       <ul className="card__list">
-        <li>The AI hint coach, which explains the pattern instead of just naming a pair</li>
-        <li>Every layout, now and later</li>
-        <li>No ads — there were never going to be any</li>
-        <li>No timers, no streaks, no daily check-ins</li>
+        <li>Removes automatic ads between rounds</li>
+        <li>Restore this purchase on another Apple device</li>
       </ul>
 
-      <button type="button" className="button" onClick={() => void buy()}>
-        Unlock for {PRICE_DISPLAY}
+      {purchaseMessage ? (
+        <p className={purchaseError ? 'purchase-message purchase-message--error' : 'purchase-message'} role={purchaseError ? 'alert' : 'status'}>
+          {purchaseMessage}
+        </p>
+      ) : null}
+
+      <button type="button" className="button" disabled={pending !== null || !displayPrice} onClick={() => void buy()}>
+        {pending === 'buying' ? 'Contacting Apple…' : displayPrice ? `Unlock for ${displayPrice}` : 'Try again later'}
       </button>
-      <button type="button" className="button button--quiet" onClick={() => void restore()}>
-        Restore purchase
+      <button type="button" className="button button--quiet" disabled={pending !== null} onClick={() => void restore()}>
+        {pending === 'restoring' ? 'Checking with Apple…' : 'Restore purchase'}
       </button>
-      <button type="button" className="button button--quiet" onClick={close}>
+      <button type="button" className="button button--quiet" disabled={pending !== null} onClick={close}>
         Not now
       </button>
     </Overlay>
@@ -111,9 +183,18 @@ function Switch({
 }
 
 const THEMES: { id: Settings['theme']; label: string }[] = [
-  { id: 'calm', label: 'Light' },
-  { id: 'calm-dark', label: 'Dark' },
+  { id: 'calm', label: 'Emerald' },
+  { id: 'bamboo', label: 'Bamboo' },
+  { id: 'plum', label: 'Plum' },
+  { id: 'calm-dark', label: 'Midnight' },
   { id: 'high-contrast', label: 'High contrast' },
+];
+
+const TILE_STYLES: { id: Settings['tileStyle']; label: string }[] = [
+  { id: 'ivory', label: 'Modern' },
+  { id: 'jade-edge', label: 'Classic' },
+  { id: 'porcelain', label: 'Porcelain' },
+  { id: 'brain', label: 'Brain' },
 ];
 
 const SIZES: { value: number; label: string }[] = [
@@ -122,17 +203,137 @@ const SIZES: { value: number; label: string }[] = [
   { value: 1.45, label: 'Largest' },
 ];
 
+export function ThemeSheet({ onClose, initialTab = 'tiles' }: { onClose: () => void; initialTab?: 'tiles' | 'background' }) {
+  const settings = useGame((s) => s.settings);
+  const update = useGame((s) => s.updateSettings);
+  const [tab, setTab] = useState<'tiles' | 'background'>(initialTab);
+
+  return (
+    <Overlay label="Theme" cardClassName="theme-card">
+      <div className="sheet-titlebar">
+        <h2>Theme</h2>
+        <button type="button" className="sheet-close" aria-label="Close theme" onClick={onClose}><Icon name="close" /></button>
+      </div>
+      <div className="theme-tabs" role="tablist" aria-label="Theme category">
+        <button type="button" role="tab" aria-selected={tab === 'tiles'} onClick={() => setTab('tiles')}>Tiles</button>
+        <button type="button" role="tab" aria-selected={tab === 'background'} onClick={() => setTab('background')}>Background</button>
+      </div>
+      <div className="theme-picker">
+        {tab === 'tiles' ? (
+          <div className="theme-options">
+            {TILE_STYLES.map((style) => (
+              <button key={style.id} type="button" className="theme-option" aria-pressed={settings.tileStyle === style.id} onClick={() => update({ tileStyle: style.id })}>
+                <span className={`theme-swatch theme-swatch--${style.id}`} aria-hidden="true">
+                  <i><TileFaceCanvas face={{ suit: 'dragon', rank: 1 }} palette={paletteFor(settings.theme, style.id)} /></i>
+                  <i><TileFaceCanvas face={{ suit: 'circle', rank: 4 }} palette={paletteFor(settings.theme, style.id)} /></i>
+                  <i><TileFaceCanvas face={{ suit: 'bamboo', rank: 3 }} palette={paletteFor(settings.theme, style.id)} /></i>
+                </span>
+                <strong>{style.label}</strong>
+              </button>
+            ))}
+          </div>
+        ) : (
+          <div className="background-options">
+            {THEMES.map((theme) => (
+              <button key={theme.id} type="button" className={`background-swatch background-swatch--${theme.id}`} aria-label={theme.label} aria-pressed={settings.theme === theme.id} onClick={() => update({ theme: theme.id })}>
+                <span>{theme.label}</span>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+      <button type="button" className="button" onClick={onClose}>Confirm</button>
+    </Overlay>
+  );
+}
+
 export function SettingsSheet() {
+  const [helpOpen, setHelpOpen] = useState(false);
+  const [gameCenter, setGameCenter] = useState<GameCenterStatus | null>(null);
+  const [gameCenterPending, setGameCenterPending] = useState(false);
+  const [gameCenterError, setGameCenterError] = useState<string | null>(null);
   const settings = useGame((s) => s.settings);
   const update = useGame((s) => s.updateSettings);
   const openSettings = useGame((s) => s.openSettings);
-  const start = useGame((s) => s.start);
+  const newBoard = useGame((s) => s.newBoard);
   const unlocked = useGame((s) => s.unlocked);
+  const openPaywall = useGame((s) => s.openPaywall);
   const restore = useGame((s) => s.restore);
+  const purchasePending = useGame((s) => s.purchasePending);
+  const purchaseDisplayPrice = useGame((s) => s.purchaseDisplayPrice);
+  const accountStatus = useGame((s) => s.accountStatus);
+  const accountError = useGame((s) => s.accountError);
+  const announcement = useGame((s) => s.announcement);
+  const signIn = useGame((s) => s.signIn);
+  const signOut = useGame((s) => s.signOut);
+  const boardsCompleted = useGame((s) => s.boardsCompleted);
+  const progression = useGame((s) => s.progression);
+
+  useEffect(() => {
+    if (!gameCenterAvailable()) return;
+    void gameCenterStatus().then(setGameCenter);
+  }, []);
+
+  const handleGameCenter = async () => {
+    setGameCenterPending(true);
+    setGameCenterError(null);
+    try {
+      if (gameCenter?.authenticated) {
+        await openGameCenter();
+      } else {
+        const status = await connectGameCenter();
+        setGameCenter(status);
+        if (status.authenticated) {
+          await reportGameCenterProgress({ boardsCleared: boardsCompleted, brainIq: progression.iq });
+        }
+      }
+    } catch (cause) {
+      setGameCenterError(cause instanceof Error ? cause.message : 'Game Center is unavailable right now.');
+    } finally {
+      setGameCenterPending(false);
+    }
+  };
+
+  if (helpOpen) {
+    return (
+      <main className="settings-screen" aria-labelledby="how-to-play-title">
+        <section className="settings-screen__panel how-to-play">
+          <div className="settings-header">
+            <button type="button" className="settings-header__back" aria-label="Back to settings" onClick={() => setHelpOpen(false)}><Icon name="back" size={26} /></button>
+            <h1 id="how-to-play-title">How to play</h1>
+          </div>
+          <div className="settings-screen__content how-to-play__steps">
+            <section><span className="how-to-play__number" aria-hidden="true">1</span><div><h2>Choose a free tile</h2><p>A tile is free when nothing covers it and at least one long side is open.</p></div></section>
+            <section><span className="how-to-play__number" aria-hidden="true">2</span><div><h2>Build a pair</h2><p>Each tile moves into the four-slot holder. Two identical tiles clear automatically.</p></div></section>
+            <section><span className="how-to-play__number" aria-hidden="true">3</span><div><h2>Protect the final slot</h2><p>Four unmatched tiles fill the holder and end the round. Hint finds a safe pair, Undo reverses a move, and Shuffle rearranges remaining tiles.</p></div></section>
+            <section><span className="how-to-play__number" aria-hidden="true">4</span><div><h2>Clear the board</h2><p>Remove every pair to finish. Every shipped board is designed to be solvable without watching an ad or buying a power-up.</p></div></section>
+            <button type="button" className="button" onClick={() => setHelpOpen(false)}>Back to settings</button>
+          </div>
+        </section>
+      </main>
+    );
+  }
 
   return (
-    <Overlay label="Settings">
-      <h2>Settings</h2>
+    <main className="settings-screen" aria-labelledby="settings-title">
+      <section className="settings-screen__panel">
+      <div className="settings-header">
+        <button
+          type="button"
+          className="settings-header__back"
+          aria-label="Back"
+          onClick={() => openSettings(false)}
+        >
+          <Icon name="back" size={26} />
+        </button>
+        <h1 id="settings-title">Settings</h1>
+      </div>
+
+      <div className="settings-screen__content">
+
+      {announcement.includes('Settings are saved on this device') ? (
+        <p className="flow-notice" role="status">{announcement}</p>
+      ) : null}
 
       <div className="setting">
         <span className="setting__label">Appearance</span>
@@ -166,6 +367,22 @@ export function SettingsSheet() {
         </div>
       </div>
 
+      <div className="setting">
+        <span className="setting__label">Tile design</span>
+        <div className="segmented">
+          {TILE_STYLES.map((style) => (
+            <button
+              key={style.id}
+              type="button"
+              aria-pressed={settings.tileStyle === style.id}
+              onClick={() => update({ tileStyle: style.id })}
+            >
+              {style.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
       <Switch
         label="Dim blocked tiles"
         hint="Shows at a glance which tiles you can take"
@@ -178,10 +395,100 @@ export function SettingsSheet() {
         onChange={(reduceMotion) => update({ reduceMotion })}
       />
       <Switch
+        label="Music"
+        hint="A quiet original ambient bed"
+        checked={settings.music}
+        onChange={(music) => update({ music })}
+      />
+      <Switch
+        label="Sounds"
+        hint="Quiet tile and game feedback"
+        checked={settings.sounds}
+        onChange={(sounds) => update({ sounds })}
+      />
+      <Switch
+        label="Voice"
+        hint="Optional short spoken hints and round results"
+        checked={settings.voice}
+        onChange={(voice) => update({ voice })}
+      />
+      <Switch
         label="Vibration"
         checked={settings.haptics}
         onChange={(haptics) => update({ haptics })}
       />
+      <Switch
+        label="Auto Complete"
+        hint="Finishes the final exposed pairs for you"
+        checked={settings.autoComplete}
+        onChange={(autoComplete) => update({ autoComplete })}
+      />
+
+      <button type="button" className="settings-row-action" onClick={() => setHelpOpen(true)}>
+        <span><strong>How to play</strong><small>Holder rules, matching, and game tools</small></span>
+        <span aria-hidden="true">›</span>
+      </button>
+
+      {gameCenterAvailable() ? (
+        <button type="button" className="settings-row-action" disabled={gameCenterPending} onClick={() => void handleGameCenter()}>
+          <span>
+            <strong>Game Center</strong>
+            <small>
+              {gameCenter?.authenticated
+                ? `${gameCenter.displayName || 'Connected'} · leaderboards and achievements`
+                : gameCenterError ?? 'Optional leaderboards and achievements'}
+            </small>
+          </span>
+          <span aria-hidden="true">›</span>
+        </button>
+      ) : null}
+
+      {!unlocked && purchasesConfigured() && purchaseDisplayPrice ? (
+        <button type="button" className="settings-row-action settings-row-action--upgrade" onClick={openPaywall}>
+          <span>
+            <strong>Remove interruption ads</strong>
+            <small>One-time purchase · {purchaseDisplayPrice}</small>
+          </span>
+          <span aria-hidden="true">›</span>
+        </button>
+      ) : null}
+
+      <button type="button" className="settings-row-action" onClick={() => void ads().showPrivacyOptions()}>
+        <span>
+          <strong>Ad privacy choices</strong>
+          <small>Review or change choices for optional and round-boundary ads</small>
+        </span>
+        <span aria-hidden="true">›</span>
+      </button>
+
+      {accountStatus !== 'unavailable' ? (
+        <div className="account-setting">
+          <span className="setting__label">
+            Apple account
+            <span className="setting__hint">
+              {accountStatus === 'signed_in'
+                ? 'Signed in. Settings and a verified unlock can follow you to another device.'
+                : 'Optional. Free play and local progress never require an account.'}
+            </span>
+          </span>
+          {accountStatus === 'signed_in' ? (
+            <button type="button" className="button button--quiet" onClick={() => void signOut()}>
+              Sign out
+            </button>
+          ) : (
+            <button
+              type="button"
+              className="apple-sign-in"
+              disabled={accountStatus === 'signing_in'}
+              onClick={() => void signIn()}
+            >
+              <span aria-hidden="true"></span>{' '}
+              {accountStatus === 'signing_in' ? 'Signing in…' : 'Sign in with Apple'}
+            </button>
+          )}
+          {accountError ? <p className="account-setting__error" role="alert">{accountError}</p> : null}
+        </div>
+      ) : null}
 
       <button
         type="button"
@@ -194,18 +501,17 @@ export function SettingsSheet() {
       <button
         type="button"
         className="button button--quiet"
-        onClick={() => {
-          openSettings(false);
-          start();
-        }}
+        onClick={() => newBoard()}
       >
         New board
       </button>
-      {!unlocked ? (
-        <button type="button" className="button button--quiet" onClick={() => void restore()}>
-          Restore purchase
+      {!unlocked && purchasesConfigured() ? (
+        <button type="button" className="button button--quiet" disabled={purchasePending !== null} onClick={() => void restore()}>
+          {purchasePending === 'restoring' ? 'Checking with Apple…' : 'Restore purchase'}
         </button>
       ) : null}
-    </Overlay>
+      </div>
+      </section>
+    </main>
   );
 }

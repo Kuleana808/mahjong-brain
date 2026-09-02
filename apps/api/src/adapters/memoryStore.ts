@@ -16,6 +16,7 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import type {
   AccountRecord,
   DailyRewardRecord,
+  ConsumableGrantRecord,
   StorePort,
   SyncedSettings,
   UnlockRecord,
@@ -28,6 +29,7 @@ interface Snapshot {
   sessions: Record<string, unknown>[];
   events: Record<string, unknown>[];
   daily: Record<string, DailyRewardRecord>;
+  consumables: Record<string, ConsumableGrantRecord>;
 }
 
 const empty = (): Snapshot => ({
@@ -37,6 +39,7 @@ const empty = (): Snapshot => ({
   sessions: [],
   events: [],
   daily: {},
+  consumables: {},
 });
 
 export interface MemoryStoreOptions {
@@ -123,6 +126,17 @@ export function createMemoryStore(options: MemoryStoreOptions = {}): StorePort {
     async putDailyReward(accountId, record) {
       data.daily[accountId] = record;
       flush();
+    },
+
+    async getConsumableGrant(transactionId) {
+      return data.consumables[transactionId] ?? null;
+    },
+
+    async putConsumableGrant(record) {
+      if (data.consumables[record.transactionId]) return false;
+      data.consumables[record.transactionId] = record;
+      flush();
+      return true;
     },
   };
 }

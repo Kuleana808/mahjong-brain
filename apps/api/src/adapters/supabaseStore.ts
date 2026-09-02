@@ -18,6 +18,7 @@
 import type {
   AccountRecord,
   DailyRewardRecord,
+  ConsumableGrantRecord,
   StorePort,
   SyncedSettings,
   UnlockRecord,
@@ -52,6 +53,21 @@ interface UnlockRow {
   revoked: boolean;
   source: UnlockRecord['source'];
   verified_at: string;
+}
+
+interface ConsumableGrantRow {
+  account_id: string;
+  transaction_id: string;
+  product_id: string;
+  kind: 'shuffle';
+  quantity: number;
+  purchased_at: string;
+  environment: string;
+  granted_at: string;
+}
+
+function consumableGrant(row: ConsumableGrantRow): ConsumableGrantRecord {
+  return { accountId: row.account_id, transactionId: row.transaction_id, productId: row.product_id, kind: row.kind, quantity: row.quantity, purchasedAt: row.purchased_at, environment: row.environment, grantedAt: row.granted_at };
 }
 
 export function createSupabaseStore(options: SupabaseStoreOptions): StorePort {
@@ -211,6 +227,22 @@ export function createSupabaseStore(options: SupabaseStoreOptions): StorePort {
           streak_days: record.streakDays,
         }),
       });
+    },
+
+    async getConsumableGrant(transactionId) {
+      const rows = await request<ConsumableGrantRow[]>(
+        `/consumable_grants?transaction_id=eq.${encode(transactionId)}&select=*&limit=1`,
+      );
+      return rows[0] ? consumableGrant(rows[0]) : null;
+    },
+
+    async putConsumableGrant(record) {
+      const rows = await request<ConsumableGrantRow[]>('/consumable_grants?on_conflict=transaction_id', {
+        method: 'POST',
+        headers: { prefer: 'resolution=ignore-duplicates,return=representation' },
+        body: JSON.stringify({ account_id: record.accountId, transaction_id: record.transactionId, product_id: record.productId, kind: record.kind, quantity: record.quantity, purchased_at: record.purchasedAt, environment: record.environment, granted_at: record.grantedAt }),
+      });
+      return rows.length === 1;
     },
   };
 }

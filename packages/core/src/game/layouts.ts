@@ -50,79 +50,96 @@ export interface Layout {
 
 const SPECS: readonly LayoutSpec[] = [
   {
-    // The classic turtle: 87 on the ground, a 6x6 shell, then 4x4, 2x2, and a
-    // single tile on the crown. 144 tiles.
+    // Lotus Terrace. The internal id remains `turtle` so saved games from the
+    // prototype still restore, but the visible arrangement is original and has
+    // no animal silhouette. Its 10-column footprint keeps phone tiles readable.
     id: 'turtle',
-    name: 'Turtle',
+    name: 'Lotus Terrace',
     relativeDifficulty: 0.55,
     layers: [
       {
-        offset: [0, 0],
+        offset: [1, 0],
         rows: [
-          '.############..',
-          '...########....',
-          '..##########...',
-          '.############..',
-          '.############..',
-          '..##########...',
-          '...########....',
-          '.############..',
+          '..####..',
+          '.######.',
+          '########',
+          '########',
+          '########',
+          '########',
+          '########',
+          '.######.',
+          '.#####..',
+          '..###...',
         ],
       },
-      { offset: [3, 1], rows: ['######', '######', '######', '######', '######', '######'] },
-      { offset: [4, 2], rows: ['####', '####', '####', '####'] },
-      { offset: [5, 3], rows: ['##', '##'] },
-    ],
-    extras: [
-      // Flippers, and the tile balanced on the crown.
-      { x: 0, y: 3.5, z: 0 },
-      { x: 13, y: 3.5, z: 0 },
-      { x: 14, y: 3.5, z: 0 },
-      { x: 5.5, y: 3.5, z: 4 },
+      { offset: [1, 1.5], rows: ['.######.', '.######.', '########', '########', '########', '.######.', '..####..'] },
+      { offset: [1, 3], rows: ['..####..', '########', '########', '..####..'] },
+      { offset: [3, 4], rows: ['####', '####'] },
+      { offset: [3, 0.5], rows: ['#..#'] },
     ],
   },
   {
-    // Three clean steps. The gentlest of the three: wide base, few buried
-    // tiles, most of the board free early.
+    // Garden Steps. An original, softly tapered arrangement for the first
+    // board: broad readable edges, staggered shoulders, and a narrow raised
+    // spine. It retains 144 tiles and the same 10 x 8 footprint as the former
+    // rectangular pyramid, so phone tiles stay large without presenting a
+    // visible uniform grid.
     id: 'pyramid',
-    name: 'Pyramid',
+    name: 'Garden Steps',
     relativeDifficulty: 0.3,
     layers: [
       {
         offset: [0, 0],
-        rows: Array.from({ length: 8 }, () => '##########'),
+        rows: [
+          '..######..',
+          '.########.',
+          '##########',
+          '##########',
+          '##########',
+          '##########',
+          '.########.',
+          '..######..',
+        ],
       },
       {
-        offset: [1, 1],
-        rows: Array.from({ length: 6 }, () => '########'),
+        offset: [0, 1],
+        rows: [
+          '.########.',
+          '##########',
+          '##########',
+          '##########',
+          '##########',
+          '.########.',
+        ],
       },
       {
-        offset: [3, 2],
-        rows: Array.from({ length: 4 }, () => '####'),
+        offset: [2, 2],
+        rows: ['.####.', '######', '######', '.####.'],
       },
     ],
   },
   {
-    // A broad winged body with a deep spine. Hardest of the three: the centre
-    // column is four layers deep and the wings block from both sides.
+    // Lantern Tower. The deep, narrow stack is harder without becoming tiny:
+    // the challenge comes from five layers, not an 18-column phone footprint.
     id: 'dragon',
-    name: 'Dragon',
+    name: 'Lantern Tower',
     relativeDifficulty: 0.85,
     layers: [
       {
         offset: [0, 0],
         rows: [
-          '....##########....',
-          '..##############..',
-          '##################',
-          '##################',
-          '..##############..',
-          '....##########....',
+          '..######..',
+          '.########.',
+          '##########',
+          '##########',
+          '.########.',
+          '..######..',
         ],
       },
-      { offset: [4, 1], rows: ['##########', '##########', '##########', '##########'] },
-      { offset: [6, 2], rows: ['########', '########'] },
-      { offset: [8, 2], rows: ['##', '##'] },
+      { offset: [0, 0], rows: ['..######..', '.########.', '##########', '##########', '.########.', '..######..'] },
+      { offset: [1, 1], rows: ['########', '########', '########', '########'] },
+      { offset: [2, 2], rows: ['######', '######'] },
+      { offset: [4, 2], rows: ['##', '##'] },
     ],
   },
 ];

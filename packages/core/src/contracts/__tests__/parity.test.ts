@@ -52,6 +52,8 @@ function stubStore(): StorePort & { rows: Record<string, unknown>[]; daily: Map<
     async putDailyReward(id, record) {
       daily.set(id, record);
     },
+    async getConsumableGrant() { return null; },
+    async putConsumableGrant() { return true; },
   };
 }
 

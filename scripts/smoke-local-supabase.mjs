@@ -60,7 +60,7 @@ const result = spawnSync('npm', ['run', 'smoke:events'], {
     MAHJONG_BRAIN_DEV_STORE: '',
     SESSION_SIGNING_KEY:
       process.env.SESSION_SIGNING_KEY ?? 'local-smoke-signing-key-not-a-secret-0123456789',
-    APPLE_BUNDLE_ID: process.env.APPLE_BUNDLE_ID ?? 'com.mahjongbrain.game',
+    APPLE_BUNDLE_ID: process.env.APPLE_BUNDLE_ID ?? 'com.nihi.mahjong',
   },
 });
 

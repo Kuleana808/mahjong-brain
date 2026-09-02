@@ -100,7 +100,7 @@ directly into the bundle-id recommendation in D-001.
 Nothing has been purchased; per the standing rule every purchase needs an
 explicit yes.
 
-## D-005 — StoreKit bridge · **NEEDS BRENT**
+## D-005 — StoreKit bridge · **SETTLED (in-house StoreKit 2)**
 
 The unlock is wired behind a two-method interface (`src/iap/index.ts`) with a
 mock that persists exactly like the real thing will, so the paywall is fully
@@ -115,9 +115,11 @@ playable today. The bridge itself is a choice between:
    single non-consumable. No vendor, no dependency, but it is our code to
    maintain and to get right on edge cases (family sharing, refunds, Ask to Buy).
 
-Recommendation: **(3)**, then (2) if receipt handling turns out to be more than
-a day's work. One non-consumable product is close to the simplest thing StoreKit
-does, and it keeps the zero-vendor posture intact.
+Implemented: **(3)**. The native bridge uses StoreKit 2 directly, hands the
+App Store-signed JWS to contract 8, and finishes a transaction only after the
+server validates it. Apple Root CA G3 is pinned in source from Apple's PKI page;
+it is never fetched at runtime. Product identifiers still follow D-001 and stay
+disabled until the permanent bundle identifier is confirmed.
 
 ---
 
@@ -287,11 +289,13 @@ v0.1 ships at **functional parity with the incumbent**, not as our own take.
 Differentiation is a right earned after parity with cohort data, not a design
 preference exercised before it.
 
-**Copied until parity is proven:** onboarding beat for beat (age gate, TOS
+**Matched functionally until parity is proven:** onboarding beat for beat (age gate, TOS
 modal, loading quote, progressive tutorial with confetti on first pair),
 monetisation (ads on Revive, rewarded video for Hint, IAP for Shuffle),
 retention loops (daily reward, streaks, seasonal events), social hooks,
 live-ops cadence, tutorial pacing, difficulty curve, UI patterns, error states.
+Parity means equivalent player capability and understandable states, not copied
+art, copy, trademarks, layouts, icons, or other protected expression.
 
 **Original from day one, non-negotiable:** tile art, any mascot, brand — name,
 logo, wordmark, palette — and all marketing copy. This is both the
@@ -389,7 +393,7 @@ rather than personalised fill.
 
 ---
 
-## D-005 — StoreKit bridge · **UPDATED for parity monetisation**
+## D-005 — StoreKit bridge · **SETTLED; UPDATED for parity monetisation**
 
 Superseded scope, not the recommendation. The original entry assumed **one
 non-consumable** (`remove_ads`). Parity monetisation needs **consumables** too —

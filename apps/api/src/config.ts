@@ -18,6 +18,7 @@ import { createMemoryStore } from './adapters/memoryStore';
 import { createSessionPort } from './adapters/session';
 import { createStoreKitPort } from './adapters/storekit';
 import { createSupabaseStore } from './adapters/supabaseStore';
+import { APPLE_ROOT_CA_G3_BASE64 } from './certs/appleRootCaG3';
 
 export interface ConfigReport {
   readonly ports: Ports;
@@ -25,14 +26,17 @@ export interface ConfigReport {
   readonly lines: readonly string[];
 }
 
-const env = (key: string): string | undefined => {
-  const value = process.env[key];
-  return value && value.length > 0 ? value : undefined;
-};
+export type EnvironmentReader = (key: string) => string | undefined;
 
-export function createPorts(): ConfigReport {
+const nodeEnvironment: EnvironmentReader = (key) => process.env[key];
+
+export function createPorts(readEnvironment: EnvironmentReader = nodeEnvironment): ConfigReport {
   const ports: { -readonly [K in keyof Ports]: Ports[K] } = {};
   const lines: string[] = [];
+  const env = (key: string): string | undefined => {
+    const value = readEnvironment(key);
+    return value && value.length > 0 ? value : undefined;
+  };
 
   // --- store ---------------------------------------------------------------
   const supabaseUrl = env('SUPABASE_URL');
@@ -78,26 +82,25 @@ export function createPorts(): ConfigReport {
   }
 
   // --- storekit ------------------------------------------------------------
-  const appleRoot = env('APPLE_ROOT_CA_G3_BASE64');
-  const productId = env('IAP_PRODUCT_ID');
-  if (appleRoot && productId && bundleId) {
+  const appleRoot = env('APPLE_ROOT_CA_G3_BASE64') ?? APPLE_ROOT_CA_G3_BASE64;
+  const productIds = (env('IAP_PRODUCT_IDS') ?? env('IAP_PRODUCT_ID') ?? '').split(',').map((value) => value.trim()).filter(Boolean);
+  if (appleRoot && productIds.length > 0 && bundleId) {
     try {
       ports.storekit = createStoreKitPort({
         appleRootCaG3Base64: appleRoot,
-        expectedProductId: productId,
+        expectedProductIds: productIds,
         expectedBundleId: bundleId,
       });
-      lines.push(`storekit    verifying ${productId}`);
+      lines.push(`storekit    verifying ${productIds.join(', ')}`);
     } catch (cause) {
       lines.push(`storekit    DISABLED — ${(cause as Error).message}`);
     }
   } else {
     const missing = [
-      !appleRoot && 'APPLE_ROOT_CA_G3_BASE64',
-      !productId && 'IAP_PRODUCT_ID',
+      productIds.length === 0 && 'IAP_PRODUCT_IDS',
       !bundleId && 'APPLE_BUNDLE_ID',
     ].filter(Boolean);
-    lines.push(`storekit    none — set ${missing.join(', ')} (blocked on D-005)`);
+    lines.push(`storekit    none — set ${missing.join(', ')}`);
   }
 
   return { ports, lines };

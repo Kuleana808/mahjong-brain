@@ -9,18 +9,13 @@
  * are ours. Do not replace any of this with imported sprite assets without
  * checking their provenance first.
  *
- * ACCESSIBILITY — three independent signals distinguish every tile:
- *   1. a colour, from a colourblind-safe muted set,
- *   2. a badge *shape* in the corner (bar, square, ring, triangle, diamond,
- *      rosette, arc) — one per suit family,
- *   3. an Arabic numeral on every numbered tile.
- * A player who sees no colour at all can still play. This is also why the
- * numbered suits show Arabic rather than Chinese numerals: the audience is 60+,
- * and legibility beats tradition.
+ * ACCESSIBILITY — the large central motif is itself the shape channel: rings,
+ * bamboo stalks, framed character marks, directional winds, dragons, flowers,
+ * and seasons cannot be confused by colour alone. Numbered suits also carry a
+ * large Arabic numeral. VoiceOver exposes the full face name through BoardView.
  */
 
 import type { TileFace } from '../../packages/core/src/game/tiles';
-import { DRAGON_NAMES, WIND_NAMES } from '../../packages/core/src/game/tiles';
 import { suitKey, type Palette } from './palette';
 
 type Ctx = CanvasRenderingContext2D;
@@ -96,92 +91,80 @@ function cellSize(points: { x: number; y: number }[], area: { w: number; h: numb
   return { w: area.w / cols, h: area.h / rows, cols, rows };
 }
 
-// ---------------------------------------------------------------------------
-// suit badges — the shape channel
+/**
+ * Sizes circle pips from their real centre-to-centre distance. Grid points are
+ * inset from the motif bounds, so nominal cell dimensions overestimate the
+ * available room on dense 8- and 9-circle faces.
+ */
+export function circleMotifGeometry(rank: number, area: { w: number; h: number }) {
+  const points = arrangement(rank);
+  const cell = cellSize(points, area);
+  let nearestSpacing = Number.POSITIVE_INFINITY;
 
-type BadgeShape = 'bar' | 'square' | 'ring' | 'triangle' | 'diamond' | 'rosette' | 'arc';
-
-const BADGE: Record<TileFace['suit'], BadgeShape> = {
-  bamboo: 'bar',
-  character: 'square',
-  circle: 'ring',
-  wind: 'triangle',
-  dragon: 'diamond',
-  flower: 'rosette',
-  season: 'arc',
-};
-
-function drawBadge(ctx: Ctx, shape: BadgeShape, cx: number, cy: number, s: number): void {
-  ctx.lineWidth = Math.max(1, s * 0.22);
-  ctx.lineJoin = 'round';
-  ctx.lineCap = 'round';
-
-  switch (shape) {
-    case 'bar':
-      roundRect(ctx, cx - s * 0.22, cy - s, s * 0.44, s * 2, s * 0.22);
-      ctx.fill();
-      break;
-    case 'square':
-      roundRect(ctx, cx - s * 0.8, cy - s * 0.8, s * 1.6, s * 1.6, s * 0.28);
-      ctx.stroke();
-      break;
-    case 'ring':
-      dot(ctx, cx, cy, s * 0.82);
-      ctx.stroke();
-      break;
-    case 'triangle':
-      ctx.beginPath();
-      ctx.moveTo(cx, cy - s);
-      ctx.lineTo(cx + s * 0.92, cy + s * 0.72);
-      ctx.lineTo(cx - s * 0.92, cy + s * 0.72);
-      ctx.closePath();
-      ctx.fill();
-      break;
-    case 'diamond':
-      ctx.beginPath();
-      ctx.moveTo(cx, cy - s);
-      ctx.lineTo(cx + s, cy);
-      ctx.lineTo(cx, cy + s);
-      ctx.lineTo(cx - s, cy);
-      ctx.closePath();
-      ctx.fill();
-      break;
-    case 'rosette':
-      for (let i = 0; i < 5; i++) {
-        const a = (i / 5) * Math.PI * 2 - Math.PI / 2;
-        dot(ctx, cx + Math.cos(a) * s * 0.62, cy + Math.sin(a) * s * 0.62, s * 0.34);
-        ctx.fill();
-      }
-      break;
-    case 'arc':
-      ctx.beginPath();
-      ctx.arc(cx, cy + s * 0.4, s * 0.95, Math.PI, 0);
-      ctx.stroke();
-      break;
+  for (let i = 0; i < points.length; i++) {
+    for (let j = i + 1; j < points.length; j++) {
+      const dx = (points[i].x - points[j].x) * area.w;
+      const dy = (points[i].y - points[j].y) * area.h;
+      nearestSpacing = Math.min(nearestSpacing, Math.hypot(dx, dy));
+    }
   }
+
+  const radius = points.length === 1
+    ? Math.min(area.w, area.h) * 0.27
+    : Math.min(nearestSpacing * 0.36, Math.min(cell.w, cell.h) * 0.4);
+
+  return { points, radius, nearestSpacing };
 }
 
 // ---------------------------------------------------------------------------
 // suit motifs
 
 /** A dot: outer ring with a filled core. Reads at small sizes. */
-function drawCircleMark(ctx: Ctx, cx: number, cy: number, r: number, colour: string): void {
-  ctx.strokeStyle = colour;
+function drawCircleMark(ctx: Ctx, cx: number, cy: number, r: number, colour: string, accent: string, style: Palette['tileStyle']): void {
+  if (style === 'porcelain') {
+    ctx.strokeStyle = colour;
+    ctx.lineWidth = Math.max(1.5, r * 0.26);
+    dot(ctx, cx, cy, r * 0.82);
+    ctx.stroke();
+    ctx.fillStyle = accent;
+    dot(ctx, cx, cy, r * 0.34);
+    ctx.fill();
+    return;
+  }
   ctx.fillStyle = colour;
-  ctx.lineWidth = Math.max(1, r * 0.3);
-  dot(ctx, cx, cy, r * 0.82);
-  ctx.stroke();
-  dot(ctx, cx, cy, r * 0.3);
+  dot(ctx, cx, cy, r);
   ctx.fill();
+  ctx.fillStyle = accent;
+  dot(ctx, cx, cy, r * (style === 'jade-edge' ? 0.36 : 0.46));
+  ctx.fill();
+  ctx.save();
+  ctx.globalCompositeOperation = 'destination-out';
+  dot(ctx, cx, cy, r * 0.18);
+  ctx.fill();
+  ctx.restore();
 }
 
 /** A bamboo stalk: a rounded segment with two node bands and a leaf notch. */
-function drawBambooMark(ctx: Ctx, cx: number, cy: number, w: number, h: number, colour: string): void {
+function drawBambooMark(ctx: Ctx, cx: number, cy: number, w: number, h: number, colour: string, style: Palette['tileStyle']): void {
   ctx.fillStyle = colour;
   ctx.strokeStyle = colour;
 
   roundRect(ctx, cx - w / 2, cy - h / 2, w, h, w * 0.42);
-  ctx.fill();
+  if (style === 'porcelain') {
+    ctx.lineWidth = Math.max(1.5, w * 0.24);
+    ctx.stroke();
+  } else {
+    ctx.fill();
+  }
+
+  // Two small shoulders make each stalk read as a carved bamboo segment rather
+  // than a generic rounded bar at phone scale.
+  if (style !== 'porcelain') {
+    ctx.beginPath();
+    ctx.ellipse(cx - w * 0.34, cy - h * 0.34, w * 0.26, h * 0.13, -0.5, 0, Math.PI * 2);
+    ctx.ellipse(cx + w * 0.34, cy + h * 0.34, w * 0.26, h * 0.13, -0.5, 0, Math.PI * 2);
+    ctx.fill();
+  }
 
   // Node bands, knocked out so they read on any background.
   ctx.save();
@@ -194,30 +177,6 @@ function drawBambooMark(ctx: Ctx, cx: number, cy: number, w: number, h: number, 
     ctx.stroke();
   }
   ctx.restore();
-}
-
-/**
- * The character-suit emblem. Traditional craks carry 萬; ours is an original
- * geometric mark — a rounded frame over three tapering bars — so the tile is
- * unmistakably from this set and still legible at thumbnail size.
- */
-function drawCrakEmblem(ctx: Ctx, cx: number, cy: number, s: number, colour: string): void {
-  ctx.strokeStyle = colour;
-  ctx.fillStyle = colour;
-  ctx.lineWidth = Math.max(1.2, s * 0.11);
-  ctx.lineCap = 'round';
-
-  roundRect(ctx, cx - s * 0.72, cy - s * 0.8, s * 1.44, s * 1.6, s * 0.3);
-  ctx.stroke();
-
-  const widths = [0.94, 0.7, 0.46];
-  widths.forEach((wf, i) => {
-    const y = cy - s * 0.36 + i * s * 0.38;
-    ctx.beginPath();
-    ctx.moveTo(cx - s * 0.5 * wf, y);
-    ctx.lineTo(cx + s * 0.5 * wf, y);
-    ctx.stroke();
-  });
 }
 
 function drawFlowerMark(ctx: Ctx, cx: number, cy: number, s: number, rank: number, colour: string): void {
@@ -312,68 +271,23 @@ function drawSeasonMark(ctx: Ctx, cx: number, cy: number, s: number, rank: numbe
   }
 }
 
-function drawDragonMark(ctx: Ctx, cx: number, cy: number, s: number, rank: number, colour: string): void {
-  ctx.strokeStyle = colour;
-  ctx.fillStyle = colour;
-  ctx.lineWidth = Math.max(1.4, s * 0.14);
-  ctx.lineJoin = 'round';
-
-  const diamond = (scale: number) => {
-    ctx.beginPath();
-    ctx.moveTo(cx, cy - s * scale);
-    ctx.lineTo(cx + s * scale * 0.82, cy);
-    ctx.lineTo(cx, cy + s * scale);
-    ctx.lineTo(cx - s * scale * 0.82, cy);
-    ctx.closePath();
-  };
-
-  switch (rank) {
-    case 1: // Red — solid.
-      diamond(0.95);
-      ctx.fill();
-      break;
-    case 2: // Green — outline with a spine.
-      diamond(0.95);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(cx, cy - s * 0.5);
-      ctx.lineTo(cx, cy + s * 0.5);
-      ctx.stroke();
-      break;
-    default: // White — a double frame around nothing, as tradition has it.
-      diamond(0.95);
-      ctx.stroke();
-      diamond(0.55);
-      ctx.stroke();
-      break;
-  }
-}
-
-// ---------------------------------------------------------------------------
-// the face
-
-function drawCornerIndex(
-  ctx: Ctx,
-  face: TileFace,
-  box: Box,
-  colour: string,
-  label: string | null,
-): void {
-  const s = box.w * 0.085;
-  const cx = box.w * 0.16;
-  const cy = box.h * 0.13;
-
+function drawBrainSignature(ctx: Ctx, box: Box): void {
+  const x = box.w * 0.81;
+  const y = box.h * 0.14;
+  const r = Math.max(2.2, box.w * 0.045);
   ctx.save();
-  ctx.fillStyle = colour;
-  ctx.strokeStyle = colour;
-  drawBadge(ctx, BADGE[face.suit], cx, cy, s);
-
-  if (label) {
-    ctx.font = `600 ${box.w * 0.19}px ui-rounded, "SF Pro Rounded", "Segoe UI", system-ui, sans-serif`;
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(label, cx + s * 1.5, cy + box.h * 0.005);
-  }
+  ctx.fillStyle = '#12A66B';
+  ctx.beginPath();
+  ctx.arc(x - r * 0.62, y, r, Math.PI * 0.45, Math.PI * 1.55);
+  ctx.arc(x + r * 0.62, y, r, Math.PI * 1.45, Math.PI * 0.55);
+  ctx.closePath();
+  ctx.fill();
+  ctx.strokeStyle = '#E38A16';
+  ctx.lineWidth = Math.max(1, box.w * 0.012);
+  ctx.beginPath();
+  ctx.moveTo(x, y - r * 0.88);
+  ctx.lineTo(x, y + r * 0.88);
+  ctx.stroke();
   ctx.restore();
 }
 
@@ -383,7 +297,7 @@ function drawCornerIndex(
  */
 export function drawFace(ctx: Ctx, face: TileFace, box: Box, palette: Palette): void {
   const colour = palette.suits[suitKey(face.suit, face.rank)];
-  const motif = { x: box.w * 0.16, y: box.h * 0.26, w: box.w * 0.68, h: box.h * 0.62 };
+  const motif = { x: box.w * 0.055, y: box.h * 0.085, w: box.w * 0.89, h: box.h * 0.84 };
 
   ctx.save();
   ctx.fillStyle = colour;
@@ -391,15 +305,11 @@ export function drawFace(ctx: Ctx, face: TileFace, box: Box, palette: Palette): 
 
   switch (face.suit) {
     case 'circle': {
-      const points = arrangement(face.rank);
-      const cell = cellSize(points, motif);
-      // 0.4 of the smaller cell dimension leaves visible air between marks at
-      // every rank, which is what keeps 2-of-circles from reading as an eight.
-      const r = Math.min(cell.w, cell.h) * 0.4;
-      for (const p of points) {
-        drawCircleMark(ctx, motif.x + p.x * motif.w, motif.y + p.y * motif.h, r, colour);
+      const { points, radius } = circleMotifGeometry(face.rank, motif);
+      const accents = palette.tileStyle === 'brain' ? ['#79F2C0', '#F0A51B', '#18B77A'] : ['#E13A36', '#1556B0', '#079452'];
+      for (const [index, p] of points.entries()) {
+        drawCircleMark(ctx, motif.x + p.x * motif.w, motif.y + p.y * motif.h, radius, colour, accents[(index + face.rank) % accents.length], palette.tileStyle);
       }
-      drawCornerIndex(ctx, face, box, colour, String(face.rank));
       break;
     }
 
@@ -414,77 +324,58 @@ export function drawFace(ctx: Ctx, face: TileFace, box: Box, palette: Palette): 
             }))
           : arrangement(face.rank);
       const cell = cellSize(points, motif);
-      const w = Math.min(cell.w * 0.36, cell.h * 0.34);
-      const h = cell.h * 0.72;
+      const w = Math.min(cell.w * 0.48, cell.h * 0.42);
+      const h = cell.h * 0.82;
       for (const p of points) {
-        drawBambooMark(ctx, motif.x + p.x * motif.w, motif.y + p.y * motif.h, w, h, colour);
+        drawBambooMark(ctx, motif.x + p.x * motif.w, motif.y + p.y * motif.h, w, h, colour, palette.tileStyle);
       }
-      drawCornerIndex(ctx, face, box, colour, String(face.rank));
       break;
     }
 
     case 'character': {
-      ctx.font = `600 ${box.h * 0.34}px ui-rounded, "SF Pro Rounded", "Segoe UI", system-ui, sans-serif`;
+      const numeral = ['一', '二', '三', '四', '五', '六', '七', '八', '九'][face.rank - 1];
+      const faceFont = palette.tileStyle === 'jade-edge' ? '"Kaiti TC", "STKaiti", serif' : palette.tileStyle === 'porcelain' ? '"PingFang TC", sans-serif' : '"PingFang TC", "Hiragino Sans", serif';
+      ctx.font = `${palette.tileStyle === 'porcelain' ? 760 : 900} ${box.h * 0.35}px ${faceFont}`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText(String(face.rank), box.w / 2, box.h * 0.42);
-      drawCrakEmblem(ctx, box.w / 2, box.h * 0.72, box.w * 0.2, colour);
-      drawCornerIndex(ctx, face, box, colour, null);
+      ctx.fillText(numeral, box.w / 2, box.h * 0.34);
+      ctx.font = `${palette.tileStyle === 'porcelain' ? 760 : 900} ${box.h * 0.34}px ${faceFont}`;
+      ctx.fillText('萬', box.w / 2, box.h * 0.69);
       break;
     }
 
     case 'wind': {
-      const initial = WIND_NAMES[face.rank - 1][0];
-      ctx.font = `600 ${box.h * 0.32}px ui-rounded, "SF Pro Rounded", "Segoe UI", system-ui, sans-serif`;
+      const initial = ['東', '南', '西', '北'][face.rank - 1];
+      ctx.font = `${palette.tileStyle === 'jade-edge' ? 800 : 900} ${box.h * 0.54}px ${palette.tileStyle === 'jade-edge' ? '"Kaiti TC", "STKaiti", serif' : '"PingFang TC", "Hiragino Sans", ui-rounded, system-ui, sans-serif'}`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText(initial, box.w / 2, box.h * 0.44);
+      ctx.fillText(initial, box.w / 2, box.h * 0.5);
 
-      // Arrow pointing the way the wind is named — East right, South down,
-      // West left, North up. Shape, not just the letter.
-      const rotation = [Math.PI / 2, Math.PI, -Math.PI / 2, 0][face.rank - 1];
-      const cx = box.w / 2;
-      const cy = box.h * 0.75;
-      const s = box.w * 0.15;
-      ctx.save();
-      ctx.translate(cx, cy);
-      ctx.rotate(rotation);
-      ctx.beginPath();
-      ctx.moveTo(0, -s);
-      ctx.lineTo(s * 0.8, s * 0.6);
-      ctx.lineTo(0, s * 0.24);
-      ctx.lineTo(-s * 0.8, s * 0.6);
-      ctx.closePath();
-      ctx.fill();
-      ctx.restore();
-
-      drawCornerIndex(ctx, face, box, colour, null);
       break;
     }
 
     case 'dragon': {
-      drawDragonMark(ctx, box.w / 2, box.h * 0.52, box.w * 0.28, face.rank, colour);
-      ctx.font = `600 ${box.h * 0.115}px ui-rounded, "SF Pro Rounded", "Segoe UI", system-ui, sans-serif`;
+      const glyph = ['中', '發', '白'][face.rank - 1];
+      ctx.font = `900 ${box.h * 0.61}px "PingFang TC", "Hiragino Sans", ui-rounded, system-ui, sans-serif`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillStyle = colour;
-      ctx.fillText(DRAGON_NAMES[face.rank - 1].toUpperCase(), box.w / 2, box.h * 0.87);
-      drawCornerIndex(ctx, face, box, colour, null);
+      ctx.fillText(glyph, box.w / 2, box.h * 0.52);
       break;
     }
 
     case 'flower': {
-      drawFlowerMark(ctx, box.w / 2, box.h * 0.52, box.w * 0.28, face.rank, colour);
-      drawCornerIndex(ctx, face, box, colour, null);
+      drawFlowerMark(ctx, box.w / 2, box.h * 0.52, box.w * 0.43, face.rank, colour);
       break;
     }
 
     case 'season': {
-      drawSeasonMark(ctx, box.w / 2, box.h * 0.52, box.w * 0.28, face.rank, colour);
-      drawCornerIndex(ctx, face, box, colour, null);
+      drawSeasonMark(ctx, box.w / 2, box.h * 0.52, box.w * 0.43, face.rank, colour);
       break;
     }
   }
+
+  if (palette.tileStyle === 'brain') drawBrainSignature(ctx, box);
 
   ctx.restore();
 }

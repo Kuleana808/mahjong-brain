@@ -47,10 +47,9 @@ authored rather than copied.
 | Asset | Origin | Source | Date | Prompt / notes | Reviewed |
 |---|---|---|---|---|---|
 | `src/render/tileArt.ts` (all tile faces) | drawn-in-code | Arcs, rounded rects and strokes written for this project | 2026-08-09 | No raster assets. Traditional suit *semantics* are centuries-old public domain; the drawings are original. See D-006 | Claude Code |
-| `public/favicon.svg` | drawn-in-code | Hand-written SVG, three stacked tiles in the app palette | 2026-08-09 | — | Claude Code |
-| `design/assets/app-icon-master.svg` | *pending* | Added by Codex in PR #10 | 2026-08-11 | **Needs a row — Codex to fill in** | — |
-| `design/assets/splash-master.svg` | *pending* | Added by Codex in PR #10 | 2026-08-11 | **Needs a row — Codex to fill in** | — |
-| `ios/App/App/Assets.xcassets/**` | *pending* | Added by Codex in PR #10 | 2026-08-11 | **Needs a row — Codex to fill in.** Were Capacitor defaults; confirm whether these are the new originals | — |
+| `design/assets/app-icon-generated-source.png` and `ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png` | generated | OpenAI built-in image generation | 2026-08-14 | Original premium ivory mahjong tile with a distinctive emerald brain-shaped ornamental engraving and a small radiant gold star, polished dimensional 3D game art on a deep emerald radial glow. No competitor names or images were used. Promoted from the approved First Clear artwork on 2026-08-16 so the native icon matches the green brain tile used in the app. | Codex, visually checked at full size and compiled icon size |
+| `public/brand-mark.png` and `public/favicon.png` | derived | Deterministic downscales of `design/assets/app-icon-generated-source.png` | 2026-08-12 | Web/app brand renditions of the approved App Store icon; no generative edits after the approved source | Codex |
+| `ios/App/App/Assets.xcassets/Splash.imageset/**` | derived | Deterministic composition from the approved generated icon via `scripts/render-brand-splash.py` | 2026-08-14 | The same approved brain-tile mark centered on an original emerald radial field with one restrained bronze rule; no new generated content | Codex |
 
 ---
 

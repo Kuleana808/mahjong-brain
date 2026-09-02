@@ -33,7 +33,7 @@ Contracts 3, 4, 9 and 10 light up completely against an in-process store:
 ```bash
 MAHJONG_BRAIN_DEV_STORE=memory \
 SESSION_SIGNING_KEY=$(openssl rand -hex 32) \
-APPLE_BUNDLE_ID=com.mahjongbrain.game \
+APPLE_BUNDLE_ID=com.nihi.mahjong \
 npm run api
 ```
 
@@ -44,8 +44,8 @@ banner prints exactly which ports came up:
 mahjong-brain contracts API on http://localhost:5185
   store       in-memory (dev)
   session     hs256
-  apple       verifying aud=com.mahjongbrain.game
-  storekit    none — set APPLE_ROOT_CA_G3_BASE64, IAP_PRODUCT_ID (blocked on D-005)
+  apple       verifying aud=com.nihi.mahjong
+  storekit    none — set IAP_PRODUCT_IDS, APPLE_BUNDLE_ID
   contracts 1, 2, 5, 6, 7 need none of the above and are always live
 ```
 
@@ -128,7 +128,7 @@ All ten are implemented. What varies is whether the credentials exist.
 | 5 | `POST /api/hints/generate` | `live_verified` | `live_verified` | nothing |
 | 6 | `POST /api/play-pattern/log` | `live_verified` | `live_verified` | nothing |
 | 7 | `GET /api/difficulty/next-board` | `live_verified` | `live_verified` | nothing |
-| 8 | `POST /api/receipts/validate` | `source_available` | `source_available` | Apple root CA + product id (D-005) |
+| 8 | `POST /api/receipts/validate` | `source_available` | `configured` with product id | product id + bundle id; Apple Root CA G3 is pinned |
 | 9 | `GET /api/unlock-status` | `source_available` | **`configured`** | Supabase |
 | 10 | `POST /api/analytics/session` | `source_available` | **`configured`** | Supabase |
 | 11 | `POST /api/events/batch` | `source_available` | **`configured`** | Supabase |
@@ -141,8 +141,8 @@ of the request.
 Real Apple identity tokens are verified for real; only the row storage is
 in-process.
 
-**8 is the one that stays dark**, deliberately. It needs Apple Root CA G3 pinned,
-and it fails closed until it has it — see below.
+**8 stays dark until permanent product and bundle identifiers exist.** Apple
+Root CA G3 is pinned in source and verification fails closed — see below.
 
 ### `state` distinguishes "not deployed" from "you sent something wrong"
 
@@ -441,14 +441,20 @@ Pyramid to Dragon, and a player hovering near a boundary keeps the same shape.
 
 ## 8. `POST /api/receipts/validate`
 
-**Request** `{ "signedTransaction": "<StoreKit 2 JWS>", "accountId": "<optional>" }`
+**Request** `{ "signedTransaction": "<StoreKit 2 JWS>" }`
+
+An optional bearer session associates the verified transaction with the signed-in
+account for cross-device restore. The server derives the account from that signed
+session; a client-supplied account identifier is ignored and never establishes
+ownership. Without a bearer, the transaction can still verify the local device
+entitlement but is not written to an account.
 
 **Response**
 
 ```jsonc
 {
   "unlocked": true,
-  "productId": "com.mahjongbrain.game.removeads",
+  "productId": "com.nihi.mahjong.removeads",
   "originalTransactionId": "2000000000000001",
   "purchasedAt": "2026-08-09T22:00:00.000Z",
   "environment": "sandbox",
@@ -501,7 +507,7 @@ bundle, and a future-dated purchase.
 | Variable | Where it comes from |
 |---|---|
 | `APPLE_ROOT_CA_G3_BASE64` | [apple.com/certificateauthority](https://www.apple.com/certificateauthority/), base64 of `AppleRootCA-G3.cer` |
-| `IAP_PRODUCT_ID` | `com.mahjongbrain.game.removeads` |
+| `IAP_PRODUCT_IDS` | `com.nihi.mahjong.removeads,com.nihi.mahjong.shuffle5` |
 | `APPLE_BUNDLE_ID` | blocked on D-001 |
 
 **Pin the root; never fetch it at runtime.** A root you download at boot is a

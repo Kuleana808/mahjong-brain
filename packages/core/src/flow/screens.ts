@@ -39,7 +39,7 @@ export type ScreenId =
  */
 export interface FlowProgress {
   readonly tosAcceptedAt: string | null;
-  /** Null until answered. False means they failed it. */
+  /** Null until answered. False is accepted as a legacy answered value. */
   readonly agePassed: boolean | null;
   /** Highest tutorial screen completed, or null if never started. */
   readonly tutorialCompleted: 'tutorial_a' | 'tutorial_b' | 'tutorial_c' | null;
@@ -63,6 +63,7 @@ export type FlowAction =
   | { type: 'tutorial_step_done'; step: 'tutorial_a' | 'tutorial_b' | 'tutorial_c' }
   | { type: 'skip_tutorial' }
   | { type: 'start_board' }
+  | { type: 'leave_board' }
   | { type: 'board_won' }
   | { type: 'holder_full' }
   | { type: 'revive' }
@@ -71,10 +72,7 @@ export type FlowAction =
 export interface FlowState {
   readonly screen: ScreenId;
   readonly progress: FlowProgress;
-  /**
-   * True when the age gate was failed. The app must not silently loop them back
-   * to it — a person who answered honestly should not be taught to lie.
-   */
+  /** Deprecated compatibility field. The shipped age prompt never blocks play. */
   readonly ageBlocked: boolean;
 }
 
@@ -88,7 +86,6 @@ export interface FlowState {
 export function resumeScreen(progress: FlowProgress): ScreenId {
   if (!progress.tosAcceptedAt) return 'tos';
   if (progress.agePassed === null) return 'age_gate';
-  if (progress.agePassed === false) return 'age_gate';
   if (progress.tutorialSkipped) return 'home';
 
   switch (progress.tutorialCompleted) {
@@ -110,7 +107,7 @@ export function initialState(progress: FlowProgress = INITIAL_PROGRESS): FlowSta
   return {
     screen: resume,
     progress,
-    ageBlocked: progress.agePassed === false,
+    ageBlocked: false,
   };
 }
 
@@ -129,11 +126,9 @@ export function reduce(state: FlowState, action: FlowAction): FlowState {
 
     case 'answer_age_gate': {
       if (state.screen !== 'age_gate') return state;
+      // `passed` is a legacy action field. Every displayed range is optional
+      // demographic context and must advance into local play.
       const next = { ...progress, agePassed: action.passed };
-      if (!action.passed) {
-        // Blocked, and stays blocked. No retry loop.
-        return { ...state, progress: next, ageBlocked: true, screen: 'age_gate' };
-      }
       return { ...state, progress: next, ageBlocked: false, screen: 'loading' };
     }
 
@@ -157,6 +152,11 @@ export function reduce(state: FlowState, action: FlowAction): FlowState {
     case 'start_board': {
       if (state.screen !== 'home' && state.screen !== 'game_over') return state;
       return { ...state, screen: 'gameplay' };
+    }
+
+    case 'leave_board': {
+      if (state.screen !== 'gameplay') return state;
+      return { ...state, screen: 'home' };
     }
 
     case 'board_won': {
@@ -215,7 +215,7 @@ export function eventsFor(action: FlowAction, before: FlowState, after: FlowStat
       events.push('board_won');
       break;
     case 'holder_full':
-      events.push('holder_full', 'revive_offered');
+      events.push('holder_full');
       break;
     case 'revive':
       events.push('revive_granted');

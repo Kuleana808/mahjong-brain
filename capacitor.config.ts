@@ -12,13 +12,13 @@ import type { CapacitorConfig } from '@capacitor/cli';
  * That is Codex's side of the line and is not updated here.
  */
 const config: CapacitorConfig = {
-  appId: 'com.mahjongbrain.game',
+  appId: 'com.nihi.mahjong',
   appName: 'Mahjong Brain',
   webDir: 'dist',
   ios: {
     // The felt colour, so there is no white flash behind the board while the
     // web view paints, and none when the board is over-scrolled.
-    backgroundColor: '#EDE8DE',
+    backgroundColor: '#003B32',
     contentInset: 'never',
     // A board is not a document. Nothing here should rubber-band.
     scrollEnabled: false,

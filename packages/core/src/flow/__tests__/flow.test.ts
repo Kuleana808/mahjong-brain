@@ -95,24 +95,20 @@ describe('first launch', () => {
 });
 
 describe('the age gate', () => {
-  it('blocks and stays blocked rather than looping', () => {
+  it('never blocks play, including for a legacy false answer', () => {
     let state = reduce(initialState(), { type: 'accept_tos', at: AT });
     state = reduce(state, { type: 'answer_age_gate', passed: false });
 
-    expect(state.ageBlocked).toBe(true);
-    expect(state.screen).toBe('age_gate');
-    // A blocked player must not be able to walk forward.
-    expect(reduce(state, { type: 'loading_finished' }).screen).toBe('age_gate');
-    expect(reduce(state, { type: 'start_board' }).screen).toBe('age_gate');
+    expect(state.ageBlocked).toBe(false);
+    expect(state.screen).toBe('loading');
+    expect(reduce(state, { type: 'loading_finished' }).screen).toBe('tutorial_a');
   });
 
-  it('stays blocked across a relaunch — no retry until you lie', () => {
-    let state = reduce(initialState(), { type: 'accept_tos', at: AT });
-    state = reduce(state, { type: 'answer_age_gate', passed: false });
-
-    const relaunched = initialState(state.progress);
-    expect(relaunched.screen).toBe('age_gate');
-    expect(relaunched.ageBlocked).toBe(true);
+  it('recovers a legacy false answer across relaunch', () => {
+    const progress = { ...INITIAL_PROGRESS, tosAcceptedAt: AT, agePassed: false };
+    const relaunched = initialState(progress);
+    expect(relaunched.screen).toBe('tutorial_a');
+    expect(relaunched.ageBlocked).toBe(false);
   });
 
   it('is never shown twice to someone who passed', () => {
@@ -188,6 +184,15 @@ describe('the game-over screen', () => {
   });
 });
 
+describe('pausing a board', () => {
+  it('returns from gameplay to home and can resume', () => {
+    let state = reduce(onboard(), { type: 'start_board' });
+    state = reduce(state, { type: 'leave_board' });
+    expect(state.screen).toBe('home');
+    expect(reduce(state, { type: 'start_board' }).screen).toBe('gameplay');
+  });
+});
+
 describe('instrumentation is attached to the machine, not the views', () => {
   it('emits a shown event on arrival at every gated screen', () => {
     let state = initialState();
@@ -211,12 +216,12 @@ describe('instrumentation is attached to the machine, not the views', () => {
     expect(emitted).toContain('tutorial_step_completed');
   });
 
-  it('offers a revive at the moment the holder fills', () => {
+  it('records holder full without claiming an unverified revive offer', () => {
     const state = reduce(onboard(), { type: 'start_board' });
     const action: FlowAction = { type: 'holder_full' };
     const events = eventsFor(action, state, reduce(state, action));
     expect(events).toContain('holder_full');
-    expect(events).toContain('revive_offered');
+    expect(events).not.toContain('revive_offered');
   });
 
   it('only emits names the catalogue knows', () => {

@@ -40,5 +40,6 @@ ios/App/Podfile.lock
 .env.*
 !.env.example
 coverage
+.build/
 ios/App/App.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/configuration
 .gstack/

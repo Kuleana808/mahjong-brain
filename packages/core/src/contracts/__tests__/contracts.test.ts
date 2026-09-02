@@ -18,6 +18,7 @@ import { recordSessionAnalytics } from '../handlers/analytics';
 import { logPlayPattern, nextBoard } from '../handlers/difficulty';
 import { generateBoard, validateMove } from '../handlers/game';
 import { generateHint } from '../handlers/hints';
+import { validateConsumable } from '../handlers/consumables';
 import { unlockStatus, validateReceipt } from '../handlers/purchases';
 import { getSettings, patchSettings, DEFAULT_SYNCED_SETTINGS } from '../handlers/settings';
 import { CONTRACT_REGISTRY } from '../index';
@@ -53,7 +54,56 @@ describe('the envelope', () => {
       expect(entry.id).toMatch(/^(game|api)\//);
       expect(entry.path.startsWith('/api/')).toBe(true);
     }
-    expect(CONTRACT_REGISTRY).toHaveLength(12);
+    expect(CONTRACT_REGISTRY).toHaveLength(13);
+  });
+});
+
+describe('api/consumables/validate', () => {
+  const transaction = {
+    productId: 'com.nihi.mahjong.shuffle5',
+    transactionId: 'tx_shuffle_1',
+    originalTransactionId: 'original_shuffle_1',
+    purchasedAt: NOW,
+    environment: 'Sandbox',
+    revoked: false,
+  } as const;
+
+  function consumablePorts(store = stubStore()): Ports {
+    return {
+      ...fixed,
+      store,
+      session: { async issue() { return { token: 'token', expiresAt: NOW }; }, async verify(token) { return token === 'token' ? 'acct_1' : null; } },
+      storekit: { async verifySignedTransaction() { return transaction; } },
+    };
+  }
+
+  it('grants one verified Shuffle pack and returns the same recoverable quantity on replay', async () => {
+    const grants = new Map<string, import('../ports').ConsumableGrantRecord>();
+    const store = stubStore();
+    store.getConsumableGrant = async (id) => grants.get(id) ?? null;
+    store.putConsumableGrant = async (record) => {
+      if (grants.has(record.transactionId)) return false;
+      grants.set(record.transactionId, record);
+      return true;
+    };
+    const first = await validateConsumable({ signedTransaction: 'a.b.c' }, 'token', consumablePorts(store));
+    const replay = await validateConsumable({ signedTransaction: 'a.b.c' }, 'token', consumablePorts(store));
+    expect(first.data).toMatchObject({ quantityGranted: 5, alreadyGranted: false, transactionId: 'tx_shuffle_1' });
+    expect(replay.data).toMatchObject({ quantityGranted: 5, alreadyGranted: true, transactionId: 'tx_shuffle_1' });
+    expect(grants).toHaveLength(1);
+  });
+
+  it('requires sign-in and rejects the wrong product', async () => {
+    expect((await validateConsumable({ signedTransaction: 'a.b.c' }, null, consumablePorts())).error?.code).toBe('unauthenticated');
+    const ports: Ports = { ...consumablePorts(), storekit: { async verifySignedTransaction() { return { ...transaction, productId: 'com.nihi.mahjong.removeads' }; } } };
+    expect((await validateConsumable({ signedTransaction: 'a.b.c' }, 'token', ports)).error?.code).toBe('wrong_product');
+  });
+
+  it('does not let a transaction already claimed by another account grant inventory', async () => {
+    const store = stubStore();
+    store.putConsumableGrant = async () => false;
+    store.getConsumableGrant = async () => ({ accountId: 'acct_other', transactionId: transaction.transactionId, productId: transaction.productId, kind: 'shuffle', quantity: 5, purchasedAt: NOW, environment: 'Sandbox', grantedAt: NOW });
+    expect((await validateConsumable({ signedTransaction: 'a.b.c' }, 'token', consumablePorts(store))).error?.code).toBe('transaction_claimed');
   });
 });
 
@@ -283,7 +333,7 @@ describe('unconfigured endpoints fail honestly', () => {
 
 describe('purchases fail closed', () => {
   it('an unconfigured verifier never grants an unlock', async () => {
-    const envelope = await validateReceipt({ signedTransaction: 'a.b.c' }, fixed);
+    const envelope = await validateReceipt({ signedTransaction: 'a.b.c' }, null, fixed);
     expect(envelope.data).toBeNull();
     expect(envelope.error?.code).toBe('not_configured');
     // The important assertion: nothing anywhere in this response says unlocked.
@@ -294,11 +344,11 @@ describe('purchases fail closed', () => {
     // Codex reads `state` to know whether an endpoint is worth calling. A
     // working verifier rejecting a bad token must not look like an unbuilt
     // endpoint, and an unbuilt endpoint must not look like a working one.
-    const unconfigured = await validateReceipt({ signedTransaction: 'a.b.c' }, fixed);
+    const unconfigured = await validateReceipt({ signedTransaction: 'a.b.c' }, null, fixed);
     expect(unconfigured.state).toBe('source_available');
     expect(unconfigured.error?.code).toBe('not_configured');
 
-    const configured = await validateReceipt({ signedTransaction: 'a.b.c' }, {
+    const configured = await validateReceipt({ signedTransaction: 'a.b.c' }, null, {
       ...fixed,
       store: stubStore(),
       storekit: {
@@ -321,7 +371,7 @@ describe('purchases fail closed', () => {
       },
       store: stubStore(),
     };
-    const envelope = await validateReceipt({ signedTransaction: 'a.b.c' }, ports);
+    const envelope = await validateReceipt({ signedTransaction: 'a.b.c' }, null, ports);
     expect(envelope.data).toBeNull();
     expect(envelope.error?.code).toBe('unverified_transaction');
     expect(envelope.fallback_reason).toMatch(/signature/);
@@ -333,6 +383,7 @@ describe('purchases fail closed', () => {
       storekit: {
         verifySignedTransaction: async () => ({
           productId: 'com.mahjongbrain.game.removeads',
+          transactionId: 'tx_1',
           originalTransactionId: '2000000000000001',
           purchasedAt: NOW,
           environment: 'sandbox',
@@ -341,7 +392,7 @@ describe('purchases fail closed', () => {
       },
       store: stubStore(),
     };
-    const envelope = await validateReceipt({ signedTransaction: 'a.b.c' }, ports);
+    const envelope = await validateReceipt({ signedTransaction: 'a.b.c' }, null, ports);
     expect(envelope.data!.unlocked).toBe(true);
     expect(envelope.state).toBe('configured');
   });
@@ -352,6 +403,7 @@ describe('purchases fail closed', () => {
       storekit: {
         verifySignedTransaction: async () => ({
           productId: 'com.mahjongbrain.game.removeads',
+          transactionId: 'tx_1',
           originalTransactionId: '2000000000000001',
           purchasedAt: NOW,
           environment: 'production',
@@ -360,7 +412,7 @@ describe('purchases fail closed', () => {
       },
       store: stubStore(),
     };
-    const envelope = await validateReceipt({ signedTransaction: 'a.b.c' }, ports);
+    const envelope = await validateReceipt({ signedTransaction: 'a.b.c' }, null, ports);
     expect(envelope.data!.unlocked).toBe(false);
     expect(envelope.fallback_reason).toMatch(/revoked/i);
   });
@@ -451,6 +503,16 @@ describe('settings sync', () => {
     expect((await getSettings('token', ports)).data!.settings.fontScale).toBe(1.45);
   });
 
+  it('round-trips the sound preference and rejects non-boolean values', async () => {
+    const ports = withAccount();
+    const written = await patchSettings('token', { sounds: false }, ports);
+    expect(written.data!.settings.sounds).toBe(false);
+
+    const invalid = await patchSettings('token', { sounds: 'off' } as never, ports);
+    expect(invalid.error?.code).toBe('invalid_request');
+    expect(invalid.error?.field).toBe('sounds');
+  });
+
   it('reports configured, not source_available, for a signed-out caller', async () => {
     const ports = withAccount();
     const envelope = await getSettings(null, ports);
@@ -509,6 +571,8 @@ function stubStore(): StorePort {
       return null;
     },
     async putDailyReward() {},
+    async getConsumableGrant() { return null; },
+    async putConsumableGrant() { return true; },
   };
 }
 

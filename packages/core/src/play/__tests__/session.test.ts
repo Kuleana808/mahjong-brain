@@ -171,6 +171,22 @@ describe('shuffle', () => {
     expect(after.revivesUsed).toBe(0);
   });
 
+  it('returns a partially filled holder before redealing matched pairs', () => {
+    let session = startSession('pyramid', SEED);
+    const groups = new Set<string>();
+    while (session.holder.length < 3) {
+      const tile = tappableTiles(session).find((candidate) => !groups.has(matchGroup(candidate.face)))!;
+      groups.add(matchGroup(tile.face));
+      session = tapTile(session, tile.id);
+    }
+
+    const after = shuffle(session, 78);
+    expect(after.holder).toEqual([]);
+    expect(after.board.remaining.size).toBe(session.board.remaining.size + 3);
+    expect(after.status).toBe('playing');
+    expect(after.shufflesUsed).toBe(1);
+  });
+
   it('preserves the multiset of remaining faces', () => {
     const start = startSession('pyramid', SEED);
     const key = (s: PlaySession) =>

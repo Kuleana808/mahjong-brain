@@ -141,8 +141,8 @@ function settle(session: PlaySession): PlaySession {
  * Revive after a full holder: returns the held tiles to the board.
  *
  * They go back to the positions they came from, which is the only placement
- * that cannot make the board unsolvable. Granted by the app *after* an ad has
- * actually been watched — the server never grants a revive on a click alone.
+ * that cannot make the board unsolvable. The app calls this only after a
+ * verified ad grant or an explicit locally tracked free allowance.
  */
 export function revive(session: PlaySession): PlaySession {
   if (session.status !== 'holder_full') return session;
@@ -160,15 +160,21 @@ export function revive(session: PlaySession): PlaySession {
 }
 
 /**
- * Shuffle the tiles still on the board. Usable while playing *or* while the
- * holder is full — in the second case the held tiles come back first, which is
- * what makes a paid shuffle worth buying at the moment of loss.
+ * Shuffle the tiles still in play. Held tiles return to their original board
+ * positions first, because removing an unmatched holder tile leaves an odd
+ * match-group count that cannot be redealt as guaranteed pairs.
  */
 export function shuffle(session: PlaySession, seed: number): PlaySession {
-  const withHeldBack =
-    session.status === 'holder_full'
-      ? { ...revive(session), revivesUsed: session.revivesUsed }
-      : session;
+  const remaining = new Set(session.board.remaining);
+  for (const id of session.holder) remaining.add(id);
+  const withHeldBack: PlaySession = {
+    ...session,
+    board: { ...session.board, remaining },
+    holder: [],
+    status: 'playing',
+    // Shuffle is its own assistance action, never also counted as a revive.
+    revivesUsed: session.revivesUsed,
+  };
 
   if (!canReshuffle(withHeldBack.board)) return session;
 

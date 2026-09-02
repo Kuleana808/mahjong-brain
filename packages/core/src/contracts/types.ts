@@ -95,7 +95,7 @@ export interface AppleAuthResponse {
 
 // --- 4. GET /api/settings, PATCH /api/settings ------------------------------
 
-export type ThemePreference = 'calm' | 'calm-dark' | 'high-contrast' | 'system';
+export type ThemePreference = 'calm' | 'bamboo' | 'plum' | 'calm-dark' | 'high-contrast' | 'system';
 
 export interface SyncedSettings {
   readonly theme: ThemePreference;
@@ -103,6 +103,10 @@ export interface SyncedSettings {
   readonly reduceMotion: boolean;
   readonly dimBlocked: boolean;
   readonly haptics: boolean;
+  readonly sounds: boolean;
+  readonly music: boolean;
+  readonly voice: boolean;
+  readonly autoComplete: boolean;
   /**
    * Player override for the silent difficulty model. 'auto' is the default and
    * the only value the game itself ever sets.
@@ -205,7 +209,6 @@ export interface ReceiptValidateRequest {
    * client boolean — the only thing that can establish a purchase.
    */
   readonly signedTransaction: string;
-  readonly accountId?: string;
 }
 
 export interface ReceiptValidateResponse {
@@ -216,6 +219,21 @@ export interface ReceiptValidateResponse {
   /** 'sandbox' | 'production', straight from the verified payload. */
   readonly environment: string;
   readonly revoked: boolean;
+}
+
+export interface ConsumableValidateRequest {
+  readonly signedTransaction: string;
+}
+
+export interface ConsumableValidateResponse {
+  readonly productId: string;
+  readonly transactionId: string;
+  readonly kind: 'shuffle';
+  /** The verified pack quantity. Clients must dedupe locally by transactionId. */
+  readonly quantityGranted: number;
+  readonly alreadyGranted: boolean;
+  readonly purchasedAt: string;
+  readonly environment: string;
 }
 
 // --- 9. GET /api/unlock-status ---------------------------------------------
@@ -280,9 +298,10 @@ export interface ProductDefinition {
 }
 
 /**
- * PRODUCT IDS ARE PLACEHOLDERS, derived from the placeholder bundle id
- * `com.mahjongbrain.game`. The bundle id becomes the App Store record and is
- * permanent once TestFlight sees it, so Brent locks it at submission — see
+ * Product identifiers are derived from the permanent bundle id
+ * `com.nihi.mahjong`. The bundle id becomes the App Store record and is
+ * permanent once TestFlight sees it. Brent locked it for submission on
+ * 2026-08-11 — see
  * D-001, which also notes that `mahjongbrain.com` belongs to someone else.
  * When it changes, this list, `capacitor.config.ts` and the `APPLE_BUNDLE_ID`
  * env var change together; `ios/**` is Codex's.
@@ -290,8 +309,8 @@ export interface ProductDefinition {
 export const PRODUCT_CATALOGUE: readonly ProductDefinition[] = [
   { kind: 'revive', source: 'rewarded_ad', productId: null, consumable: true },
   { kind: 'hint', source: 'rewarded_ad', productId: null, consumable: true },
-  { kind: 'shuffle', source: 'iap', productId: 'com.mahjongbrain.game.shuffle5', consumable: true },
-  { kind: 'remove_ads', source: 'iap', productId: 'com.mahjongbrain.game.removeads', consumable: false },
+  { kind: 'shuffle', source: 'iap', productId: 'com.nihi.mahjong.shuffle5', consumable: true },
+  { kind: 'remove_ads', source: 'iap', productId: 'com.nihi.mahjong.removeads', consumable: false },
 ];
 
 // --- 11. POST /api/events/batch --------------------------------------------

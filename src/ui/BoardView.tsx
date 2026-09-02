@@ -11,19 +11,94 @@
  * accessible board, just a technically-focusable one.
  */
 
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react';
 
 import { freeTiles, openSides, type Tile } from '../../packages/core/src/game/board';
-import { faceName } from '../../packages/core/src/game/tiles';
+import { faceName, matchGroup } from '../../packages/core/src/game/tiles';
+import { hintPair as holderHintPair } from '../../packages/core/src/play/session';
 import { computeView, tileRect, paintOrder, type View } from '../render/geometry';
 import { render, type TileMotion } from '../render/boardRenderer';
-import { PALETTES } from '../render/palette';
+import { paletteFor } from '../render/palette';
 import { useGame } from '../state/store';
+import { paintInitialFrame } from './paintLifecycle';
+import { TileFaceCanvas } from './TileFaceCanvas';
+
+interface TileFlight {
+  readonly id: number;
+  readonly face: Tile['face'];
+  readonly from: DOMRect;
+  readonly to: DOMRect;
+}
+
+interface MatchCelebration {
+  readonly id: number;
+  readonly origins: readonly DOMRect[];
+}
+
+export function shouldAnimateTileToHolder(isFree: boolean, flightActive: boolean, reduceMotion: boolean): boolean {
+  return isFree && !flightActive && !reduceMotion;
+}
+
+const SHARDS = Array.from({ length: 18 }, (_, index) => ({
+  x: ((index * 43) % 132) - 66,
+  y: -38 - ((index * 29) % 76),
+  r: ((index * 53) % 210) - 105,
+  delay: (index % 4) * 12,
+}));
+
+function MatchBurst({ origin }: { origin: DOMRect }) {
+  return (
+    <div className="match-burst" style={{ left: origin.left, top: origin.top, width: origin.width, height: origin.height }} aria-hidden="true">
+      <span className="match-burst__flash" />
+      {SHARDS.map((shard, index) => (
+        <i
+          key={index}
+          style={{
+            '--shard-x': `${shard.x}px`,
+            '--shard-y': `${shard.y}px`,
+            '--shard-r': `${shard.r}deg`,
+            '--shard-delay': `${shard.delay}ms`,
+          } as CSSProperties}
+        />
+      ))}
+    </div>
+  );
+}
+
+function MatchCelebrationLayer({ celebration }: { celebration: MatchCelebration }) {
+  const centre = celebration.origins.reduce(
+    (point, origin) => ({
+      x: point.x + origin.left + origin.width / 2,
+      y: point.y + origin.top + origin.height / 2,
+    }),
+    { x: 0, y: 0 },
+  );
+  const count = Math.max(1, celebration.origins.length);
+
+  return (
+    <div className="match-celebration" aria-hidden="true">
+      <span
+        className="match-celebration__word"
+        style={{ left: centre.x / count, top: centre.y / count }}
+      >
+        <strong>Perfect!</strong>
+        <small>+1</small>
+      </span>
+      <span
+        className="match-celebration__halo"
+        style={{ left: centre.x / count, top: centre.y / count }}
+      />
+      {celebration.origins.map((origin, index) => <MatchBurst key={index} origin={origin} />)}
+    </div>
+  );
+}
 
 export function BoardView() {
   const board = useGame((s) => s.board);
   const selectedId = useGame((s) => s.selectedId);
+  const holder = useGame((s) => s.holder);
   const hint = useGame((s) => s.hint);
+  const announcement = useGame((s) => s.announcement);
   const settings = useGame((s) => s.settings);
   const tapTile = useGame((s) => s.tapTile);
 
@@ -33,11 +108,29 @@ export function BoardView() {
   const animationRef = useRef<number | null>(null);
   const [view, setView] = useState<View | null>(null);
   const [box, setBox] = useState({ w: 0, h: 0 });
+  const [flight, setFlight] = useState<TileFlight | null>(null);
+  const [celebration, setCelebration] = useState<MatchCelebration | null>(null);
+  const [blockedId, setBlockedId] = useState<number | null>(null);
+  const [boardTransition, setBoardTransition] = useState<'shuffle' | 'undo' | null>(null);
+
+  useEffect(() => {
+    const kind = announcement === 'Tiles reshuffled.'
+      ? 'shuffle'
+      : announcement === 'Move undone.'
+        ? 'undo'
+        : null;
+    if (!kind || settings.reduceMotion) return;
+    setBoardTransition(kind);
+    const timeout = window.setTimeout(() => setBoardTransition(null), kind === 'shuffle' ? 520 : 360);
+    return () => window.clearTimeout(timeout);
+  }, [announcement, settings.reduceMotion]);
 
   // Track the available box rather than reading layout during paint.
   useLayoutEffect(() => {
     const element = wrapRef.current;
     if (!element) return;
+    const initial = element.getBoundingClientRect();
+    setBox({ w: initial.width, h: initial.height });
     const observer = new ResizeObserver(([entry]) => {
       setBox({ w: entry.contentRect.width, h: entry.contentRect.height });
     });
@@ -45,7 +138,7 @@ export function BoardView() {
     return () => observer.disconnect();
   }, []);
 
-  const palette = PALETTES[settings.theme];
+  const palette = paletteFor(settings.theme, settings.tileStyle);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -58,42 +151,107 @@ export function BoardView() {
       previous && previous.seed === board.seed
         ? [...previous.remaining].filter((id) => !board.remaining.has(id))
         : [];
-    const animateMatch = !settings.reduceMotion && removed.length === 2;
+    const animateMatch = !settings.reduceMotion && removed.length > 0;
     const startedAt = performance.now();
-    const duration = 180;
+    const duration = 280;
 
     const paint = (now: number) => {
       const progress = animateMatch ? Math.min(1, (now - startedAt) / duration) : 1;
       const eased = 1 - Math.pow(1 - progress, 3);
+      const presentationBoard = animateMatch && progress < 1 ? previous! : board;
       const motion = new Map<number, TileMotion>();
       if (animateMatch) {
-        for (const id of removed) motion.set(id, { alpha: 1 - eased, lift: 1 + eased * 0.35 });
+        for (const id of removed) {
+          const anticipation = progress < 0.24 ? 1 + Math.sin((progress / 0.24) * Math.PI) * 0.075 : 1;
+          const exit = progress < 0.24 ? 1 : 1 - (progress - 0.24) / 0.76;
+          motion.set(id, {
+            alpha: Math.max(0, exit),
+            lift: 1 + eased * 0.52,
+            scale: anticipation * (0.9 + Math.max(0, exit) * 0.1),
+          });
+        }
       }
-
-      const presentationBoard = animateMatch && progress < 1 ? previous! : board;
+      if (flight && presentationBoard.remaining.has(flight.id)) {
+        motion.set(flight.id, { alpha: 0, lift: 1 });
+      }
       const nextView = render(canvas, {
         board: presentationBoard,
         palette,
         selectedId,
         hintedIds: hint ? [hint.pair[0].id, hint.pair[1].id] : [],
+        hintPulse: hint && !settings.reduceMotion
+          ? (Math.sin((now - startedAt) / 230) + 1) / 2
+          : 0.5,
         freeIds: new Set(freeTiles(board).map((t) => t.id)),
         dimBlocked: settings.dimBlocked,
         motion,
       });
       setView(nextView);
 
-      if (animateMatch && progress < 1) animationRef.current = requestAnimationFrame(paint);
+      if ((animateMatch && progress < 1) || (Boolean(hint) && !settings.reduceMotion)) {
+        animationRef.current = requestAnimationFrame(paint);
+      }
       else animationRef.current = null;
     };
 
-    animationRef.current = requestAnimationFrame(paint);
+    // Paint the initial frame immediately. WKWebView can defer the first rAF
+    // while the native app is moving from hidden to visible, which otherwise
+    // leaves a live board with an empty canvas until the next interaction.
+    paintInitialFrame(paint, startedAt);
     previousBoardRef.current = board;
 
     return () => {
       if (animationRef.current !== null) cancelAnimationFrame(animationRef.current);
       animationRef.current = null;
     };
-  }, [board, palette, selectedId, hint, settings.dimBlocked, settings.reduceMotion, box]);
+  }, [board, palette, selectedId, hint, settings.dimBlocked, settings.reduceMotion, box, flight]);
+
+  const takeTile = useCallback((tile: Tile, source: HTMLElement, isFree: boolean) => {
+    if (!shouldAnimateTileToHolder(isFree, Boolean(flight), settings.reduceMotion)) {
+      // Blocked tiles still reach the store so players get concise visual,
+      // spoken, and sound feedback, but they must never appear to enter the
+      // holder. An active flight remains a strict interaction lock.
+      if (!flight) {
+        tapTile(tile.id);
+        if (!isFree && !settings.reduceMotion) {
+          setBlockedId(tile.id);
+          window.setTimeout(() => setBlockedId((active) => active === tile.id ? null : active), 360);
+        }
+      }
+      return;
+    }
+
+    const holderCount = useGame.getState().holder.length;
+    const destination = document.querySelector<HTMLElement>(`.holder [data-slot-index="${Math.min(holderCount, 3)}"]`);
+    if (!destination) {
+      tapTile(tile.id);
+      return;
+    }
+    setFlight({ id: tile.id, face: tile.face, from: source.getBoundingClientRect(), to: destination.getBoundingClientRect() });
+  }, [flight, settings.reduceMotion, tapTile]);
+
+  useEffect(() => {
+    if (!settings.autoComplete || settings.reduceMotion || flight || !board || board.remaining.size === 0 || board.remaining.size > 12) return;
+    const free = freeTiles(board);
+    if (free.length !== board.remaining.size) return;
+    const safe = holderHintPair({
+      board,
+      holder,
+      status: 'playing',
+      cleared: board.removed.length * 2,
+      revivesUsed: 0,
+      shufflesUsed: 0,
+      hintsUsed: 0,
+    });
+    if (!safe) return;
+    const next = safe.find((tile) => board.remaining.has(tile.id));
+    if (!next) return;
+    const timeout = window.setTimeout(() => {
+      const source = document.getElementById(`tile-${next.id}`);
+      if (source) takeTile(next, source, true);
+    }, holder.length === 0 ? 520 : 360);
+    return () => window.clearTimeout(timeout);
+  }, [board, flight, holder, settings.autoComplete, settings.reduceMotion, takeTile]);
 
   const moveFocus = useCallback(
     (from: Tile, direction: 'up' | 'down' | 'left' | 'right') => {
@@ -126,7 +284,7 @@ export function BoardView() {
   const activeView = view ?? computeView(board.layoutId, box.w || 1, box.h || 1);
 
   return (
-    <div className="board" ref={wrapRef}>
+    <div className={`board${boardTransition ? ` board--${boardTransition}` : ''}`} ref={wrapRef}>
       <canvas ref={canvasRef} className="board__canvas" aria-hidden="true" />
 
       <div role="grid" aria-label={`Mahjong board, ${live.length} tiles remaining`}>
@@ -140,10 +298,10 @@ export function BoardView() {
               key={tile.id}
               id={`tile-${tile.id}`}
               type="button"
-              className="board__hit"
+              className={`board__hit${isFree ? ' board__hit--free' : ''}${hintedIds.includes(tile.id) ? ' board__hit--hinted' : ''}${blockedId === tile.id ? ' board__hit--blocked-recoil' : ''}`}
               style={{ left: rect.x, top: rect.y, width: rect.w, height: rect.h }}
               tabIndex={isFree ? 0 : -1}
-              aria-disabled={!isFree}
+              aria-disabled={!isFree || Boolean(flight)}
               aria-pressed={tile.id === selectedId}
               aria-describedby={hintedIds.includes(tile.id) ? 'hint-text' : undefined}
               aria-label={
@@ -151,7 +309,7 @@ export function BoardView() {
                   ? `${faceName(tile.face)}, free on the ${sides.join(' and ')}`
                   : `${faceName(tile.face)}, blocked`
               }
-              onClick={() => tapTile(tile.id)}
+              onClick={(event) => takeTile(tile, event.currentTarget, isFree)}
               onKeyDown={(event) => {
                 const map = {
                   ArrowUp: 'up',
@@ -169,6 +327,45 @@ export function BoardView() {
           );
         })}
       </div>
+      {flight ? (
+        <div
+          className="tile-flight"
+          style={{
+            left: flight.from.left,
+            top: flight.from.top,
+            width: flight.from.width,
+            height: flight.from.height,
+            '--flight-x': `${flight.to.left - flight.from.left}px`,
+            '--flight-y': `${flight.to.top - flight.from.top}px`,
+            '--flight-scale-x': flight.to.width / flight.from.width,
+            '--flight-scale-y': flight.to.height / flight.from.height,
+          } as CSSProperties}
+          onAnimationEnd={() => {
+            const before = useGame.getState();
+            const matchingHeld = before.holder.find((id) => {
+              const held = before.board?.tiles.find((tile) => tile.id === id);
+              return held && matchGroup(held.face) === matchGroup(flight.face);
+            });
+            const heldOrigin = matchingHeld
+              ? document.querySelector<HTMLElement>(`.holder [data-tile-id="${matchingHeld}"]`)?.getBoundingClientRect()
+              : undefined;
+            const incomingOrigin = flight.to;
+            tapTile(flight.id);
+            const after = useGame.getState();
+            if (after.holder.length < before.holder.length && !settings.reduceMotion) {
+              const id = performance.now();
+              setCelebration({ id, origins: heldOrigin ? [heldOrigin, incomingOrigin] : [incomingOrigin] });
+              const qaHold = document.documentElement.dataset.qaFixtureReady ? 5000 : 760;
+              window.setTimeout(() => setCelebration((active) => active?.id === id ? null : active), qaHold);
+            }
+            setFlight(null);
+          }}
+          aria-hidden="true"
+        >
+          <TileFaceCanvas face={flight.face} palette={palette} />
+        </div>
+      ) : null}
+      {celebration ? <MatchCelebrationLayer celebration={celebration} /> : null}
     </div>
   );
 }

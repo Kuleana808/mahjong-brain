@@ -6,31 +6,83 @@
  * on a tile.
  */
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
-import { PALETTES } from '../render/palette';
+import { paletteFor } from '../render/palette';
+import {
+  startNativeAccessibilityPreferences,
+  type NativeAccessibilityPreferences,
+} from '../accessibility/native';
+import { configureNativePurchases } from '../iap';
+import { setAmbientMusicEnabled } from '../audio/sounds';
+import { flushPersisted } from '../state/persist';
 import { useGame } from '../state/store';
+import { startTelemetryLifecycle } from '../telemetry/client';
 import { BoardView } from './BoardView';
-import { CompletionCard, Paywall, SettingsSheet } from './Overlays';
+import { BottomDock } from './BottomDock';
+import { Paywall, SettingsSheet } from './Overlays';
+import { FlowRouter } from './FlowScreens';
 import { HintBar } from './HintBar';
+import { Holder } from './Holder';
 import { TopBar } from './TopBar';
 
+export function shouldRenderGameplayFrame(screen: string): boolean {
+  return screen === 'gameplay' || screen === 'game_over';
+}
+
 export function App() {
+  const [nativeAccessibility, setNativeAccessibility] = useState<NativeAccessibilityPreferences>({
+    textScale: 1,
+    reduceMotion: false,
+    increaseContrast: false,
+  });
   const hydrate = useGame((s) => s.hydrate);
   const hydrated = useGame((s) => s.hydrated);
   const settings = useGame((s) => s.settings);
-  const status = useGame((s) => s.status);
+  const screen = useGame((s) => s.flow.screen);
   const paywallOpen = useGame((s) => s.paywallOpen);
   const settingsOpen = useGame((s) => s.settingsOpen);
   const announcement = useGame((s) => s.announcement);
+  const dismissAnnouncement = useGame((s) => s.dismissAnnouncement);
 
   useEffect(() => {
-    void hydrate();
+    configureNativePurchases();
+    void hydrate().then(async () => {
+      if (import.meta.env.DEV) {
+        const { applyQaFixture, qaFixtureFromLocation } = await import('../qa/fixtures');
+        const fixture = qaFixtureFromLocation();
+        if (fixture) {
+          await applyQaFixture(fixture);
+          document.documentElement.dataset.qaFixtureReady = fixture;
+        }
+      }
+    });
   }, [hydrate]);
+
+  useEffect(() => startTelemetryLifecycle(), []);
+  useEffect(() => {
+    const preserveLatestMove = () => {
+      if (document.visibilityState === 'hidden') void flushPersisted();
+    };
+    document.addEventListener('visibilitychange', preserveLatestMove);
+    window.addEventListener('pagehide', preserveLatestMove);
+    return () => {
+      document.removeEventListener('visibilitychange', preserveLatestMove);
+      window.removeEventListener('pagehide', preserveLatestMove);
+    };
+  }, []);
+  useEffect(
+    () => startNativeAccessibilityPreferences(setNativeAccessibility),
+    [],
+  );
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+  }, [screen]);
 
   // Push the palette into CSS so the chrome and the canvas cannot drift apart.
   useEffect(() => {
-    const palette = PALETTES[settings.theme];
+    const palette = paletteFor(settings.theme, settings.tileStyle);
     const root = document.documentElement;
     root.style.setProperty('--felt', palette.felt);
     root.style.setProperty('--felt-edge', palette.feltEdge);
@@ -40,24 +92,73 @@ export function App() {
     root.style.setProperty('--edge', palette.tileEdge);
     root.style.setProperty('--accent', palette.selected);
     root.style.setProperty('--hint', palette.hinted);
-    root.style.setProperty('--font-scale', String(settings.fontScale));
+    root.style.setProperty('--font-scale', String(settings.fontScale * nativeAccessibility.textScale));
     root.style.colorScheme = settings.theme === 'calm-dark' ? 'dark' : 'light';
-  }, [settings.theme, settings.fontScale]);
+  }, [settings.theme, settings.tileStyle, settings.fontScale, nativeAccessibility.textScale]);
+
+  useEffect(() => {
+    setAmbientMusicEnabled(settings.music);
+    return () => setAmbientMusicEnabled(false);
+  }, [settings.music]);
+
+  if (!hydrated) {
+    return (
+      <div className="app app--boot" role="status" aria-label="Opening Mahjong Brain">
+        <img src="/brand-mark.png" alt="" width="112" height="112" />
+        <span>Mahjong Brain</span>
+      </div>
+    );
+  }
+
+  const isResult = screen === 'game_over';
+  const showsGameplayFrame = shouldRenderGameplayFrame(screen);
+  const isSettings = settingsOpen;
+  const transactionFeedback = /^(Unlocked\.|Purchase restored\.)/.test(announcement)
+    ? announcement
+    : '';
 
   return (
-    <div className="app" data-reduce-motion={settings.reduceMotion}>
-      <TopBar />
-      <BoardView />
-      <HintBar />
+    <div
+      className={`app ${isSettings ? 'app--settings' : showsGameplayFrame ? 'app--gameplay' : 'app--flow'}`}
+      data-reduce-motion={settings.reduceMotion || nativeAccessibility.reduceMotion}
+      data-increase-contrast={nativeAccessibility.increaseContrast}
+      data-large-text={settings.fontScale * nativeAccessibility.textScale >= 1.8}
+    >
+      {isSettings ? (
+        <SettingsSheet />
+      ) : showsGameplayFrame ? (
+        <>
+          <TopBar />
+          <Holder />
+          <BoardView />
+          <HintBar />
+          <BottomDock />
+          {isResult ? <FlowRouter /> : null}
+        </>
+      ) : (
+        <FlowRouter />
+      )}
 
       {/* Every state change the player cannot see, spoken once. */}
       <p aria-live="polite" className="visually-hidden">
         {announcement}
       </p>
 
-      {hydrated && status === 'complete' && !paywallOpen ? <CompletionCard /> : null}
+      {announcement.includes('Saved progress could not be restored') ? (
+        <aside className="recovery-banner" role="status">
+          <span>{announcement}</span>
+          <button type="button" onClick={dismissAnnouncement}>Got it</button>
+        </aside>
+      ) : null}
+
+      {transactionFeedback ? (
+        <aside className="transaction-banner" role="status">
+          <span>{transactionFeedback}</span>
+          <button type="button" onClick={dismissAnnouncement}>Done</button>
+        </aside>
+      ) : null}
+
       {paywallOpen ? <Paywall /> : null}
-      {settingsOpen ? <SettingsSheet /> : null}
     </div>
   );
 }

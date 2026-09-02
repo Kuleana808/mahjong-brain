@@ -35,6 +35,7 @@ const STATUS = 'api/unlock-status';
 
 export async function validateReceipt(
   request: ReceiptValidateRequest,
+  sessionToken: string | null,
   ports: Ports = {},
 ): Promise<ContractEnvelope<ReceiptValidateResponse>> {
   const now = nowOf(ports);
@@ -52,9 +53,21 @@ export async function validateReceipt(
     missing.push('APPLE_ROOT_CA_G3_BASE64 + IAP_PRODUCT_ID + APPLE_BUNDLE_ID (blocked on D-005)');
   }
   if (!ports.store) missing.push('SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY');
+  if (sessionToken && !ports.session) missing.push('SESSION_SIGNING_KEY');
   if (missing.length > 0) {
     // Fails closed, by design. See the note at the top of this file.
     return notConfigured(VALIDATE, CONTRACT_VERSION, missing, { now });
+  }
+
+  let accountId: string | null = null;
+  if (sessionToken) {
+    accountId = await ports.session!.verify(sessionToken);
+    if (!accountId) {
+      return fail(VALIDATE, CONTRACT_VERSION, {
+        code: 'invalid_session',
+        message: 'Sign in again before syncing this purchase.',
+      }, { now, state: 'configured' });
+    }
   }
 
   let verified;
@@ -74,9 +87,9 @@ export async function validateReceipt(
 
   const unlocked = !verified.revoked;
 
-  if (request.accountId && ports.store) {
+  if (accountId && ports.store) {
     await ports.store.putUnlock({
-      accountId: request.accountId,
+      accountId,
       productId: verified.productId,
       originalTransactionId: verified.originalTransactionId,
       purchasedAt: verified.purchasedAt,

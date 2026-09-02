@@ -1,0 +1,68 @@
+import { execFileSync } from 'node:child_process';
+import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { afterEach, describe, expect, it } from 'vitest';
+
+const script = new URL('../verify-ios-archive.mjs', import.meta.url).pathname;
+const project = readFileSync(
+  join(dirname(fileURLToPath(import.meta.url)), '../../ios/App/App.xcodeproj/project.pbxproj'),
+  'utf8',
+);
+const currentBuild = project.match(/CURRENT_PROJECT_VERSION\s*=\s*([^;]+);/)?.[1].trim();
+if (!currentBuild) throw new Error('Could not read CURRENT_PROJECT_VERSION from the Xcode project.');
+const created: string[] = [];
+
+function archive(
+  bundleId = 'com.nihi.mahjong',
+  phoneOrientation = 'UIInterfaceOrientationPortrait',
+  brandedBoot = true,
+) {
+  const root = mkdtempSync(join(tmpdir(), 'mahjong-archive-'));
+  created.push(root);
+  const app = join(root, 'Products/Applications/App.app');
+  mkdirSync(join(app, 'public'), { recursive: true });
+  writeFileSync(join(app, 'Info.plist'), `<?xml version="1.0" encoding="UTF-8"?>
+<plist version="1.0"><dict>
+<key>CFBundleIdentifier</key><string>${bundleId}</string>
+<key>CFBundleDisplayName</key><string>Mahjong Brain</string>
+<key>CFBundleShortVersionString</key><string>1.0</string>
+<key>CFBundleVersion</key><string>${currentBuild}</string>
+<key>MinimumOSVersion</key><string>15.0</string>
+<key>UIDeviceFamily</key><array><integer>1</integer><integer>2</integer></array>
+<key>UISupportedInterfaceOrientations</key><array><string>${phoneOrientation}</string></array>
+<key>UISupportedInterfaceOrientations~ipad</key><array><string>UIInterfaceOrientationPortrait</string><string>UIInterfaceOrientationPortraitUpsideDown</string></array>
+</dict></plist>`);
+  for (const path of ['PrivacyInfo.xcprivacy', 'AppIcon60x60@2x.png', 'AppIcon76x76@2x~ipad.png', 'public/brand-mark.png', 'public/favicon.png']) {
+    writeFileSync(join(app, path), 'asset');
+  }
+  writeFileSync(
+    join(app, 'public/index.html'),
+    `<link rel="icon" href="/favicon.png">${brandedBoot ? '<div class="boot-shell"><img src="/brand-mark.png"></div>' : ''}`,
+  );
+  return root;
+}
+
+afterEach(() => {
+  for (const root of created) rmSync(root, { recursive: true, force: true });
+  created.length = 0;
+});
+
+describe('iOS archive verification', () => {
+  it('accepts a correctly identified iPhone and iPad archive', () => {
+    expect(() => execFileSync(process.execPath, [script, archive()], { stdio: 'pipe' })).not.toThrow();
+  });
+
+  it('fails closed on a bundle identifier mismatch', () => {
+    expect(() => execFileSync(process.execPath, [script, archive('com.example.wrong')], { stdio: 'pipe' })).toThrow();
+  });
+
+  it('fails closed when the launch orientation drifts', () => {
+    expect(() => execFileSync(process.execPath, [script, archive('com.nihi.mahjong', 'UIInterfaceOrientationLandscapeLeft')], { stdio: 'pipe' })).toThrow();
+  });
+
+  it('fails closed when the pre-hydration brand shell is missing', () => {
+    expect(() => execFileSync(process.execPath, [script, archive('com.nihi.mahjong', 'UIInterfaceOrientationPortrait', false)], { stdio: 'pipe' })).toThrow();
+  });
+});

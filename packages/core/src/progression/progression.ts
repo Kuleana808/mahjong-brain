@@ -67,6 +67,30 @@ export function levelForXp(xp: number): number {
   return level;
 }
 
+/**
+ * Reconcile persisted progression after tuning changes or an interrupted
+ * migration. XP is authoritative; level is derived so the UI can never show
+ * more XP than the current level requires.
+ */
+export function normalizeProgression(value: Progression): Progression {
+  const xp = Number.isFinite(value.xp) ? Math.max(0, Math.round(value.xp)) : 0;
+  return {
+    ...value,
+    xp,
+    level: levelForXp(xp),
+    iq: Number.isFinite(value.iq)
+      ? Math.min(TUNING.iqMax, Math.max(TUNING.iqMin, Math.round(value.iq)))
+      : TUNING.iqStart,
+    boardsPlayed: Number.isFinite(value.boardsPlayed) ? Math.max(0, Math.round(value.boardsPlayed)) : 0,
+    boardsWon: Number.isFinite(value.boardsWon)
+      ? Math.min(
+          Number.isFinite(value.boardsPlayed) ? Math.max(0, Math.round(value.boardsPlayed)) : 0,
+          Math.max(0, Math.round(value.boardsWon)),
+        )
+      : 0,
+  };
+}
+
 /** Progress through the current level, 0-1. For the bar, not for logic. */
 export function levelProgress(xp: number): number {
   const level = levelForXp(xp);

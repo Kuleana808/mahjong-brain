@@ -1,11 +1,27 @@
 import { createPorts } from '../config';
 import { handle } from '../router';
 const { ports, lines } = createPorts();
-lines.forEach(l=>console.log('  '+l));
-const call=(m:string,p:string,o:any={})=>handle({method:m,path:p,query:new URLSearchParams(o.q??''),body:o.body,bearer:o.bearer??null},ports);
-(async()=>{
+lines.forEach((line) => console.log(`  ${line}`));
+const call = (method: string, path: string, options: any = {}) => handle({
+  method,
+  path,
+  query: new URLSearchParams(options.q ?? ''),
+  body: options.body,
+  bearer: options.bearer ?? null,
+}, ports);
+
+async function run(): Promise<void> {
+  if (!ports.store || !ports.session) {
+    const missing = [!ports.store && 'store', !ports.session && 'session'].filter(Boolean);
+    console.error(`\nBLOCKED — contract smoke requires configured ${missing.join(' + ')} ports.`);
+    console.error('No fallback or mock was substituted. Configure the missing environment values and retry.');
+    process.exitCode = 1;
+    return;
+  }
+
   // seed an account row directly, then exercise settings/unlock/daily with a real session
-  const store:any=ports.store!, sess:any=ports.session!;
+  const store: any = ports.store;
+  const sess: any = ports.session;
   const a=await store.createAccount('apple-sub-'+Date.now());
   const {token}=await sess.issue(a.accountId);
   const out:any={};
@@ -23,5 +39,11 @@ const call=(m:string,p:string,o:any={})=>handle({method:m,path:p,query:new URLSe
   out['12 day2 streak']=(d2.envelope.data as any)?.streakDays;
   out['10 analytics']=`${(await call('POST','/api/analytics/session',{body:{consent:true,boardsStarted:1,boardsCompleted:1,hintsUsed:0,totalSeconds:60,appVersion:'0.1.0',anonymousSessionId:'rotating-abcdef12'}})).envelope.state}`;
   out['8 receipts (must fail closed)']=`${(await call('POST','/api/receipts/validate',{body:{signedTransaction:'a.b.c'}})).envelope.error?.code}`;
-  console.log(JSON.stringify(out,null,1));
-})();
+  console.log(JSON.stringify(out, null, 1));
+}
+
+run().catch((cause: unknown) => {
+  console.error('\nFAILED — contract smoke encountered an unexpected error.');
+  console.error(cause instanceof Error ? cause.stack ?? cause.message : String(cause));
+  process.exitCode = 1;
+});

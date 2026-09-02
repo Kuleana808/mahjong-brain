@@ -2,9 +2,11 @@
  * The space under the board.
  *
  * Holds the hint when there is one, and the way out when the board is stuck.
- * Reserved at a fixed minimum height so the board never jumps when a hint
+ * Floats above the tools so the board never jumps or shrinks when guidance
  * appears — a board that moves under your finger is not calm.
  */
+
+import { useEffect } from 'react';
 
 import { canReshuffle } from '../../packages/core/src/game/deal';
 import { useGame } from '../state/store';
@@ -13,9 +15,27 @@ export function HintBar() {
   const board = useGame((s) => s.board);
   const hint = useGame((s) => s.hint);
   const status = useGame((s) => s.status);
+  const announcement = useGame((s) => s.announcement);
+  const dismissAnnouncement = useGame((s) => s.dismissAnnouncement);
   const dismissHint = useGame((s) => s.dismissHint);
   const shuffleBoard = useGame((s) => s.shuffleBoard);
-  const start = useGame((s) => s.start);
+  const newBoard = useGame((s) => s.newBoard);
+  const blocked = announcement.startsWith('That tile is blocked.');
+
+  useEffect(() => {
+    if (!blocked) return;
+    const qaHold = document.documentElement.dataset.qaFixtureReady ? 5000 : 1400;
+    const timeout = window.setTimeout(dismissAnnouncement, qaHold);
+    return () => window.clearTimeout(timeout);
+  }, [blocked, dismissAnnouncement]);
+
+  if (blocked) {
+    return (
+      <div className="hintbar" aria-hidden="true">
+        <div className="hint hint--brief">Blocked — choose a tile with an open side.</div>
+      </div>
+    );
+  }
 
   if (status === 'stuck' && board) {
     // A shuffle moves faces, never positions. If the last tiles are stacked,
@@ -33,7 +53,7 @@ export function HintBar() {
           <button
             type="button"
             className="hint__dismiss"
-            onClick={shufflable ? shuffleBoard : () => start()}
+            onClick={shufflable ? shuffleBoard : () => newBoard()}
           >
             {shufflable ? 'Shuffle' : 'New board'}
           </button>
@@ -42,13 +62,13 @@ export function HintBar() {
     );
   }
 
-  if (!hint) return <div className="hintbar" />;
+  if (!hint) return null;
 
   return (
     <div className="hintbar">
       <div className="hint">
         <p id="hint-text" style={{ margin: 0 }}>
-          {hint.text}
+          {hint.summary}
         </p>
         <button type="button" className="hint__dismiss" onClick={dismissHint}>
           Got it

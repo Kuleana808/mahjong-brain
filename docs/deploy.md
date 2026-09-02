@@ -19,9 +19,11 @@ npx wrangler pages deploy out --project-name=mahjong-brain
    --production-branch main`.
 3. Point the domain at it in the Pages dashboard.
 
-**Not done in this session.** There is no Cloudflare token here and `wrangler` is
-not installed, so the deploy has never run. Everything up to `out/` is verified —
-the export builds clean and is committed to CI.
+The production site is live at `https://mahjong-brain.pages.dev/`. Its support
+and privacy routes returned HTTP 200 on 2026-08-14, including the current Google
+Mobile Ads disclosures. See
+[`release/RELEASE_STATUS.md`](../release/RELEASE_STATUS.md) for the evidence
+ladder and remaining App Store gates.
 
 ### Domain
 
@@ -49,10 +51,11 @@ returns an envelope and knows nothing about Node's `http`. The adapters use
 `fetch` rather than the Supabase SDK, specifically so they run unchanged inside
 an Edge Function.
 
-Deploying is packaging, not a port:
+Build the self-contained Deno module, then deploy it:
 
 ```bash
-npx supabase functions deploy api --project-ref <ref>
+npm run build:edge
+npx supabase functions deploy contracts --project-ref <ref>
 ```
 
 ### Local stack
@@ -70,7 +73,7 @@ Then point the API at it and run the instrumentation smoke test for real:
 export SUPABASE_URL=http://127.0.0.1:54321
 export SUPABASE_SERVICE_ROLE_KEY=<from `supabase status`>
 export SESSION_SIGNING_KEY=$(openssl rand -hex 32)
-export APPLE_BUNDLE_ID=com.mahjongbrain.game
+export APPLE_BUNDLE_ID=com.nihi.mahjong
 npm run smoke:events
 ```
 
@@ -78,13 +81,39 @@ npm run smoke:events
 
 ### Hosted project
 
-**Not created.** It needs a Supabase account login, which this session does not
-have — and creating an account in Brent's name is not something to do on his
-behalf. The local stack above exercises the same Postgres, the same PostgREST
-API and the same migrations, so what remains untested against hosted Supabase is
-networking and key handling, not the schema or the adapters.
+The dedicated production project is `Mahjong Brain` (`dxtzbidjtkeekthompqb`) in
+the Operator.fyi organization, region `us-west-1`. Migrations 0001 through 0004
+and the `contracts` Edge Function were deployed and verified on 2026-08-13.
+Credentials are stored in the deployment platform and local Keychain, never in
+the repository.
 
 When the hosted project exists, the only change is two environment variables.
+
+The mobile app's public base URL is the deployed function URL:
+
+```bash
+VITE_API_BASE_URL=https://<project-ref>.supabase.co/functions/v1/contracts
+```
+
+Release builds use:
+
+```bash
+VITE_API_BASE_URL=https://dxtzbidjtkeekthompqb.supabase.co/functions/v1/contracts
+```
+
+Re-run the migration list, contract smoke, and event smoke tests against this
+exact project before each production release.
+
+The local release gate does not request or load the hosted service-role key:
+
+```bash
+npm run preflight
+```
+
+It reads the ignored `.env.production` client values, checks the production
+board canary, and proves the deployed StoreKit verifier is configured and fails
+closed. Database migration and event smoke evidence remain separate deployment
+checks; a passing mobile preflight does not claim a sandbox purchase succeeded.
 
 ## Secrets
 
@@ -97,4 +126,4 @@ the repo:
 | `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` | contracts 3, 4, 9, 10, 11, 12. **Service-role bypasses RLS — server-side only, never shipped to a client** |
 | `SESSION_SIGNING_KEY` | session tokens |
 | `APPLE_BUNDLE_ID` | contract 3's audience check |
-| `APPLE_ROOT_CA_G3_BASE64`, `IAP_PRODUCT_ID` | contract 8 |
+| `APPLE_ROOT_CA_G3_BASE64`, `IAP_PRODUCT_IDS` | receipt and consumable verification; include `com.nihi.mahjong.removeads,com.nihi.mahjong.shuffle5` |

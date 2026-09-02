@@ -55,12 +55,26 @@ export interface StorePort {
 
   getDailyReward(accountId: string): Promise<DailyRewardRecord | null>;
   putDailyReward(accountId: string, record: DailyRewardRecord): Promise<void>;
+  getConsumableGrant(transactionId: string): Promise<ConsumableGrantRecord | null>;
+  /** Atomically inserts once by transaction id. False means it already existed. */
+  putConsumableGrant(record: ConsumableGrantRecord): Promise<boolean>;
 }
 
 export interface DailyRewardRecord {
   /** ISO date, the player's local day. Never a timestamp. */
   readonly lastClaimedOn: string | null;
   readonly streakDays: number;
+}
+
+export interface ConsumableGrantRecord {
+  readonly accountId: string;
+  readonly transactionId: string;
+  readonly productId: string;
+  readonly kind: 'shuffle';
+  readonly quantity: number;
+  readonly purchasedAt: string;
+  readonly environment: string;
+  readonly grantedAt: string;
 }
 
 export interface SessionPort {
@@ -82,6 +96,8 @@ export interface AppleIdentityPort {
 
 export interface VerifiedTransaction {
   readonly productId: string;
+  /** Individual StoreKit transaction. Consumable idempotency keys on this. */
+  readonly transactionId: string;
   readonly originalTransactionId: string;
   readonly purchasedAt: string;
   readonly environment: string;

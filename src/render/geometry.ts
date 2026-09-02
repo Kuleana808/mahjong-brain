@@ -19,11 +19,26 @@ export const TILE_ASPECT = 1.32;
  * has to be unmistakable at a glance and on a small screen. Anything under
  * about 0.15 reads as a flat grid with some tiles oddly faded.
  */
-const LAYER_SHIFT_X = 0.17;
-const LAYER_SHIFT_Y = 0.17;
+const LAYER_SHIFT_X = 0.16;
+const LAYER_SHIFT_Y = 0.16;
+
+/**
+ * Visual spacing between tiles on the same layer.
+ *
+ * A literal one-tile grid makes a 10-column, 144-tile board illegible on a
+ * phone. Physical mahjong solitaire layouts overlap in perspective, and the
+ * parity reference does the same. Keeping this in the view transform (rather
+ * than the game coordinates) preserves every blocking rule while giving each
+ * face a comfortably larger drawing and hit target.
+ */
+// Preserve roughly half of every neighboring face. The earlier 0.38/0.45
+// compression made the stack dramatic, but hid too much information on the
+// iPad and read as one dense tower rather than a layered board.
+export const CELL_STEP_X = 0.46;
+export const CELL_STEP_Y = 0.45;
 
 /** Extruded side thickness, as a fraction of tile width. */
-export const SIDE_DEPTH = 0.11;
+export const SIDE_DEPTH = 0.065;
 
 export interface View {
   readonly tileW: number;
@@ -51,10 +66,10 @@ export function computeView(layoutId: LayoutId, boxW: number, boxH: number): Vie
   const rows = bounds.maxY - bounds.minY;
 
   // Extra room for the layer shift and the extruded sides.
-  const spanCols = cols + maxZ * LAYER_SHIFT_X + SIDE_DEPTH;
-  const spanRows = rows + maxZ * LAYER_SHIFT_Y + SIDE_DEPTH * TILE_ASPECT;
+  const spanCols = 1 + (cols - 1) * CELL_STEP_X + maxZ * LAYER_SHIFT_X + SIDE_DEPTH;
+  const spanRows = 1 + (rows - 1) * CELL_STEP_Y + maxZ * LAYER_SHIFT_Y + SIDE_DEPTH * TILE_ASPECT;
 
-  const margin = 0.97;
+  const margin = 0.99;
   const tileW = Math.min((boxW * margin) / spanCols, (boxH * margin) / (spanRows * TILE_ASPECT));
   const tileH = tileW * TILE_ASPECT;
 
@@ -75,8 +90,12 @@ export function computeView(layoutId: LayoutId, boxW: number, boxH: number): Vie
 export function tileRect(cell: Cell, layoutId: LayoutId, view: View): Rect {
   const { bounds } = LAYOUTS[layoutId];
   return {
-    x: view.originX + (cell.x - bounds.minX + cell.z * LAYER_SHIFT_X) * view.tileW,
-    y: view.originY + (cell.y - bounds.minY - cell.z * LAYER_SHIFT_Y) * view.tileH,
+    x:
+      view.originX +
+      ((cell.x - bounds.minX) * CELL_STEP_X + cell.z * LAYER_SHIFT_X) * view.tileW,
+    y:
+      view.originY +
+      ((cell.y - bounds.minY) * CELL_STEP_Y - cell.z * LAYER_SHIFT_Y) * view.tileH,
     w: view.tileW,
     h: view.tileH,
   };
