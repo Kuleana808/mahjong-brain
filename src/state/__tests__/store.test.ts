@@ -108,7 +108,7 @@ describe('session flow', () => {
     useGame.getState().dispatchFlow({ type: 'accept_tos', at: '2026-08-10T00:00:00.000Z' });
     expect(useGame.getState().flow.screen).toBe('age_gate');
 
-    useGame.getState().dispatchFlow({ type: 'answer_age_gate', passed: true });
+    useGame.getState().dispatchFlow({ type: 'answer_age_gate', band: '18_plus' });
     expect(useGame.getState().flow.screen).toBe('loading');
     useGame.getState().dispatchFlow({ type: 'loading_finished' });
     expect(useGame.getState().flow.screen).toBe('tutorial_a');
@@ -117,7 +117,7 @@ describe('session flow', () => {
   it('persists onboarding progress across a restart', async () => {
     await useGame.getState().hydrate();
     useGame.getState().dispatchFlow({ type: 'accept_tos', at: '2026-08-10T00:00:00.000Z' });
-    useGame.getState().dispatchFlow({ type: 'answer_age_gate', passed: true });
+    useGame.getState().dispatchFlow({ type: 'answer_age_gate', band: '18_plus' });
     await Promise.resolve();
 
     useGame.setState({ ...initial, board: null, status: 'idle', hydrated: false });
@@ -698,7 +698,7 @@ describe('persistence', () => {
   it('returns an onboarded player directly to an active saved board', async () => {
     await useGame.getState().hydrate();
     useGame.getState().dispatchFlow({ type: 'accept_tos', at: '2026-08-10T00:00:00.000Z' });
-    useGame.getState().dispatchFlow({ type: 'answer_age_gate', passed: true });
+    useGame.getState().dispatchFlow({ type: 'answer_age_gate', band: '18_plus' });
     useGame.getState().dispatchFlow({ type: 'loading_finished' });
     useGame.getState().dispatchFlow({ type: 'skip_tutorial' });
     useGame.getState().dispatchFlow({ type: 'start_board' });
@@ -724,7 +724,7 @@ describe('persistence', () => {
   it('keeps the same active board when Back and Level 1 are used to pause and resume', async () => {
     await useGame.getState().hydrate();
     useGame.getState().dispatchFlow({ type: 'accept_tos', at: '2026-08-10T00:00:00.000Z' });
-    useGame.getState().dispatchFlow({ type: 'answer_age_gate', passed: true });
+    useGame.getState().dispatchFlow({ type: 'answer_age_gate', band: '18_plus' });
     useGame.getState().dispatchFlow({ type: 'loading_finished' });
     useGame.getState().dispatchFlow({ type: 'skip_tutorial' });
     useGame.getState().dispatchFlow({ type: 'start_board' });
@@ -751,6 +751,7 @@ describe('persistence', () => {
         progress: {
           tosAcceptedAt: '2026-08-10T00:00:00.000Z',
           agePassed: true,
+          ageBand: '18_plus',
           tutorialCompleted: 'tutorial_c',
           tutorialSkipped: false,
           boardsCompleted: 0,
@@ -777,6 +778,7 @@ describe('persistence', () => {
         progress: {
           tosAcceptedAt: '2026-08-10T00:00:00.000Z',
           agePassed: true,
+          ageBand: '18_plus',
           tutorialCompleted: 'tutorial_c',
           tutorialSkipped: false,
           boardsCompleted: 0,
@@ -840,7 +842,7 @@ describe('persistence', () => {
   it('records a win once and relaunches on the same result without double counting', async () => {
     await useGame.getState().hydrate();
     useGame.getState().dispatchFlow({ type: 'accept_tos', at: '2026-08-10T00:00:00.000Z' });
-    useGame.getState().dispatchFlow({ type: 'answer_age_gate', passed: true });
+    useGame.getState().dispatchFlow({ type: 'answer_age_gate', band: '18_plus' });
     useGame.getState().dispatchFlow({ type: 'loading_finished' });
     useGame.getState().dispatchFlow({ type: 'skip_tutorial' });
     useGame.getState().dispatchFlow({ type: 'start_board' });

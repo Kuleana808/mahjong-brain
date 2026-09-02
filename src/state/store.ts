@@ -39,6 +39,7 @@ import {
   type FlowAction,
   type FlowProgress,
   type FlowState,
+  isMinor,
 } from '../../packages/core/src/flow/screens';
 import {
   hintPair as holderHintPair,
@@ -59,7 +60,7 @@ import {
 } from '../iap';
 import { playSound } from '../audio/sounds';
 import { speakCoach } from '../audio/voice';
-import { ads } from '../ads';
+import { ads, setUnderAgeOfConsent } from '../ads';
 import {
   appleSignInAvailable,
   restoreAccount,
@@ -352,6 +353,11 @@ export const useGame = create<GameStore>((set, get) => {
       const after = reduceFlow(before, action);
       if (after === before) return;
 
+      // Record the age answer for the ad stack before anything can request an
+      // ad. This also decides which consent form the UMP SDK presents, and
+      // that choice cannot be changed after the SDK has configured itself.
+      if (action.type === 'answer_age_gate') setUnderAgeOfConsent(isMinor(after.progress));
+
       // Filling the holder pauses the attempt and offers a revive; it is not a
       // final loss yet. Only record the loss when the player declines that
       // revive by leaving or starting over. This keeps a revived board from
@@ -415,6 +421,10 @@ export const useGame = create<GameStore>((set, get) => {
       const reconciledFlow = progress.flow
         ? { ...progress.flow, boardsCompleted: storedBoardsCompleted }
         : progress.flow;
+
+      // A returning player never re-answers the gate, so the ad stack has to
+      // learn the stored band on hydrate rather than only on the answer.
+      if (reconciledFlow) setUnderAgeOfConsent(isMinor(reconciledFlow));
 
       set({
         flow: initialFlowState(reconciledFlow),

@@ -3,6 +3,7 @@ import {
   levelProgress as progressionFraction,
   xpForLevel,
 } from '../../packages/core/src/progression/progression';
+import type { AgeBand } from '../../packages/core/src/flow/screens';
 import { useGame } from '../state/store';
 import { Icon } from './Icon';
 import { DailyRewardSheet, type DailyRewardFixture } from './DailyRewardSheet';
@@ -112,23 +113,56 @@ export function TermsScreen() {
   );
 }
 
+/**
+ * The age screen.
+ *
+ * This used to offer 0-34 / 35-54 / 55+ and dispatch the identical action for
+ * all three, so the answer was collected and thrown away while the copy
+ * promised it improved the experience. The bands are now the ones that
+ * actually change behaviour, and each one leads somewhere different.
+ */
 export function AgeScreen() {
   const dispatch = useGame((s) => s.dispatchFlow);
-  const choose = () => dispatch({ type: 'answer_age_gate', passed: true });
+  const answer = (band: AgeBand) => dispatch({ type: 'answer_age_gate', band });
   return (
     <ScreenFrame className="flow-screen--age">
       <DecorativeTiles />
       <section className="jade-panel">
         <h1>Welcome!</h1>
-        <p>Could you share your age to improve our game experience?</p>
-        {/* Ranges must not overlap: a reader who is exactly 35 or 55 had two
-            valid answers before, which reads as carelessness on the first
-            screen of the app. The bands are otherwise unchanged. */}
+        <p>How old are you? This sets up the right experience for you.</p>
         <div className="age-options" aria-label="Age range">
-          <button type="button" className="ivory-button" onClick={choose}>0–34</button>
-          <button type="button" className="ivory-button" onClick={choose}>35–54</button>
-          <button type="button" className="ivory-button" onClick={choose}>55+</button>
+          <button type="button" className="ivory-button" onClick={() => answer('under_13')}>
+            Under 13
+          </button>
+          <button type="button" className="ivory-button" onClick={() => answer('13_17')}>
+            13&ndash;17
+          </button>
+          <button type="button" className="ivory-button" onClick={() => answer('18_plus')}>
+            18 or older
+          </button>
         </div>
+      </section>
+    </ScreenFrame>
+  );
+}
+
+/**
+ * Terminal screen for an under-13 answer.
+ *
+ * Deliberately has no button. A neutral age screen that can be retried is not
+ * a gate — the standard pattern is that the answer sticks and reinstalling is
+ * the recovery path. Nothing here scolds the reader.
+ */
+export function AgeBlockedScreen() {
+  return (
+    <ScreenFrame className="flow-screen--age">
+      <DecorativeTiles />
+      <section className="jade-panel">
+        <h1>See you soon!</h1>
+        <p>
+          Mahjong Brain is built for players 13 and older. Come back and find us
+          when you are &mdash; the tiles will be waiting.
+        </p>
       </section>
     </ScreenFrame>
   );
@@ -431,6 +465,7 @@ export function FlowRouter() {
   const screens: Record<typeof screen, ReactNode> = {
     tos: <TermsScreen />,
     age_gate: <AgeScreen />,
+    age_blocked: <AgeBlockedScreen />,
     loading: <LoadingScreen />,
     tutorial_a: <TutorialMatchScreen />,
     tutorial_b: <TutorialEdgeScreen />,

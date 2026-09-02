@@ -24,9 +24,15 @@ public final class AdMobPlugin: CAPPlugin, CAPBridgedPlugin, FullScreenContentDe
     private let testInterstitialID = "ca-app-pub-3940256099942544/4411468910"
 
     @objc public func configure(_ call: CAPPluginCall) {
+        // Passed from the age gate. True for a 13-17 answer. Under-13 answers
+        // never reach a screen that can request an ad, so this flag is about
+        // teenagers, not children.
+        let underAgeOfConsent = call.getBool("underAgeOfConsent") ?? false
         Task { @MainActor in
             do {
                 let parameters = RequestParameters()
+                // Tell the consent SDK before it decides which form to show.
+                parameters.isTaggedForUnderAgeOfConsent = underAgeOfConsent
                 try await ConsentInformation.shared.requestConsentInfoUpdate(with: parameters)
                 try await ConsentForm.loadAndPresentIfRequired(from: bridge?.viewController)
                 guard ConsentInformation.shared.canRequestAds else {
@@ -42,6 +48,11 @@ public final class AdMobPlugin: CAPPlugin, CAPBridgedPlugin, FullScreenContentDe
                 // identifier from becoming an undeclared personalization input.
                 MobileAds.shared.requestConfiguration.setPublisherFirstPartyIDEnabled(false)
                 MobileAds.shared.requestConfiguration.publisherPrivacyPersonalizationState = .disabled
+                // Ads are already non-personalized for everyone; this is the
+                // additional signal Google expects for a self-declared minor.
+                if underAgeOfConsent {
+                    MobileAds.shared.requestConfiguration.tagForUnderAgeOfConsent = true
+                }
                 await MobileAds.shared.start()
                 configured = true
                 await preloadAll()
