@@ -62,6 +62,19 @@ function unlocked(): string[] {
   return native.unlockAchievement.mock.calls.map((call) => call[0].identifier);
 }
 
+/** Only the achievements reported as fully COMPLETE (100%). */
+function completed(): string[] {
+  return native.unlockAchievement.mock.calls
+    .filter((call) => call[0].percentComplete === 100)
+    .map((call) => call[0].identifier);
+}
+
+/** Percentage reported for one achievement, or undefined if not reported. */
+function percentFor(identifier: string): number | undefined {
+  return native.unlockAchievement.mock.calls.find((c) => c[0].identifier === identifier)?.[0]
+    ?.percentComplete;
+}
+
 describe('platform availability', () => {
   it('is unavailable off-device, so the browser build never calls the bridge', async () => {
     platform.native = false;
@@ -152,7 +165,7 @@ describe('score submission', () => {
 });
 
 describe('achievement thresholds', () => {
-  it('grants nothing on a zero-board report', async () => {
+  it('says nothing about any tier before the first board', async () => {
     const gc = await load();
 
     await gc.reportGameCenterProgress({ boardsCleared: 0, brainIq: 100 });
@@ -160,43 +173,60 @@ describe('achievement thresholds', () => {
     expect(unlocked()).toEqual([]);
   });
 
-  it('grants firstClear at one board and nothing above it', async () => {
+  it('completes firstClear at one board, and reports the rest as partial', async () => {
     const gc = await load();
 
     await gc.reportGameCenterProgress({ boardsCleared: 1, brainIq: 102 });
 
-    expect(unlocked()).toEqual(['com.nihi.mahjong.firstClear']);
+    expect(completed()).toEqual(['com.nihi.mahjong.firstClear']);
+    expect(percentFor('com.nihi.mahjong.tenBoards')).toBe(10);
+    expect(percentFor('com.nihi.mahjong.fiftyBoards')).toBe(2);
   });
 
-  it('grants the ten-board tier cumulatively at ten', async () => {
+  it('completes the ten-board tier at ten', async () => {
     const gc = await load();
 
     await gc.reportGameCenterProgress({ boardsCleared: 10, brainIq: 110 });
 
-    expect(unlocked()).toEqual([
+    expect(completed()).toEqual([
       'com.nihi.mahjong.firstClear',
       'com.nihi.mahjong.tenBoards',
     ]);
+    expect(percentFor('com.nihi.mahjong.fiftyBoards')).toBe(20);
   });
 
-  it('grants every tier at fifty boards', async () => {
+  it('completes every tier at fifty boards', async () => {
     const gc = await load();
 
     await gc.reportGameCenterProgress({ boardsCleared: 50, brainIq: 130 });
 
-    expect(unlocked()).toEqual([
+    expect(completed()).toEqual([
       'com.nihi.mahjong.firstClear',
       'com.nihi.mahjong.tenBoards',
       'com.nihi.mahjong.fiftyBoards',
     ]);
   });
 
-  it('does not grant the ten-board tier at nine', async () => {
+  it('reports the ten-board tier at nine as 90 percent, not complete', async () => {
+    // The player sees a bar filling rather than nothing followed by a sudden
+    // unlock. Reporting progress must never read as granting the achievement.
     const gc = await load();
 
     await gc.reportGameCenterProgress({ boardsCleared: 9, brainIq: 108 });
 
-    expect(unlocked()).not.toContain('com.nihi.mahjong.tenBoards');
+    expect(percentFor('com.nihi.mahjong.tenBoards')).toBe(90);
+    expect(completed()).not.toContain('com.nihi.mahjong.tenBoards');
+  });
+
+  it('never reports a percentage outside 0-100, which Game Center rejects', async () => {
+    const gc = await load();
+
+    await gc.reportGameCenterProgress({ boardsCleared: 5000, brainIq: 160 });
+
+    for (const call of native.unlockAchievement.mock.calls) {
+      expect(call[0].percentComplete).toBeGreaterThanOrEqual(0);
+      expect(call[0].percentComplete).toBeLessThanOrEqual(100);
+    }
   });
 });
 
