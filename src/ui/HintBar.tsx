@@ -22,6 +22,25 @@ export function HintBar() {
   const newBoard = useGame((s) => s.newBoard);
   const blocked = announcement.startsWith('That tile is blocked.');
 
+  /**
+   * Why a hint could not be given.
+   *
+   * The store already produced a clear sentence for each of these, but it only
+   * ever reached `announcement`, which renders into a VISUALLY-HIDDEN aria-live
+   * region. So a sighted player who had used all three hints tapped Hint and
+   * saw nothing happen at all — the button stays enabled, the badge reads 0,
+   * and there is no response. That is Brent's "hints aren't working"
+   * (2026-09-02), and every player reaches it, because a rewarded Hint needs
+   * AdMob and AdMob is still unverified.
+   */
+  const hintNotice =
+    announcement === 'No Hints available. A rewarded Hint is unavailable right now.' ||
+    announcement === 'Ad closed. No Hint was used.' ||
+    announcement === 'No safe pair is available. Try Shuffle.'
+      ? announcement
+      : '';
+  const noticeOffersShuffle = hintNotice === 'No safe pair is available. Try Shuffle.';
+
   useEffect(() => {
     if (!blocked) return;
     const qaHold = document.documentElement.dataset.qaFixtureReady ? 5000 : 1400;
@@ -33,6 +52,25 @@ export function HintBar() {
     return (
       <div className="hintbar" aria-hidden="true">
         <div className="hint hint--brief">Blocked — choose a tile with an open side.</div>
+      </div>
+    );
+  }
+
+  // Shown BEFORE the stuck branch would be wrong — a stuck board has its own,
+  // better message — but after `blocked`, which is a transient tap response.
+  if (hintNotice && status !== 'stuck') {
+    return (
+      <div className="hintbar">
+        <div className="hint">
+          <p style={{ margin: 0 }}>{hintNotice}</p>
+          <button
+            type="button"
+            className="hint__dismiss"
+            onClick={noticeOffersShuffle && board && canReshuffle(board) ? shuffleBoard : dismissAnnouncement}
+          >
+            {noticeOffersShuffle && board && canReshuffle(board) ? 'Shuffle' : 'Got it'}
+          </button>
+        </div>
       </div>
     );
   }
