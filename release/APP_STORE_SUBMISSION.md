@@ -66,8 +66,13 @@ not infer an exemption in automation.
 Use this factual outline and update it for the submitted build:
 
 1. The game is playable without an account.
-2. First launch shows Terms, an optional demographic age-range question, a short
-   setup screen, and a three-step interactive tutorial.
+2. First launch shows Terms, then a REQUIRED age question with three answers.
+   Choosing "Under 13" ends the session on a terminal screen and the app cannot
+   be played; that answer persists across relaunch and is deliberately not
+   resettable from inside the app (delete and reinstall to re-test it).
+   Choosing "13-17" or "18 or older" continues to a short setup screen and a
+   three-step interactive tutorial. A "13-17" answer additionally sets Google's
+   under-age-of-consent flag for advertising.
 3. On the home screen, tap **Level 1** to start. Match identical free-edge tiles.
 4. The holder accepts up to four unmatched tiles. Matching pairs clear
    automatically. Shuffle, Hint, and Undo remain at the bottom of gameplay.
