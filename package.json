@@ -28,7 +28,8 @@
     "preflight": "npm run check:design-drift && npm run check:brand-assets && npm run check:accessibility && node scripts/preflight.mjs",
     "smoke:supabase": "node scripts/smoke-local-supabase.mjs",
     "smoke:contracts": "npm --workspace @mahjong-brain/api run smoke:contracts",
-    "build:edge": "esbuild supabase/functions/contracts/source.ts --bundle --platform=neutral --format=esm --target=es2022 --outfile=supabase/functions/contracts/bundle.js"
+    "build:edge": "esbuild supabase/functions/contracts/source.ts --bundle --platform=neutral --format=esm --target=es2022 --outfile=supabase/functions/contracts/bundle.js",
+    "smoke:cert": "npm --workspace @mahjong-brain/api run smoke:cert"
   },
   "dependencies": {
     "@capacitor/core": "^8.5.0",
