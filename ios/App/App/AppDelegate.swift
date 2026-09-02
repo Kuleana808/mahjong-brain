@@ -1,5 +1,6 @@
 import UIKit
 import Capacitor
+import AVFoundation
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -7,8 +8,55 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        // Override point for customization after application launch.
+        configureAudioSession()
+        observeAudioInterruptions()
         return true
+    }
+
+    /**
+     * A WKWebView with no configured category inherits `soloAmbient`, which
+     * STOPS whatever the player was already listening to the moment the app
+     * launches. Someone playing a calm tile game over a podcast loses the
+     * podcast — which is most of what "the audio is weird" turns out to mean.
+     *
+     * `.ambient` is the correct category for optional game audio: it mixes
+     * with other apps rather than interrupting them, and it obeys the
+     * ring/silent switch. Both are what a player expects here.
+     */
+    private func configureAudioSession() {
+        do {
+            try AVAudioSession.sharedInstance().setCategory(.ambient, mode: .default)
+            try AVAudioSession.sharedInstance().setActive(true)
+        } catch {
+            // Audio is never allowed to block launch.
+        }
+    }
+
+    /**
+     * A phone call, an alarm or Siri deactivates the session. Without this the
+     * session stays inactive afterwards and the game is silent for the rest of
+     * the run — the WebAudio context alone cannot bring it back.
+     */
+    private func observeAudioInterruptions() {
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleAudioInterruption(_:)),
+            name: AVAudioSession.interruptionNotification,
+            object: AVAudioSession.sharedInstance(),
+        )
+    }
+
+    @objc private func handleAudioInterruption(_ notification: Notification) {
+        guard
+            let info = notification.userInfo,
+            let raw = info[AVAudioSessionInterruptionTypeKey] as? UInt,
+            let type = AVAudioSession.InterruptionType(rawValue: raw)
+        else { return }
+
+        // Only reactivate on .ended. Reactivating during .began would fight
+        // the interrupting app for the session.
+        guard type == .ended else { return }
+        try? AVAudioSession.sharedInstance().setActive(true)
     }
 
     func applicationWillResignActive(_ application: UIApplication) {
@@ -26,7 +74,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 
     func applicationDidBecomeActive(_ application: UIApplication) {
-        // Restart any tasks that were paused (or not yet started) while the application was inactive. If the application was previously in the background, optionally refresh the user interface.
+        // Returning from the background can leave the session inactive even
+        // without a formal interruption notification, so reassert it here too.
+        try? AVAudioSession.sharedInstance().setActive(true)
     }
 
     func applicationWillTerminate(_ application: UIApplication) {

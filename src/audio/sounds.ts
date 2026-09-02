@@ -42,10 +42,34 @@ function stopAmbientMusic(): void {
   window.setTimeout(() => active.oscillators.forEach((oscillator) => oscillator.stop()), 900);
 }
 
+/**
+ * Resume a context the platform suspended, then start.
+ *
+ * `AudioContext.resume()` is ASYNCHRONOUS. The previous version called
+ * `audioContext()` (which fires resume) and then immediately bailed on
+ * `state !== 'running'` — so returning from the background, or coming back from
+ * a phone call, left the music silently dead until something else happened to
+ * restart it. That is the "audio goes weird after a while" symptom.
+ */
 function startAmbientMusic(): void {
   if (!musicEnabled || musicNodes || document.visibilityState === 'hidden') return;
   const ctx = audioContext();
-  if (!ctx || ctx.state !== 'running') return;
+  if (!ctx) return;
+  if (ctx.state !== 'running') {
+    void ctx
+      .resume()
+      .then(() => {
+        // Re-check: the player may have turned music off, backgrounded the
+        // app, or started music another way while resume was in flight.
+        if (musicEnabled && !musicNodes && document.visibilityState !== 'hidden') {
+          startAmbientMusic();
+        }
+      })
+      .catch(() => {
+        /* A context that will not resume is silence, never an error. */
+      });
+    return;
+  }
 
   const gain = ctx.createGain();
   const filter = ctx.createBiquadFilter();
@@ -65,6 +89,23 @@ function startAmbientMusic(): void {
     return oscillator;
   });
   musicNodes = { oscillators, gain };
+}
+
+/**
+ * Bring audio back after the platform took it away.
+ *
+ * Called when the app returns to the foreground. On iOS a phone call, an
+ * alarm or Siri suspends the WebAudio context; the native side reactivates the
+ * AVAudioSession, and this reattaches the web side to it. Safe to call often.
+ */
+export function resumeAudio(): void {
+  const ctx = audioContext();
+  if (!ctx) return;
+  if (ctx.state !== 'running') {
+    void ctx.resume().then(() => startAmbientMusic()).catch(() => undefined);
+    return;
+  }
+  startAmbientMusic();
 }
 
 export function setAmbientMusicEnabled(enabled: boolean): void {
