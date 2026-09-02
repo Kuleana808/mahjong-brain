@@ -14,7 +14,7 @@ import {
   type NativeAccessibilityPreferences,
 } from '../accessibility/native';
 import { configureNativePurchases } from '../iap';
-import { setAmbientMusicEnabled } from '../audio/sounds';
+import { setAmbientMusicEnabled, resumeAudio } from '../audio/sounds';
 import { flushPersisted } from '../state/persist';
 import { useGame } from '../state/store';
 import { startTelemetryLifecycle } from '../telemetry/client';
@@ -100,6 +100,22 @@ export function App() {
     setAmbientMusicEnabled(settings.music);
     return () => setAmbientMusicEnabled(false);
   }, [settings.music]);
+
+  // Reattach audio when the app comes back. iOS suspends the WebAudio context
+  // for a phone call, an alarm or Siri, and nothing on the web side notices
+  // until something tries to play — which is why sound could stay dead for the
+  // rest of a session after an interruption.
+  useEffect(() => {
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') resumeAudio();
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    window.addEventListener('focus', onVisible);
+    return () => {
+      document.removeEventListener('visibilitychange', onVisible);
+      window.removeEventListener('focus', onVisible);
+    };
+  }, []);
 
   if (!hydrated) {
     return (

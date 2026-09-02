@@ -75,7 +75,12 @@ const SPECS: readonly LayoutSpec[] = [
       { offset: [1, 1.5], rows: ['.######.', '.######.', '########', '########', '########', '.######.', '..####..'] },
       { offset: [1, 3], rows: ['..####..', '########', '########', '..####..'] },
       { offset: [3, 4], rows: ['####', '####'] },
-      { offset: [3, 0.5], rows: ['#..#'] },
+      // The crown. Its y offset was 0.5 while the layer beneath it spans y 4-5,
+      // so both crown tiles floated roughly three and a half tile-widths clear
+      // of the stack: nothing under them, nothing beside them, permanently free
+      // and drawn hovering over open felt. 4.5 straddles the two rows of the
+      // z=3 block, which is where a crown belongs.
+      { offset: [3, 4.5], rows: ['#..#'] },
     ],
   },
   {
