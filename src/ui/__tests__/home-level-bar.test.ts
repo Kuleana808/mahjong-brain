@@ -66,13 +66,31 @@ describe('home level bar', () => {
     expect(bar.xpToNext).toBe(xpForLevel(4) - xpForLevel(3));
   });
 
+  it('never captions "0 XP to Level N", which reads as a broken counter', () => {
+    // Found in the UI sweep, 2026-09-02. A profile carrying xp at or past the
+    // next threshold while still labelled the lower level rendered an EMPTY bar
+    // captioned "0 XP to Level 2". XP is authoritative, so the level is derived
+    // from it and the two can no longer disagree.
+    const atBoundary = homeLevelBar(xpForLevel(2), 1);
+
+    expect(atBoundary.nextLevel).toBe(3);
+    expect(atBoundary.xpToNext).toBeGreaterThan(0);
+
+    // And well past it.
+    const wayPast = homeLevelBar(xpForLevel(6), 1);
+    expect(wayPast.nextLevel).toBe(7);
+    expect(wayPast.xpToNext).toBeGreaterThan(0);
+  });
+
   it('never reports negative XP remaining when XP overshoots the boundary', () => {
     // Progression is a ratchet and XP can sit above the level it was derived
     // from during reconciliation. "-40 XP to Level 3" must never render.
     const bar = homeLevelBar(xpForLevel(5), 2);
 
-    expect(bar.xpToNext).toBe(0);
-    expect(bar.xpToNext).toBeGreaterThanOrEqual(0);
+    // The level is now derived from XP, so an overshooting profile reports
+    // progress toward the level it has actually reached rather than 0.
+    expect(bar.xpToNext).toBeGreaterThan(0);
+    expect(bar.nextLevel).toBe(6);
   });
 
   it('keeps the fill inside the track for every level in a long run', () => {

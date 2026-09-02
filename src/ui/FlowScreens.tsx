@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import {
+  levelForXp,
   levelProgress as progressionFraction,
   xpForLevel,
 } from '../../packages/core/src/progression/progression';
@@ -315,8 +316,18 @@ export function homeLevelBar(xp: number, level: number): {
   fraction: number;
   widthPercent: number;
   xpToNext: number;
+  /** The level the player is actually on, derived from XP. */
+  currentLevel: number;
   nextLevel: number;
 } {
+  // XP is authoritative; the level is derived from it. Trusting the caller's
+  // `level` lets the bar and its caption disagree with each other: a profile
+  // carrying xp 120 with level 1 rendered an EMPTY bar captioned "0 XP to
+  // Level 2", which reads as a broken counter. Progression is reconciled by
+  // `normalizeProgression` on hydrate, but any state that skips that path —
+  // a QA fixture, a partial migration, a future caller — must still render
+  // something true.
+  const effectiveLevel = Math.max(level, levelForXp(xp));
   const fraction = progressionFraction(xp);
   return {
     fraction,
@@ -324,8 +335,9 @@ export function homeLevelBar(xp: number, level: number): {
     // `Math.max(8, ...)` floor that caused the loading-bar misread cannot be
     // reintroduced at the call site without a test noticing.
     widthPercent: fraction * 100,
-    xpToNext: Math.max(0, xpForLevel(level + 1) - xp),
-    nextLevel: level + 1,
+    xpToNext: Math.max(0, xpForLevel(effectiveLevel + 1) - xp),
+    currentLevel: effectiveLevel,
+    nextLevel: effectiveLevel + 1,
   };
 }
 
@@ -344,7 +356,7 @@ export function HomeScreen() {
   const [dailyOpen, setDailyOpen] = useState(Boolean(qaDaily));
   const [themeOpen, setThemeOpen] = useState(qaTheme === 'S19-theme-tiles' || qaTheme === 'S19-theme-backgrounds');
   const level = progression.level;
-  const { fraction: progress, widthPercent, xpToNext, nextLevel } = homeLevelBar(progression.xp, level);
+  const { fraction: progress, widthPercent, xpToNext, currentLevel, nextLevel } = homeLevelBar(progression.xp, level);
   const serviceNotice = /Offline|temporarily unavailable|went wrong while syncing/i.test(announcement)
     ? announcement
     : '';
@@ -369,7 +381,7 @@ export function HomeScreen() {
           aria-valuemin={0}
           aria-valuemax={100}
           aria-valuenow={Math.round(progress * 100)}
-          aria-valuetext={`Level ${level}, ${xpToNext} experience to level ${nextLevel}`}
+          aria-valuetext={`Level ${currentLevel}, ${xpToNext} experience to level ${nextLevel}`}
         >
           <span style={{ width: `${widthPercent}%` }} />
         </div>
@@ -426,6 +438,9 @@ export function ResultScreen() {
   const announcement = useGame((s) => s.announcement);
   const reviveRound = useGame((s) => s.useRevive);
   const continueAfterBoard = useGame((s) => s.continueAfterBoard);
+  const progression = useGame((s) => s.progression);
+  const justLeveledUp = useGame((s) => s.justLeveledUp);
+  const { widthPercent, xpToNext, currentLevel, nextLevel } = homeLevelBar(progression.xp, progression.level);
   return (
     <ScreenFrame className="flow-screen--result">
       <div className="result-card" role="dialog" aria-modal="true" aria-labelledby="result-title">
@@ -439,6 +454,28 @@ export function ResultScreen() {
               ? 'Your first board is complete.'
               : `${completed} boards complete.`}
         </p>
+        {/* Progress belongs on the screen that follows a finished board.
+            Levels were previously advanced silently: XP moved, the level could
+            change, and nothing on screen said so — the only feedback was on the
+            home screen afterwards, which is too late to feel like a reward. */}
+        {!isFull ? (
+          <div className="result-progress">
+            {justLeveledUp ? (
+              <p className="result-levelup" role="status">Level {currentLevel} reached</p>
+            ) : null}
+            <div
+              className="result-progress__bar"
+              role="progressbar"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={Math.round(widthPercent)}
+              aria-valuetext={`Level ${currentLevel}, ${xpToNext} experience to level ${nextLevel}`}
+            >
+              <span style={{ width: `${widthPercent}%` }} />
+            </div>
+            <p className="result-progress__caption">{xpToNext} XP to Level {nextLevel}</p>
+          </div>
+        ) : null}
         {isFull ? (
           <button type="button" className="primary-button" disabled={revivePending} onClick={() => void reviveRound()}>
             {revivePending ? 'Loading ad…' : inventory.revive > 0 ? `Revive · ${inventory.revive} available` : 'Revive with ad'}

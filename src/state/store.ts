@@ -142,6 +142,12 @@ interface GameStore {
   hint: Hint | null;
   hintPending: boolean;
   revivePending: boolean;
+  /**
+   * True when the board that just finished crossed a level boundary. Read by
+   * the result screen and cleared when the player leaves it, so the
+   * celebration shows exactly once.
+   */
+  justLeveledUp: boolean;
   /** Announced to screen readers via aria-live. */
   announcement: string;
 
@@ -328,6 +334,7 @@ export const useGame = create<GameStore>((set, get) => {
     hint: null,
     hintPending: false,
     revivePending: false,
+  justLeveledUp: false,
     announcement: '',
 
     settings: DEFAULT_SETTINGS,
@@ -1042,17 +1049,21 @@ export const useGame = create<GameStore>((set, get) => {
       completed &&
       total === PAYWALL_AFTER_BOARDS;
 
+    const crossedLevel = leveledUp(progression, nextProgression);
+
     set({
       profile: nextProfile,
       progression: nextProgression,
+      justLeveledUp: crossedLevel,
       boardsCompleted: total,
       // Once, after the third finished board, and never for someone who has
       // already paid. Not before a board, not mid-board, not on a timer.
       paywallOpen: shouldOpenPaywall,
     });
+
     // The level-up sparkle, after the win sound rather than on top of it, so
     // the two read as a sequence instead of a clash.
-    if (leveledUp(progression, nextProgression)) {
+    if (crossedLevel) {
       // Plain setTimeout, not window.setTimeout: the store also runs under Node
       // in tests, where there is no window. playSound is already a no-op there.
       setTimeout(() => playSound('level-up', get().settings.sounds), 520);
