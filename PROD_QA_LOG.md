@@ -102,6 +102,49 @@ Two independent causes, both fixed:
 
 ---
 
+## The hum (2026-09-02, second pass)
+
+> Brent: "There is a hum for the sound in the app that isn't pleasant."
+
+**Root cause: the ambient music WAS the hum.** Not an artifact in it — the
+thing itself. The bed was three oscillators at 146.83 / 220 / 293.66 Hz,
+started once and never stopped or modulated, under a 920 Hz lowpass. A
+sustained low chord playing forever is the acoustic definition of a hum.
+
+None of the six suspected causes applied: there are no audio files in the repo
+at all, so a bad recording, a loop-point artifact, a sample-rate mismatch and a
+silent buffer are all impossible; and the session category was already `.ambient`
+rather than `.playAndRecord` from the earlier pass.
+
+**Fix.** Sounds are now data (`src/audio/spec.ts`) and the bed is a slow
+sequence of struck bell tones, one every 3.4 s, each decaying to silence before
+the next. Nothing sustains, so nothing can drone. No partial anywhere in the
+game sits below 180 Hz, and a 150 Hz highpass backstops the noise bursts.
+
+**Measured, in the browser's real WebAudio engine via OfflineAudioContext:**
+
+| measure | old drone | new bed | test threshold |
+|---|---:|---:|---:|
+| 146.83 Hz energy / peak | 0.1811 | **0.0001** | < 0.02 |
+| tail / peak (does it decay?) | 0.9042 | **0** | < 0.01 |
+
+**Regression:** `tests/gameplay/audio-analysis.test.ts` renders every sound to a
+buffer and measures DC offset, energy at 50/60/120/146.83 Hz, clipping, and
+whether the bed decays. Re-rendering the old drone through the same maths fails
+it 9x over on hum energy and 90x over on sustain.
+
+Also fixed while measuring: the ambient bed was **louder than the quietest sound
+effect** (0.022 vs 0.020). Now 0.016, and a test enforces the ordering.
+
+| # | Item | Result |
+|---|---|---|
+| Hum root-caused and removed | | **PASS** |
+| No DC offset in any sound | | **PASS** — all < 1e-3 |
+| No persistent low-frequency energy | | **PASS** — all < 2% of peak |
+| No clipping | | **PASS** |
+| Music quieter than effects | | **PASS** — enforced by test |
+| Hum gone on a real device | | **NOT TESTED — no device paired** |
+
 ## Risks and what was not tested
 
 1. **No physical device.** `xcrun devicectl list devices` reports none paired,
