@@ -370,6 +370,25 @@ a:focus-visible {
   background: linear-gradient(90deg, #3f9a42, #75b84b);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
 }
+/* The home bar measures LEVEL progress and must not read as the loading bar it
+   used to share a fill with. Amber is the level colour already committed to
+   main (--amber-500 / --amber-600, the same family as the Play Level button
+   directly beneath it), so this distinguishes the two without a new colour. */
+.home-progress span {
+  background: linear-gradient(90deg, var(--amber-600), var(--amber-500));
+}
+.home-level {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.home-level__caption {
+  margin: 0;
+  color: rgba(245, 236, 213, 0.78);
+  font-size: calc(0.95rem * var(--font-scale));
+  letter-spacing: 0.01em;
+}
 .progress-track span { width: 68%; animation: load 900ms ease-out both; }
 
 .tutorial-progress { display: flex; gap: 10px; margin-bottom: 28px; }
