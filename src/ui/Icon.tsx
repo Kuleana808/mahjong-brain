@@ -1,4 +1,15 @@
-export type IconName = 'profile' | 'daily' | 'settings' | 'menu' | 'hint' | 'undo' | 'shuffle' | 'back' | 'close';
+export type IconName =
+  | 'profile'
+  | 'daily'
+  | 'settings'
+  | 'menu'
+  | 'hint'
+  | 'undo'
+  | 'shuffle'
+  | 'back'
+  | 'close'
+  | 'sound-on'
+  | 'sound-off';
 
 export function Icon({ name, size = 26 }: { name: IconName; size?: number }) {
   const common = {
@@ -20,6 +31,22 @@ export function Icon({ name, size = 26 }: { name: IconName; size?: number }) {
   if (name === 'hint') return <svg {...common}><path d="M8.2 15.4c-1.4-1.1-2.2-2.8-2.2-4.6a6 6 0 0 1 12 0c0 1.8-.8 3.5-2.2 4.6-.8.7-1.2 1.3-1.2 2.1H9.4c0-.8-.4-1.4-1.2-2.1Z" /><path d="M9.5 20.5h5M10 17.5h4" /></svg>;
   if (name === 'undo') return <svg {...common} className="icon icon--undo"><path d="M8 7H3v-5" /><path d="M3.7 6.3A8.5 8.5 0 1 1 4 18" /></svg>;
   if (name === 'shuffle') return <svg {...common}><path d="M3 7h3.5c5 0 5 10 10 10H21M18 14l3 3-3 3M3 17h3.5c1.7 0 2.8-1.2 3.8-2.8M14 8.5c.7-.9 1.5-1.5 2.7-1.5H21M18 4l3 3-3 3" /></svg>;
+  // The speaker body is identical in both states so the button does not jump
+  // when it toggles; only the waves and the slash change.
+  if (name === 'sound-on')
+    return (
+      <svg {...common}>
+        <path d="M4 9.5h3.2L12 5.5v13l-4.8-4H4z" />
+        <path d="M16 9.2a4 4 0 0 1 0 5.6M18.6 6.6a7.6 7.6 0 0 1 0 10.8" />
+      </svg>
+    );
+  if (name === 'sound-off')
+    return (
+      <svg {...common}>
+        <path d="M4 9.5h3.2L12 5.5v13l-4.8-4H4z" />
+        <path d="M16.5 9.8l5 4.4M21.5 9.8l-5 4.4" />
+      </svg>
+    );
   if (name === 'back') return <svg {...common}><path d="M15.5 4 7.5 12l8 8" /></svg>;
   return <svg {...common}><path d="M5 5l14 14M19 5 5 19" /></svg>;
 }
