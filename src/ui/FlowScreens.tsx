@@ -1,5 +1,8 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { levelProgress as progressionFraction } from '../../packages/core/src/progression/progression';
+import {
+  levelProgress as progressionFraction,
+  xpForLevel,
+} from '../../packages/core/src/progression/progression';
 import { useGame } from '../state/store';
 import { Icon } from './Icon';
 import { DailyRewardSheet, type DailyRewardFixture } from './DailyRewardSheet';
@@ -262,6 +265,36 @@ export function TutorialHolderScreen() {
   );
 }
 
+/**
+ * What the home screen's level bar shows.
+ *
+ * Extracted so it is testable, and because the bar has a history: it used to
+ * be an unlabelled track that shared its fill styling with `.progress-track`
+ * on the loading screen, and its width was padded with `Math.max(8, ...)`. A
+ * brand-new player at zero XP therefore saw a sliver of the same green under
+ * the logo and read the app as still loading (Brent, 2026-09-01).
+ *
+ * Two properties keep that from coming back: `fraction` is honest at zero, and
+ * `xpToNext` gives the bar something to say about itself.
+ */
+export function homeLevelBar(xp: number, level: number): {
+  fraction: number;
+  widthPercent: number;
+  xpToNext: number;
+  nextLevel: number;
+} {
+  const fraction = progressionFraction(xp);
+  return {
+    fraction,
+    // The rendered width lives here, not in the component, so the padded
+    // `Math.max(8, ...)` floor that caused the loading-bar misread cannot be
+    // reintroduced at the call site without a test noticing.
+    widthPercent: fraction * 100,
+    xpToNext: Math.max(0, xpForLevel(level + 1) - xp),
+    nextLevel: level + 1,
+  };
+}
+
 export function HomeScreen() {
   const dispatch = useGame((s) => s.dispatchFlow);
   const openSettings = useGame((s) => s.openSettings);
@@ -277,7 +310,7 @@ export function HomeScreen() {
   const [dailyOpen, setDailyOpen] = useState(Boolean(qaDaily));
   const [themeOpen, setThemeOpen] = useState(qaTheme === 'S19-theme-tiles' || qaTheme === 'S19-theme-backgrounds');
   const level = progression.level;
-  const progress = progressionFraction(progression.xp);
+  const { fraction: progress, widthPercent, xpToNext, nextLevel } = homeLevelBar(progression.xp, level);
   const serviceNotice = /Offline|temporarily unavailable|went wrong while syncing/i.test(announcement)
     ? announcement
     : '';
@@ -289,8 +322,26 @@ export function HomeScreen() {
         <BrandMark />
         <span className="home-mark__tile home-mark__tile--right">●<br />●</span>
       </div>
-      <div className="home-progress" aria-label={`Level progress ${Math.round(progress * 100)} percent`}>
-        <span style={{ width: `${Math.max(8, progress * 100)}%` }} />
+      {/* This is LEVEL progress, not loading. It used to be an unlabelled track
+          sharing its fill styling with `.progress-track` on the loading screen,
+          padded to a minimum 8% width — so a brand-new player at zero XP saw a
+          sliver of green under the logo and read the app as still loading.
+          It now states what it measures, empties properly at zero, and carries
+          real progressbar semantics instead of a bare aria-label. */}
+      <div className="home-level">
+        <div
+          className="home-progress"
+          role="progressbar"
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={Math.round(progress * 100)}
+          aria-valuetext={`Level ${level}, ${xpToNext} experience to level ${nextLevel}`}
+        >
+          <span style={{ width: `${widthPercent}%` }} />
+        </div>
+        <p className="home-level__caption">
+          {xpToNext} XP to Level {nextLevel}
+        </p>
       </div>
       <button type="button" className="primary-button primary-button--level" onClick={() => dispatch({ type: 'start_board' })}>
         Play Level {level}
