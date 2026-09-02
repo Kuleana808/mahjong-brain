@@ -178,11 +178,24 @@ static measurement — which is worth knowing about where to spend future effort
 | U1 | **Paywall dismiss unreachable after a failed purchase.** The error paragraph pushes content past the card's `min(90dvh, 780px)` cap; "Not now" rendered at y 760-808 against a visible box ending at 771. `elementFromPoint` at the button's own centre returned `DIV.overlay`. Error state only. | **Blocker** | **FIXED** — PR #25, actions pinned in a sticky footer |
 | U2 | **Levelling up was completely invisible.** No level-up UI existed anywhere in `src/ui/`. XP moved, the level changed, nothing said so. | **High** | **FIXED** — PR #24, result screen shows the bar and a "Level N reached" line |
 | U3 | **Level bar could caption "0 XP to Level 2".** `homeLevelBar` trusted the caller's level instead of deriving it from XP; when they disagreed it rendered an empty bar with a nonsense caption, and announced a self-contradicting `aria-valuetext`. | **High** | **FIXED** — PR #24, level derived from XP |
+| U6 | **Hints appeared broken after three uses.** The engine was fine — the first three highlight a real pair. The fourth tap tries a rewarded ad, AdMob is unverified so it answers "unavailable", and the resulting sentence went only to `announcement`, which renders into a **visually-hidden** aria-live region. Button stayed enabled with a "0" badge; tapping did nothing a sighted player could see. Every player reaches this. | **Blocker** | **FIXED** — PR #27, the notice now renders in the hint bar with a dismiss |
 | U4 | **Shuffle at zero is labelled by state, not action.** `aria-label="Shuffle, 0 available"` while tapping opens the purchase sheet. Sighted players see a badge; screen-reader users are told a count and nothing about the action changing. | Medium | Punch list |
 | U5 | **Win screen shows no XP gained.** It now shows progress toward the next level, but never says how much this board earned. | Low | Punch list |
 
 Two of the three fixes were themselves verified by hit test rather than by eye,
 because U1 proves a screenshot can look correct while a control is untappable.
+
+### Stress test of the surfaces Brent named (2026-09-02)
+
+| Surface | Result |
+|---|---|
+| **Hint — happy path** | **PASS.** Badge 3→2→1→0, both tiles glow green and lift above the stack, hint bar names them ("Two 4 of Bamboo tiles, the top-right corner and along the bottom edge") with a Got it dismiss, and the live region announces it. |
+| **Hint — exhausted** | **WAS BROKEN → FIXED.** See U6. |
+| **Hint — deadlock** | **PASS.** A stuck board shows "No pairs left to take. A shuffle keeps the same tiles." with a Shuffle button, or — when fewer than two tiles are free and no shuffle could help — the honest "These last tiles are stacked, so nothing can free them. Nothing you did wrong." with New board. It never offers a button that would visibly do nothing. |
+| **Undo** | **PASS.** 142 → 143 tiles, stays enabled for a further undo, correctly disabled on a fresh board. |
+| **Reshuffle** | **PASS.** Consumes one from inventory, re-deals, and at zero opens the purchase sheet rather than failing silently. Note: a shuffle also returns held tiles to the board — that is deliberate and documented in `session.ts` ("Shuffle is its own assistance action, never also counted as a revive"), not a defect. |
+| **XP display after a match** | **PASS after U2/U3.** The result screen now carries the level bar and caption; before PR #24 it showed nothing. |
+| **Level-up at threshold** | **PASS after U2.** `justLeveledUp` drives a "Level N reached" line, shown once, paired with the level-up sparkle. |
 
 ### Competitor comparison — not done as specified
 
